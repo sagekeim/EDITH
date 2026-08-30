@@ -51,11 +51,11 @@
     <div class="hud-grid">
         <div>
             <div class="hud-text">//E.D.I.T.H. OS v1.8</div>
-            <div id="status" class="hud-text">//STATUS: INSTANT ENGAGE</div>
-            <div id="action" class="hud-text">//CONNECTING CAMERA VECTOR LINK...</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//INITIALIZING CAMERA FEED...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
+            <div id="clock" class="hud-text">TIME: WAITING</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -94,19 +94,17 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // 1. Clock Loop (Starts completely automatically)
+        // Clean Clock Loop
         function startClockEngine() {
-            function updateClock() {
+            setInterval(() => {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            }
-            setInterval(updateClock, 1000);
-            updateClock();
+            }, 1000);
         }
 
-        // 2. HUD Loop (Starts completely automatically)
+        // Clean Graphics Loop
         function startGraphicsEngine() {
-            function renderHUD() {
+            setInterval(() => {
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
@@ -136,23 +134,7 @@
                 
                 ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
                 ctx.restore();
-            }
-            setInterval(renderHUD, 30);
-        }
-
-        // 3. Hardware Video Channel Connection
-        async function connectOpticalCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
-                video.srcObject = stream;
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. systems stable.");
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//CAMERA PERMISSION BLOCKED. RE-ALLOW IN BROWSER HINT BOX.";
-            }
+            }, 30);
         }
 
         function getColorSample() {
@@ -174,7 +156,6 @@
             }
         }
 
-        // 4. Comparison Logic Sweeper
         function startRadarEngine() {
             setInterval(() => {
                 if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
@@ -205,13 +186,28 @@
             }
         });
 
-        // FORCE AUTOMATIC UNLOCK SEQUENCE ON LOAD
-        window.addEventListener('DOMContentLoaded', () => {
+        // Safe Initialization Chain
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA ACCESS INITIALIZATION ERROR";
+            }
+        }
+
+        // CRITICAL FIX: Wait until the video hardware starts streaming *before* turning on the rest of the website
+        video.addEventListener('playing', () => {
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+            speak("E.D.I.T.H. systems stable.");
             startClockEngine();
             startGraphicsEngine();
             startRadarEngine();
-            connectOpticalCamera();
         });
+
+        // Run the camera link right away
+        initCamera();
     </script>
 </body>
 </html>
