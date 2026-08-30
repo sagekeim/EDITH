@@ -37,6 +37,7 @@
             margin-top: 500px;
             color: #888;
             font-size: 14px;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -52,7 +53,7 @@
     </div>
 
     <div class="instructions">
-        // PRESS THE [SPACEBAR] TO ACTIVATE TARGET BIOMETRIC IDENTIFICATION.
+        // TACTICAL SYSTEM STATE: PASSIVE HANDS-FREE AUTOMATIC RECOGNITION ENGAGED.
     </div>
 
     <script>
@@ -64,6 +65,7 @@
 
         let isIdentifying = false;
         let identifiedLabel = "";
+        let hasAnnouncedWelcome = false; // Prevents her from repeating welcome over and over
         let scanY = 0;
         let scanDirection = 1;
 
@@ -78,8 +80,11 @@
                     video: { width: 640, height: 480 } 
                 });
                 video.srcObject = stream;
-                speak("E.D.I.T.H. systems online. Biometric scanner ready.");
+                speak("E.D.I.T.H. automated tracking loop active.");
                 initTacticalHUD();
+                
+                // START THE AUTOMATIC BACKSTAGE SCANNER ENGINE!
+                startAutomaticScannerEngine();
             } catch (err) {
                 console.error(err);
                 actionText.innerText = "//ERROR: HARDWARE INITIALIZATION FAILED";
@@ -92,7 +97,7 @@
             setInterval(() => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Laser scan line calculation
+                // Laser scan line moves smoothly at 30fps
                 ctx.strokeStyle = isIdentifying ? 'rgba(255, 0, 0, 0.6)' : 'rgba(0, 191, 255, 0.3)';
                 ctx.lineWidth = isIdentifying ? 4 : 2;
                 ctx.beginPath();
@@ -103,7 +108,7 @@
                 scanY += (isIdentifying ? 15 : 4) * scanDirection;
                 if (scanY > canvas.height - 10 || scanY < 10) scanDirection *= -1;
 
-                // Create a sleek bounding box matching where your head naturally sits
+                // Center bounding wireframe
                 const boxX = 220;
                 const boxY = 100;
                 const boxW = 200;
@@ -115,7 +120,7 @@
                 ctx.shadowColor = isIdentifying ? '#ff3333' : '#00bfff';
                 ctx.strokeRect(boxX, boxY, boxW, boxH);
                 
-                // Unflip canvas context to draw normal left-to-right text
+                // Convert text left-to-right alignment axis
                 ctx.save();
                 ctx.scale(-1, 1);
                 
@@ -125,7 +130,7 @@
                 
                 let hudLabel = "AI SCANNER LOCK: ALIGNED";
                 if (isIdentifying) {
-                    hudLabel = "RUNNING BIOMETRIC MATCH...";
+                    hudLabel = "AUTOMATIC BIOMETRIC MATCH...";
                 } else if (identifiedLabel !== "") {
                     hudLabel = identifiedLabel;
                 }
@@ -139,26 +144,29 @@
             }, 30);
         }
 
-        function performBiometricScan() {
-            setTimeout(() => {
-                isIdentifying = false;
-                identifiedLabel = `TARGET MATCHED: ${TARGET_NAME.toUpperCase()}`;
-                actionText.innerText = `//TARGET MATCH FOUND: ${TARGET_NAME.toUpperCase()}`;
-                speak(`Welcome back, ${TARGET_NAME}. Access granted.`);
-            }, 2000); 
-        }
+        // This background function loops completely hands-free on its own!
+        function startAutomaticScannerEngine() {
+            setInterval(() => {
+                if (isIdentifying) return; // Wait if it is already reading a match
 
-        window.addEventListener('keydown', (event) => {
-            if (event.code === "Space" && !isIdentifying) {
                 isIdentifying = true;
                 identifiedLabel = "";
-                actionText.innerText = "//ANALYZING BIOMETRIC EMBEDDINGS...";
-                speak("Scanning target faceprint. Querying local database registry.");
-                performBiometricScan();
-            }
-        });
+                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
 
-        startEDITH();
+                setTimeout(() => {
+                    isIdentifying = false;
+                    identifiedLabel = `TARGET MATCHED: ${TARGET_NAME.toUpperCase()}`;
+                    actionText.innerText = `//TARGET MATCH FOUND: ${TARGET_NAME.toUpperCase()}`;
+                    
+                    // Only say welcome once when you step in front of the lens!
+                    if (!hasAnnouncedWelcome) {
+                        speak(`Welcome back, ${TARGET_NAME}. All tactical systems operational.`);
+                        hasAnnouncedWelcome = true;
+                    }
+                }, 1500); // Takes 1.5 seconds to passively recognize you
+
+            }, 4000); // Runs a hands-free radar sweep automatically every 4 seconds!
+        }
     </script>
 </body>
 </html>
