@@ -1,3 +1,4 @@
+                
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,19 +42,18 @@
         .instructions {
             margin-top: 500px;
             color: #888;
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.6;
         }
     </style>
 </head>
 <body>
 
-    <!-- Upper Dashboard Readouts -->
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v1.0</div>
-            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+            <div class="hud-text">//E.D.I.T.H. OS v1.3</div>
+            <div id="status" class="hud-text">//STATUS: SETUP MODE</div>
+            <div id="action" class="hud-text">//CALIBRATING BIOMETRIC MATRICES...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: 00:00:00</div>
@@ -67,139 +67,149 @@
     </div>
 
     <div class="instructions">
-        // TACTICAL HUD CORE V1.2. HANDS-FREE BIOMETRIC INTEL ENGAGED.
+        <span style="color: #00bfff;">[STEP 1]</span> Center your face in the box and press the <b style="color:#fff;">[S] key</b> to calibrate your signature.<br>
+        <span style="color: #ffaa00;">[STEP 2]</span> Have a friend center their face and press the <b style="color:#fff;">[G] key</b> to calibrate Guest signature.<br>
+        <span style="color: #00ff00;">[STATUS]</span> Once both keys are mapped, the glasses enter hands-free tracking!
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
-        const batteryText = document.getElementById('battery');
 
-        const TARGET_NAME = "Sage Keim";
+        // Target Names
+        const PROFILE_A_NAME = "Sage Keim";
+        const PROFILE_B_NAME = "Tony Stark"; // Change this to a friend's name if you want!
+
+        // Memory Slots to save the math data
+        let signatureA = null;
+        let signatureB = null;
 
         let isIdentifying = false;
         let identifiedLabel = "";
-        let hasAnnouncedWelcome = false;
         let scanY = 0;
         let scanDirection = 1;
-        let batteryPct = 98;
+        let lastSpokenTarget = "";
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(utterance);
         }
 
-        // Live Clock logic tracking real local time
         function updateClock() {
             const now = new Date();
-            const timeString = now.toTimeString().split(' ')[0];
-            clockText.innerText = `TIME: ${timeString}`;
+            clockText.innerText = `TIME: ${now.toTimeString().split(' ')[0]}`;
         }
         setInterval(updateClock, 1000);
 
-        // Simulated battery draining over time
-        function updateBattery() {
-            if (batteryPct > 5) {
-                batteryPct -= 1;
-                let bars = "|".repeat(Math.ceil(batteryPct / 20));
-                batteryText.innerText = `BATT: ${batteryPct}% [${bars}]`;
-            }
-        }
-        setInterval(updateBattery, 30000); // Drims down slowly
-
         async function startEDITH() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                speak("E.D.I.T.H. systems initialized. HUD data displays loading.");
+                speak("E.D.I.T.H. calibration sequence engaged. Please scan baseline signatures.");
                 initTacticalHUD();
-                startAutomaticScannerEngine();
+                startPassiveTrackingEngine();
             } catch (err) {
-                console.error(err);
                 actionText.innerText = "//ERROR: HARDWARE INITIALIZATION FAILED";
             }
         }
 
         function initTacticalHUD() {
             const ctx = canvas.getContext('2d');
-
             setInterval(() => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Laser scan line calculation
+                // Animated tracking bar
                 ctx.strokeStyle = isIdentifying ? 'rgba(255, 0, 0, 0.6)' : 'rgba(0, 191, 255, 0.3)';
-                ctx.lineWidth = isIdentifying ? 4 : 2;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(10, scanY);
                 ctx.lineTo(canvas.width - 10, scanY);
                 ctx.stroke();
                 
-                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                scanY += (isIdentifying ? 12 : 4) * scanDirection;
                 if (scanY > canvas.height - 10 || scanY < 10) scanDirection *= -1;
 
-                // Targeting boundaries
-                const boxX = 220;
-                const boxY = 100;
-                const boxW = 200;
-                const boxH = 260;
-
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : '#00bfff';
-                ctx.lineWidth = isIdentifying ? 5 : 3;
-                ctx.shadowBlur = isIdentifying ? 20 : 8;
-                ctx.shadowColor = isIdentifying ? '#ff3333' : '#00bfff';
+                // Scanner target frame
+                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+                ctx.strokeStyle = (signatureA && signatureB) ? '#00ff00' : '#00bfff';
+                ctx.lineWidth = 3;
                 ctx.strokeRect(boxX, boxY, boxW, boxH);
                 
-                // Unflip canvas alignment for clean reading direction
+                // Draw normal un-mirrored text
                 ctx.save();
                 ctx.scale(-1, 1);
-                
-                ctx.fillStyle = isIdentifying ? '#ff3333' : '#00bfff';
+                ctx.fillStyle = '#00bfff';
                 ctx.font = 'bold 13px Courier New';
-                ctx.shadowBlur = 0;
                 
-                let hudLabel = "AI SCANNER LOCK: ALIGNED";
-                if (isIdentifying) {
-                    hudLabel = "AUTOMATIC BIOMETRIC MATCH...";
-                } else if (identifiedLabel !== "") {
-                    hudLabel = identifiedLabel;
-                }
+                let label = "SYSTEM UNCALIBRATED: WAITING FOR KEYS";
+                if (signatureA && !signatureB) label = "SAGE RECORDED. WAITING FOR GUEST [G]";
+                if (signatureA && signatureB) label = identifiedLabel || "AUTOMATIC PASSIVE RADAR: LOCK";
                 
-                const textX = -(boxX + boxW) + 5;
-                const textY = boxY - 10;
-                ctx.fillText(hudLabel, textX, textY);
-                
-                ctx.restore(); 
-
+                ctx.fillText(label, -(boxX + boxW) + 5, boxY - 10);
+                ctx.restore();
             }, 30);
         }
 
-        function startAutomaticScannerEngine() {
+        // Grabs the color footprint inside the targeting box
+        function getTargetColorSignature() {
+            const hiddenCanvas = document.createElement('canvas');
+            hiddenCanvas.width = 640; hiddenCanvas.height = 480;
+            const ctx = hiddenCanvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 640, 480);
+            
+            // Look closely at the pixel grid values inside the tracking window
+            const imgData = ctx.getImageData(220, 100, 200, 260).data;
+            let rSum = 0; let gSum = 0; let bSum = 0;
+            
+            for (let i = 0; i < imgData.length; i += 4) {
+                rSum += imgData[i];
+                gSum += imgData[i+1];
+                bSum += imgData[i+2];
+            }
+            
+            const totalPixels = imgData.length / 4;
+            return { r: rSum / totalPixels, g: gSum / totalPixels, b: bSum / totalPixels };
+        }
+
+        // Passively evaluates the video loop completely hands-free!
+        function startPassiveTrackingEngine() {
             setInterval(() => {
-                if (isIdentifying) return;
+                // Only start automatic checking once BOTH slots have been mapped
+                if (!signatureA || !signatureB || isIdentifying) return;
+
+                const currentSig = getTargetColorSignature();
+                
+                // Multi-dimensional mathematical distance mapping (checks who you look closer to)
+                const distA = Math.sqrt(Math.pow(currentSig.r - signatureA.r, 2) + Math.pow(currentSig.g - signatureA.g, 2) + Math.pow(currentSig.b - signatureA.b, 2));
+                const distB = Math.sqrt(Math.pow(currentSig.r - signatureB.r, 2) + Math.pow(currentSig.g - signatureB.g, 2) + Math.pow(currentSig.b - signatureB.b, 2));
 
                 isIdentifying = true;
-                identifiedLabel = "";
-                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
+                actionText.innerText = "//PASSIVE SCANNER: ANALYZING STRUCTURAL VECTORS...";
 
                 setTimeout(() => {
                     isIdentifying = false;
-                    identifiedLabel = `TARGET MATCHED: ${TARGET_NAME.toUpperCase()}`;
-                    actionText.innerText = `//TARGET MATCH FOUND: ${TARGET_NAME.toUpperCase()}`;
                     
-                    if (!hasAnnouncedWelcome) {
-                        speak(`Welcome back, ${TARGET_NAME}. Operations authorized.`);
-                        hasAnnouncedWelcome = true;
-                    }
-                }, 1500); 
+                    // Route match results to whichever profile vector has a closer mathematical value
+                    if (distA  {
+            if (event.key.toLowerCase() === 's') {
+                signatureA = getTargetColorSignature();
+                speak(`${PROFILE_A_NAME} baseline biometric footprint recorded.`);
+                actionText.innerText = "//PROFILE A SIGNATURE INITIALIZED";
+                if(signatureA && signatureB) {
+                    statusText.innerText = "//STATUS: HANDS-FREE AUTOMATIC SCANNING";
+                }
+            }
+            if (event.key.toLowerCase() === 'g') {
+                signatureB = getTargetColorSignature();
+                speak(`${PROFILE_B_NAME} guest signature footprint recorded.`);
+                actionText.innerText = "//PROFILE B SIGNATURE INITIALIZED";
+                if(signatureA && signatureB) {
+                    statusText.innerText = "STATUS: HANDS-FREE AUTOMATIC SCANNING";
+                }
+            }
+        });
 
-            }, 5000); 
-        }
-
-        startEDITH();
-    </script>
-</body>
-</html>
+      
