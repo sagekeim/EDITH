@@ -44,7 +44,7 @@
 
     <div class="hud-text">//E.D.I.T.H. OS v1.0</div>
     <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-    <div id="action" class="hud-text">//ACCESSING WEBCAM...</div>
+    <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
 
     <div class="container">
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
@@ -74,20 +74,15 @@
 
         async function startEDITH() {
             try {
-                // Instantly request the camera stream (no complex AI downloads needed)
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: 640, height: 480 } 
                 });
                 video.srcObject = stream;
-                
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 speak("E.D.I.T.H. systems online. Biometric scanner ready.");
-                
                 initTacticalHUD();
             } catch (err) {
                 console.error(err);
                 actionText.innerText = "//ERROR: HARDWARE INITIALIZATION FAILED";
-                speak("Warning. System initialization failure.");
             }
         }
 
@@ -135,7 +130,6 @@
                     hudLabel = identifiedLabel;
                 }
                 
-                // Align text position above the bounding box
                 const textX = -(boxX + boxW) + 5;
                 const textY = boxY - 10;
                 ctx.fillText(hudLabel, textX, textY);
@@ -145,52 +139,21 @@
             }, 30);
         }
 
-        // Handles the real webcam image matching calculation
         function performBiometricScan() {
-            const hiddenCanvas = document.createElement('canvas');
-            hiddenCanvas.width = 640;
-            hiddenCanvas.height = 480;
-            const hiddenCtx = hiddenCanvas.getContext('2d');
-            
-            // Capture the exact video frame
-            hiddenCtx.drawImage(video, 0, 0, 640, 480);
-            const frameData = hiddenCtx.getImageData(220, 100, 200, 260).data;
-            
-            // Read through the captured pixels to analyze color signatures (brighter colors vs shadows)
-            let pixelBrightnessSum = 0;
-            for (let i = 0; i < frameData.length; i += 4) {
-                const r = frameData[i];
-                const g = frameData[i+1];
-                const b = frameData[i+2];
-                pixelBrightnessSum += (r + g + b) / 3;
-            }
-            
-            const averageBrightness = pixelBrightnessSum / (frameData.length / 4);
-
             setTimeout(() => {
                 isIdentifying = false;
-                
-                // If a real face signature is detected in front of the lens
-                if (averageBrightness > 10) { 
-                    identifiedLabel = `TARGET MATCHED: ${TARGET_NAME.toUpperCase()}`;
-                    actionText.innerText = `//TARGET MATCH FOUND: ${TARGET_NAME.toUpperCase()}`;
-                    speak(`Welcome back, ${TARGET_NAME}. Access granted.`);
-                } else {
-                    identifiedLabel = "TARGET MATCHED: UNKNOWN SUBJECT";
-                    actionText.innerText = "//ALERT: UNIDENTIFIED SIGNATURE";
-                    speak("Target identity unknown.");
-                }
-            }, 2000); // 2 seconds scanning calculation delay
+                identifiedLabel = `TARGET MATCHED: ${TARGET_NAME.toUpperCase()}`;
+                actionText.innerText = `//TARGET MATCH FOUND: ${TARGET_NAME.toUpperCase()}`;
+                speak(`Welcome back, ${TARGET_NAME}. Access granted.`);
+            }, 2000); 
         }
 
-        // Listen for spacebar to fire up the local scanner loop
         window.addEventListener('keydown', (event) => {
             if (event.code === "Space" && !isIdentifying) {
                 isIdentifying = true;
                 identifiedLabel = "";
                 actionText.innerText = "//ANALYZING BIOMETRIC EMBEDDINGS...";
                 speak("Scanning target faceprint. Querying local database registry.");
-                
                 performBiometricScan();
             }
         });
