@@ -44,20 +44,24 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .btn-panel {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-        }
-        .reset-btn {
+        .start-btn {
             background-color: #00bfff;
             color: black;
             border: none;
-            padding: 8px 15px;
+            padding: 12px 25px;
             font-family: 'Courier New', monospace;
             font-weight: bold;
+            font-size: 14px;
             cursor: pointer;
-            border-radius: 3px;
+            margin-top: 15px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px #00bfff;
+            animation: glowPulse 2s infinite;
+        }
+        @keyframes glowPulse {
+            0% { box-shadow: 0 0 5px #00bfff; }
+            50% { box-shadow: 0 0 20px #00bfff; }
+            100% { box-shadow: 0 0 5px #00bfff; }
         }
     </style>
 </head>
@@ -66,11 +70,11 @@
     <div class="hud-grid">
         <div>
             <div class="hud-text">//E.D.I.T.H. OS v1.8</div>
-            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//INITIALIZING SYSTEM GRID...</div>
+            <div id="status" class="hud-text">//STATUS: WAITING FOR START</div>
+            <div id="action" class="hud-text">//CLICK BUTTON TO INITIALIZE GRID</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -81,10 +85,9 @@
     </div>
 
     <div class="instructions">
-        <div class="btn-panel">
-            <button class="reset-btn" onclick="startEDITHCamera()">[ 🔄 REBOOT WEBCAM STREAM ]</button>
-        </div>
-        <br>
+        <!-- The manual handshake button that wakes the browser up -->
+        <button id="startBtn" class="start-btn" onclick="initializeEDITHCore()">[ 🚀 START E.D.I.T.H. SYSTEM ]</button>
+        <br><br>
         <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
         <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate.<br>
         <span style="color: #00ff00;">[SMART SPEECH]</span> She welcomes each target ONCE and stays quiet while locked!
@@ -94,9 +97,10 @@
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
+        const startBtn = document.getElementById('startBtn');
 
-        // Configuration
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
@@ -108,53 +112,89 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
+        let coreLoopsActive = false;
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(utterance);
         }
 
-        // PRIORITY 1: Clock loop turns on instantly without blocking anything
-        function updateClock() {
-            const now = new Date();
-            clockText.innerText = "TIME: " + now.toLocaleTimeString();
+        // Triggered manually to bypass the browser's security block
+        function initializeEDITHCore() {
+            // Hide the button so it looks clean once system is online
+            startBtn.style.display = "none";
+            
+            statusText.innerText = "//STATUS: ACTIVE";
+            actionText.innerText = "//CONNECTING CAMERA LINK...";
+            
+            // Turn on our timers and data engines
+            coreLoopsActive = true;
+            startClockLoop();
+            startHUDGraphicsLoop();
+            startPassiveRadarLoop();
+            
+            // Boot the hardware video channel last
+            bootWebcamStream();
         }
-        setInterval(updateClock, 1000);
-        updateClock();
 
-        // PRIORITY 2: HUD Graphics system draws text boxes and scanner lines instantly
-        function renderHUD() {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(10, scanY);
-            ctx.lineTo(canvas.width - 10, scanY);
-            ctx.stroke();
-            
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
-
-            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(boxX, boxY, boxW, boxH);
-            
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
-            if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
-            if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
-            
-            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-            ctx.restore();
+        function startClockLoop() {
+            function updateClock() {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
         }
-        setInterval(renderHUD, 30);
+
+        function startHUDGraphicsLoop() {
+            function renderHUD() {
+                if (!coreLoopsActive) return;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(10, scanY);
+                ctx.lineTo(canvas.width - 10, scanY);
+                ctx.stroke();
+                
+                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+
+                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(boxX, boxY, boxW, boxH);
+                
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.font = 'bold 13px Courier New';
+                
+                let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
+                if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
+                if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
+                
+                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+                ctx.restore();
+            }
+            setInterval(renderHUD, 30);
+        }
+
+        async function bootWebcamStream() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                video.srcObject = stream;
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("E.D.I.T.H. systems stable.");
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA ACCESS REFUSED: CHECK PRIVACY PERMISSIONS";
+            }
+        }
 
         function getColorSample() {
             try {
@@ -175,53 +215,32 @@
             }
         }
 
-        // Passive scanning system checks coordinates every 4 seconds
-        setInterval(() => {
-            if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
+        function startPassiveRadarLoop() {
+            setInterval(() => {
+                if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
 
-            const sample = getColorSample();
-            const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
-            const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
+                const sample = getColorSample();
+                const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
+                const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
 
-            isIdentifying = true;
-            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
+                isIdentifying = true;
+                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
 
-            setTimeout(() => {
-                isIdentifying = false;
-                if (diffA  {
-            if (video.readyState !== 4) return;
-            
-            if (event.key.toLowerCase() === 's') {
-                signatureA = getColorSample();
-                speak(`${PROFILE_A_NAME} profile saved.`);
-                actionText.innerText = "//SAGE PROFILE CACHED";
-                lastSpokenIdentity = ""; 
-            }
-            if (event.key.toLowerCase() === 'g') {
-                signatureB = getColorSample();
-                speak(`${PROFILE_B_NAME} profile saved.`);
-                actionText.innerText = "//GRANDMA PROFILE CACHED";
-                lastSpokenIdentity = ""; 
-            }
-        });
-
-        // PRIORITY 3: Camera is triggered last so any hardware delays can't pause the layout!
-        async function startEDITHCamera() {
-            actionText.innerText = "//CONNECTING CAMERA LINK...";
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
-                video.srcObject = stream;
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("Tactical grids initialized.");
-            } catch (err) {
-                actionText.innerText = "//CAMERA RESTRICTED: PLEASE ALLOW ACCESS";
-            }
-        }
-        
-        // Boot up camera safely in the background
-        setTimeout(startEDITHCamera, 500);
-    </script>
-</body>
-</html>
+                setTimeout(() => {
+                    isIdentifying = false;
+                    if (diffA < diffB) {
+                        identifiedLabel = `TARGET MATCHED: ${PROFILE_A_NAME.toUpperCase()}`;
+                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_A_NAME.toUpperCase()}`;
+                        currentHUDColor = "#00bfff"; 
+                        
+                        if (lastSpokenIdentity !== PROFILE_A_NAME) {
+                            speak(`Welcome back, ${PROFILE_A_NAME}.`);
+                            lastSpokenIdentity = PROFILE_A_NAME; 
+                        }
+                    } else {
+                        identifiedLabel = `TARGET MATCHED: ${PROFILE_B_NAME.toUpperCase()}`;
+                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_B_NAME.toUpperCase()}`;
+                        currentHUDColor = "#ffaa00"; 
+                        
+                        if (lastSpokenIdentity !== PROFILE_B_NAME) {
+                            speak(`Identity verified: ${PROFILE_B_NAME}.`);
