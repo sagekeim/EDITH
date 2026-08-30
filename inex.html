@@ -1,0 +1,35 @@
+<!Doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EDITH HUD</title>?/title>
+  <style>
+    body,html { margin 0; padding: overflow: hidden; background: #000;font-family: 'Courier New', monospace;}
+    #webcam { position: absolute, width: 100%; height: 100% object-fit: cover; transform: scaleX(-1); } 
+    #hud-overlay {position: absolute; width: 100%; height: 100 % border: 4px solid rgba(0, 191, 255, 0.4); box-sizing: border-box; pointer-events: none;)
+    .reticle { position: absolute; top: 50%; left: 50%; width: 120px; height: 120px border: 2px dashed #00bfff; transform: translate(-50%, -50%); border-radius: 50%; animation: spin 6s linear infinite; }
+    .system-status { position: absolute; top: 30px; left: 30px; color: #00bfff; text-shadow: 0 0 5px #00bfff; font-weight: bold; }
+    @keyframes spin { 100% {tansform: translate(-50%, -50%) rotate(360deg); }}
+  </style>
+ </head>
+<body>
+  <video id="webcam" autoplay playsinline></video>
+  <div id="hud-overlay">
+      <div class="reticle"></div>
+      <div class="system-status">
+          <p>//E.D.I.T.H OS v1.0</p>
+          <p>//STATUS: ACTIVE</p>
+          <p id="voice-output">//INITIALIZING WEBCAM...</p>
+      </div>
+  </div>
+  <script>
+      const video=document.getElementById('webcam');
+      if (navigator.mediaDevices.getUsersMedial) {
+         navigator.mediaDevices.getUserMedia({video: true})
+             .then(stream => {video.srcObject =stream; })
+             .catch(err => { console.log(Webcam error:", err); })
+      }                 
+  </script>
+</body>
+</html> 
+  
