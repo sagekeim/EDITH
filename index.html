@@ -19,10 +19,15 @@
             margin-bottom: 5px;
             text-shadow: 0 0 8px #00bfff;
         }
+        .hud-grid {
+            display: flex;
+            justify-content: space-between;
+            width: 640px;
+        }
         .container {
             position: relative;
             display: inline-block;
-            margin-top: 20px;
+            margin-top: 10px;
         }
         video, canvas {
             position: absolute;
@@ -43,9 +48,18 @@
 </head>
 <body>
 
-    <div class="hud-text">//E.D.I.T.H. OS v1.0</div>
-    <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-    <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+    <!-- Upper Dashboard Readouts -->
+    <div class="hud-grid">
+        <div>
+            <div class="hud-text">//E.D.I.T.H. OS v1.0</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+        </div>
+        <div style="text-align: right;">
+            <div id="clock" class="hud-text">TIME: 00:00:00</div>
+            <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
+        </div>
+    </div>
 
     <div class="container">
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
@@ -53,26 +67,47 @@
     </div>
 
     <div class="instructions">
-        // TACTICAL SYSTEM STATE: PASSIVE HANDS-FREE AUTOMATIC RECOGNITION ENGAGED.
+        // TACTICAL HUD CORE V1.2. HANDS-FREE BIOMETRIC INTEL ENGAGED.
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const clockText = document.getElementById('clock');
+        const batteryText = document.getElementById('battery');
 
         const TARGET_NAME = "Sage Keim";
 
         let isIdentifying = false;
         let identifiedLabel = "";
-        let hasAnnouncedWelcome = false; // Prevents her from repeating welcome over and over
+        let hasAnnouncedWelcome = false;
         let scanY = 0;
         let scanDirection = 1;
+        let batteryPct = 98;
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(utterance);
         }
+
+        // Live Clock logic tracking real local time
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toTimeString().split(' ')[0];
+            clockText.innerText = `TIME: ${timeString}`;
+        }
+        setInterval(updateClock, 1000);
+
+        // Simulated battery draining over time
+        function updateBattery() {
+            if (batteryPct > 5) {
+                batteryPct -= 1;
+                let bars = "|".repeat(Math.ceil(batteryPct / 20));
+                batteryText.innerText = `BATT: ${batteryPct}% [${bars}]`;
+            }
+        }
+        setInterval(updateBattery, 30000); // Drims down slowly
 
         async function startEDITH() {
             try {
@@ -80,10 +115,8 @@
                     video: { width: 640, height: 480 } 
                 });
                 video.srcObject = stream;
-                speak("E.D.I.T.H. automated tracking loop active.");
+                speak("E.D.I.T.H. systems initialized. HUD data displays loading.");
                 initTacticalHUD();
-                
-                // START THE AUTOMATIC BACKSTAGE SCANNER ENGINE!
                 startAutomaticScannerEngine();
             } catch (err) {
                 console.error(err);
@@ -97,7 +130,7 @@
             setInterval(() => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Laser scan line moves smoothly at 30fps
+                // Laser scan line calculation
                 ctx.strokeStyle = isIdentifying ? 'rgba(255, 0, 0, 0.6)' : 'rgba(0, 191, 255, 0.3)';
                 ctx.lineWidth = isIdentifying ? 4 : 2;
                 ctx.beginPath();
@@ -108,7 +141,7 @@
                 scanY += (isIdentifying ? 15 : 4) * scanDirection;
                 if (scanY > canvas.height - 10 || scanY < 10) scanDirection *= -1;
 
-                // Center bounding wireframe
+                // Targeting boundaries
                 const boxX = 220;
                 const boxY = 100;
                 const boxW = 200;
@@ -120,7 +153,7 @@
                 ctx.shadowColor = isIdentifying ? '#ff3333' : '#00bfff';
                 ctx.strokeRect(boxX, boxY, boxW, boxH);
                 
-                // Convert text left-to-right alignment axis
+                // Unflip canvas alignment for clean reading direction
                 ctx.save();
                 ctx.scale(-1, 1);
                 
@@ -144,10 +177,9 @@
             }, 30);
         }
 
-        // This background function loops completely hands-free on its own!
         function startAutomaticScannerEngine() {
             setInterval(() => {
-                if (isIdentifying) return; // Wait if it is already reading a match
+                if (isIdentifying) return;
 
                 isIdentifying = true;
                 identifiedLabel = "";
@@ -158,15 +190,16 @@
                     identifiedLabel = `TARGET MATCHED: ${TARGET_NAME.toUpperCase()}`;
                     actionText.innerText = `//TARGET MATCH FOUND: ${TARGET_NAME.toUpperCase()}`;
                     
-                    // Only say welcome once when you step in front of the lens!
                     if (!hasAnnouncedWelcome) {
-                        speak(`Welcome back, ${TARGET_NAME}. All tactical systems operational.`);
+                        speak(`Welcome back, ${TARGET_NAME}. Operations authorized.`);
                         hasAnnouncedWelcome = true;
                     }
-                }, 1500); // Takes 1.5 seconds to passively recognize you
+                }, 1500); 
 
-            }, 4000); // Runs a hands-free radar sweep automatically every 4 seconds!
+            }, 5000); 
         }
+
+        startEDITH();
     </script>
 </body>
 </html>
