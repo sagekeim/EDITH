@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS Local v1.0</title>
+    <title>E.D.I.T.H. OS v1.8</title>
     <style>
         body {
             background-color: black;
@@ -36,7 +36,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1);
+            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
         }
         .instructions {
             margin-top: 500px;
@@ -44,48 +44,31 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .override-btn {
-            position: absolute;
-            top: 200px;
-            left: 220px;
-            z-index: 100;
-            background-color: #00bfff;
-            color: black;
-            border: none;
-            padding: 15px 25px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 0 20px #00bfff;
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS LOCAL RECOVERY</div>
-            <div id="status" class="hud-text">//STATUS: SYSTEM ENGAGED</div>
-            <div id="action" class="hud-text">//AWAITING INITIALIZATION...</div>
+            <div class="hud-text">//E.D.I.T.H. OS v1.8</div>
+            <div id="status" class="hud-text">//STATUS: INSTANT ENGAGE</div>
+            <div id="action" class="hud-text">//CONNECTING CAMERA VECTOR LINK...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
 
     <div class="container">
-        <button id="overrideBtn" class="override-btn" onclick="forceEngageSystem()">[ 🔓 CONNECT SENSORS ]</button>
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
-        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate.<br>
-        <span style="color: #00ff00;">[LOCAL RADAR]</span> Running directly via hardware drive configuration.
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate your signature.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate her template.<br>
+        <span style="color: #00ff00;">[SMART SPEECH]</span> System will automatically cycle and greet each target ONCE without repeating!
     </div>
 
     <script>
@@ -93,7 +76,6 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
-        const overrideBtn = document.getElementById('overrideBtn');
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
@@ -112,60 +94,65 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        async function forceEngageSystem() {
-            overrideBtn.style.display = "none";
-            actionText.innerText = "//ENGAGING OPTICAL CAMERA...";
-            
+        // 1. Clock Loop (Starts completely automatically)
+        function startClockEngine() {
+            function updateClock() {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }
             setInterval(updateClock, 1000);
             updateClock();
-            setInterval(renderHUD, 30);
-            startRadarEngine();
+        }
 
+        // 2. HUD Loop (Starts completely automatically)
+        function startGraphicsEngine() {
+            function renderHUD() {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(10, scanY);
+                ctx.lineTo(canvas.width - 10, scanY);
+                ctx.stroke();
+                
+                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+
+                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(boxX, boxY, boxW, boxH);
+                
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.font = 'bold 13px Courier New';
+                
+                let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
+                if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
+                if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
+                
+                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+                ctx.restore();
+            }
+            setInterval(renderHUD, 30);
+        }
+
+        // 3. Hardware Video Channel Connection
+        async function connectOpticalCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 speak("E.D.I.T.H. systems stable.");
             } catch (err) {
-                actionText.innerText = "//HARDWARE OVERRIDE REQUIRED: CHECK BROWSER GEAR";
+                console.error(err);
+                actionText.innerText = "//CAMERA PERMISSION BLOCKED. RE-ALLOW IN BROWSER HINT BOX.";
             }
-        }
-
-        function updateClock() {
-            const now = new Date();
-            clockText.innerText = "TIME: " + now.toLocaleTimeString();
-        }
-
-        function renderHUD() {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(10, scanY);
-            ctx.lineTo(canvas.width - 10, scanY);
-            ctx.stroke();
-            
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
-
-            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(boxX, boxY, boxW, boxH);
-            
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
-            if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
-            if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
-            
-            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-            ctx.restore();
         }
 
         function getColorSample() {
@@ -187,6 +174,7 @@
             }
         }
 
+        // 4. Comparison Logic Sweeper
         function startRadarEngine() {
             setInterval(() => {
                 if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
@@ -202,18 +190,27 @@
                     isIdentifying = false;
                     if (diffA  {
             if (video.readyState !== 4) return;
+            
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
-                speak(`${PROFILE_A_NAME} profile saved.`);
+                speak(`${PROFILE_A_NAME} blueprint saved.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
             if (event.key.toLowerCase() === 'g') {
                 signatureB = getColorSample();
-                speak(`${PROFILE_B_NAME} profile saved.`);
+                speak(`${PROFILE_B_NAME} blueprint saved.`);
                 actionText.innerText = "//GRANDMA PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
+        });
+
+        // FORCE AUTOMATIC UNLOCK SEQUENCE ON LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            startClockEngine();
+            startGraphicsEngine();
+            startRadarEngine();
+            connectOpticalCamera();
         });
     </script>
 </body>
