@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v1.9</title>
+    <title>E.D.I.T.H. OS Local v1.0</title>
     <style>
         body {
             background-color: black;
@@ -66,9 +66,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v1.9</div>
-            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//AWAITING HARDWARE LINK...</div>
+            <div class="hud-text">//E.D.I.T.H. OS LOCAL RECOVERY</div>
+            <div id="status" class="hud-text">//STATUS: SYSTEM ENGAGED</div>
+            <div id="action" class="hud-text">//AWAITING INITIALIZATION...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -77,7 +77,6 @@
     </div>
 
     <div class="container">
-        <!-- Manual Override Button right over the empty video window -->
         <button id="overrideBtn" class="override-btn" onclick="forceEngageSystem()">[ 🔓 CONNECT SENSORS ]</button>
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
@@ -86,7 +85,7 @@
     <div class="instructions">
         <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
         <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate.<br>
-        <span style="color: #00ff00;">[SMART SPEECH]</span> System welcomes targets ONCE and stays quiet while locked!
+        <span style="color: #00ff00;">[LOCAL RADAR]</span> Running directly via hardware drive configuration.
     </div>
 
     <script>
@@ -113,12 +112,10 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Clicking this bypasses browser safety locks instantly
         async function forceEngageSystem() {
             overrideBtn.style.display = "none";
             actionText.innerText = "//ENGAGING OPTICAL CAMERA...";
             
-            // Start clock and graphic tracks
             setInterval(updateClock, 1000);
             updateClock();
             setInterval(renderHUD, 30);
@@ -128,9 +125,9 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. online.");
+                speak("E.D.I.T.H. systems stable.");
             } catch (err) {
-                actionText.innerText = "//CAMERA REJECTED: CHECK PERMISSION GEAR";
+                actionText.innerText = "//HARDWARE OVERRIDE REQUIRED: CHECK BROWSER GEAR";
             }
         }
 
