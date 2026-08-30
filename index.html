@@ -24,11 +24,11 @@
   </div>
   <script>
       const video=document.getElementById('webcam');
-      if (navigator.mediaDevices.getUsersMedial) {
-         navigator.mediaDevices.getUserMedia({video: true})
-             .then(stream => {video.srcObject =stream; })
-             .catch(err => { console.log(Webcam error:", err); })
-      }                 
+      
+      navigator.mediaDevices.getUsersMedial({video:true})
+             .then(stream => {video.srcObject =stream;
+              document.getElementbyId('voice-output').InnerText ='//CAMERA CONNECTED. SYSTEM ONLINE.';})
+             .catch(err => { console.log(Webcam error:", err); document.getElemntByID('voice-output').innerText='//ERROR: CAMERA ACCESS DENIED.'; });                
   </script>
 </body>
 </html> 
