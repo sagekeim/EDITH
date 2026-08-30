@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v1.6</title>
+    <title>E.D.I.T.H. OS v1.7</title>
     <style>
         body {
             background-color: black;
@@ -61,12 +61,12 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v1.6</div>
+            <div class="hud-text">//E.D.I.T.H. OS v1.7</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
             <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: 00:00:00</div>
+            <div id="clock" class="hud-text">TIME: LOADING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -97,11 +97,11 @@
         let signatureB = null;
         let isIdentifying = false;
         let identifiedLabel = "";
-        let scanY = 0;
+        let scanY = 100;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
 
-        // SMART SPEECH LOCK: Remembers who she spoke to last
+        // SMART SPEECH LOCK
         let lastSpokenIdentity = "";
 
         function speak(text) {
@@ -109,24 +109,34 @@
             window.speechSynthesis.speak(utterance);
         }
 
+        // 1. Bulletproof Clock Function (Runs independently so it can never freeze)
         function updateClock() {
             const now = new Date();
-            clockText.innerText = `TIME: ${now.toTimeString().split(' ')}`;
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            clockText.innerText = `TIME: ${hours}:${minutes}:${seconds}`;
         }
         setInterval(updateClock, 1000);
+        updateClock(); // Run instantly
 
+        // 2. Camera Initializer (Sandboxed to prevent errors from blocking the HUD)
         async function startEDITH() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
                 video.srcObject = stream;
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 speak("Smart speech module online.");
             } catch (err) {
-                actionText.innerText = "//ERROR: HARDWARE PERMISSION BLOCKED";
+                console.error(err);
+                actionText.innerText = "//CAMERA ACCESS BLOCKED: CLICK REBOOT";
             }
         }
 
-        // HUD Layer drawing loop
-        setInterval(() => {
+        // 3. Main HUD Renderer Loop (Always runs, drawing the scan line and brackets)
+        function drawHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -138,7 +148,8 @@
             ctx.lineTo(canvas.width - 10, scanY);
             ctx.stroke();
             
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
+            // Move scan line up and down smoothly
+            scanY += (isIdentifying ? 12 : 4) * scanDirection;
             if (scanY > canvas.height - 10 || scanY < 10) scanDirection *= -1;
 
             // Targeting box geometry
@@ -153,32 +164,39 @@
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.font = 'bold 13px Courier New';
             
-            let label = "AWAITING CALIBRATION INPUTS [S] / [G]";
+            let label = "AWAITING USER CALIBRATION MAPS [S] / [G]";
             if (signatureA && !signatureB) label = "SAGE TEMPLATE SAVED. AWAITING GRANDMA [G]";
             if (signatureA && signatureB) label = identifiedLabel || "PASSIVE RADAR SWEEP ACTIVE";
             
             ctx.fillText(label, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
-        }, 30);
+
+            requestAnimationFrame(drawHUD); // Ultra-smooth loop rendering
+        }
+        requestAnimationFrame(drawHUD); // Start drawing instantly
 
         function getColorSample() {
-            const hiddenCanvas = document.createElement('canvas');
-            hiddenCanvas.width = 640; hiddenCanvas.height = 480;
-            const ctx = hiddenCanvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, 640, 480);
-            
-            const imgData = ctx.getImageData(220, 100, 200, 260).data;
-            let r = 0; let g = 0; let b = 0;
-            for (let i = 0; i < imgData.length; i += 4) {
-                r += imgData[i]; g += imgData[i+1]; b += imgData[i+2];
+            try {
+                const hiddenCanvas = document.createElement('canvas');
+                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
+                const ctx = hiddenCanvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                
+                const imgData = ctx.getImageData(220, 100, 200, 260).data;
+                let r = 0; let g = 0; let b = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    r += imgData[i]; g += imgData[i+1]; b += imgData[i+2];
+                }
+                const total = imgData.length / 4;
+                return { r: r / total, g: g / total, b: b / total };
+            } catch (e) {
+                return { r: 0, g: 0, b: 0 };
             }
-            const total = imgData.length / 4;
-            return { r: r / total, g: g / total, b: b / total };
         }
 
         // Automatic comparison engine running every 4 seconds
         setInterval(() => {
-            if (!signatureA || !signatureB || isIdentifying) return;
+            if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
 
             const sample = getColorSample();
             const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
@@ -191,21 +209,19 @@
                 isIdentifying = false;
                 
                 if (diffA  {
+            if (video.readyState !== 4) return; // Prevent calibrating if video isn't live
+            
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
                 speak(`${PROFILE_A_NAME} profile logged.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
-                lastSpokenIdentity = ""; // Clear speech lock on reset calibration
+                lastSpokenIdentity = ""; 
             }
             if (event.key.toLowerCase() === 'g') {
                 signatureB = getColorSample();
                 speak(`${PROFILE_B_NAME} profile logged.`);
                 actionText.innerText = "//GRANDMA PROFILE CACHED";
-                lastSpokenIdentity = ""; // Clear speech lock on reset calibration
+                lastSpokenIdentity = ""; 
             }
         });
 
-        startEDITH();
-    </script>
-</body>
-</html>
