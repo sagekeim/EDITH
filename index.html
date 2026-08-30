@@ -1,35 +1,132 @@
-<!Doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>EDITH HUD</title>?/title>
-  <style>
-    body,html { margin 0; padding: overflow: hidden; background: #000;font-family: 'Courier New', monospace;}
-    #webcam { position: absolute, width: 100%; height: 100% object-fit: cover; transform: scaleX(-1); } 
-    #hud-overlay {position: absolute; width: 100%; height: 100 % border: 4px solid rgba(0, 191, 255, 0.4); box-sizing: border-box; pointer-events: none;)
-    .reticle { position: absolute; top: 50%; left: 50%; width: 120px; height: 120px border: 2px dashed #00bfff; transform: translate(-50%, -50%); border-radius: 50%; animation: spin 6s linear infinite; }
-    .system-status { position: absolute; top: 30px; left: 30px; color: #00bfff; text-shadow: 0 0 5px #00bfff; font-weight: bold; }
-    @keyframes spin { 100% {tansform: translate(-50%, -50%) rotate(360deg); }}
-  </style>
- </head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E.D.I.T.H. OS v1.0</title>
+    <!-- We load the face recognition AI brain directly into the website -->
+    <script defer src="https://jsdelivr.net"></script>
+    <style>
+        body {
+            background-color: black;
+            color: #00bfff;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 20px;
+            overflow: hidden;
+        }
+        .hud-text {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 8px #00bfff;
+        }
+        .container {
+            position: relative;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        video, canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 2px solid #00bfff;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
+            transform: scaleX(-1); /* Mirror view so it acts like glasses */
+        }
+    </style>
+</head>
 <body>
-  <video id="webcam" autoplay playsinline></video>
-  <div id="hud-overlay">
-      <div class="reticle"></div>
-      <div class="system-status">
-          <p>//E.D.I.T.H OS v1.0</p>
-          <p>//STATUS: ACTIVE</p>
-          <p id="voice-output">//INITIALIZING WEBCAM...</p>
-      </div>
-  </div>
-  <script>
-      const video=document.getElementById('webcam');
-      
-      navigator.mediaDevices.getUsersMedial({video:true})
-             .then(stream => {video.srcObject =stream;
-              document.getElementbyId('voice-output').InnerText ='//CAMERA CONNECTED. SYSTEM ONLINE.';})
-             .catch(err => { console.log(Webcam error:", err); document.getElemntByID('voice-output').innerText='//ERROR: CAMERA ACCESS DENIED.'; });                
-  </script>
+
+    <div class="hud-text">//E.D.I.T.H. OS v1.0</div>
+    <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+    <div id="action" class="hud-text">//INITIALIZING WEBCAM...</div>
+
+    <div class="container">
+        <video id="webcam" autoplay playsinline width="640" height="480"></video>
+        <canvas id="overlay" width="640" height="480"></canvas>
+    </div>
+
+    <!-- The interactive script that controls the camera and face tracking -->
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('overlay');
+        const actionText = document.getElementById('action');
+
+        // Start E.D.I.T.H.
+        async function startEDITH() {
+            actionText.innerText = "//LOADING AI MODELS...";
+            
+            // Load the face detection models from a public CDN
+            const MODEL_URL = 'https://jsdelivr.net';
+            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+            
+            actionText.innerText = "//ACCESSING WEBCAM...";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                video.srcObject = stream;
+                
+                // Speak initialization confirmation
+                speak("E.D.I.T.H. tactical systems online. Camera initialized.");
+            } catch (err) {
+                actionText.innerText = "//ERROR: WEBCAM ACCESS DENIED";
+                speak("Error. Camera access denied.");
+                return;
+            }
+        }
+
+        // Voice output function
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            // Optional: Choose a more robotic or custom voice if available
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Once the video starts playing, track faces continuously
+        video.addEventListener('play', () => {
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+            const displaySize = { width: video.width, height: video.height };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            setInterval(async () => {
+                // Detect faces in the video frame
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+                
+                // Resize results to fit our canvas overlay perfectly
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                
+                // Clear old visual frames before drawing new ones
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw customized blue tracking boxes around boxes instead of the default layout
+                resizedDetections.forEach(detection => {
+                    const box = detection.detection.box;
+                    const ctx = canvas.getContext('2d');
+                    ctx.strokeStyle = '#00bfff';
+                    ctx.lineWidth = 3;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#00bfff';
+                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+                    
+                    // Display text inside HUD
+                    ctx.fillStyle = '#00bfff';
+                    ctx.font = '14px Courier New';
+                    ctx.fillText("TARGET SCANNED", box.x + 5, box.y - 10);
+                });
+
+                if (detections.length > 0) {
+                    actionText.innerText = `//TARGET DETECTED: COUNT ${detections.length}`;
+                } else {
+                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                }
+            }, 100); // Scans 10 times every second
+        });
+
+        // Fire up the code
+        startEDITH();
+    </script>
 </body>
-</html> 
-  
+</html>
