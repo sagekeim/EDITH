@@ -44,6 +44,11 @@
             font-size: 13px;
             line-height: 1.6;
         }
+        .btn-panel {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
         .reset-btn {
             background-color: #00bfff;
             color: black;
@@ -52,8 +57,23 @@
             font-family: 'Courier New', monospace;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
             border-radius: 3px;
+        }
+        .upgrade-btn {
+            background-color: #ff3333;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 3px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 51, 51, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); }
         }
     </style>
 </head>
@@ -77,7 +97,11 @@
     </div>
 
     <div class="instructions">
-        <button class="reset-btn" onclick="startEDITH()">[ FORCE REBOOT CAMERA ]</button><br><br>
+        <div class="btn-panel">
+            <button class="reset-btn" onclick="startEDITH()">[ FORCE REBOOT CAMERA ]</button>
+            <button class="upgrade-btn" onclick="forceSystemUpgrade()">[ ⚠️ FORCE UPGRADE TO V1.8 ]</button>
+        </div>
+        <br>
         <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
         <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate.<br>
         <span style="color: #00ff00;">[SMART SPEECH]</span> She welcomes each target ONCE and stays quiet while locked!
@@ -89,7 +113,6 @@
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
 
-        // Target Names Configuration
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
@@ -107,24 +130,27 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Independent Clock Loop
+        // Action function for the glowing force upgrade button
+        function forceSystemUpgrade() {
+            // This destroys the browser's old cache instantly
+            window.location.href = window.location.origin + window.location.pathname + '?v=' + Math.random();
+        }
+
         function updateClock() {
             try {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
             } catch(e) {
-                clockText.innerText = "TIME: TEMPORARY LOCK";
+                clockText.innerText = "TIME: RESETTING";
             }
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Main Drawing Loop
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw scanning line
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -135,13 +161,11 @@
             scanY += (isIdentifying ? 15 : 4) * scanDirection;
             if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            // Bounding box frame
             const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 3;
             ctx.strokeRect(boxX, boxY, boxW, boxH);
             
-            // Text Rendering
             ctx.save();
             ctx.scale(-1, 1);
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
@@ -154,7 +178,6 @@
             ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
-        // Run the rendering loop cleanly at standard device speeds
         setInterval(renderHUD, 30);
 
         async function startEDITH() {
@@ -190,7 +213,6 @@
             }
         }
 
-        // Automatic Passive Analyzer
         setInterval(() => {
             if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
 
@@ -210,17 +232,3 @@
                 signatureA = getColorSample();
                 speak(`${PROFILE_A_NAME} profile saved.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
-                lastSpokenIdentity = ""; 
-            }
-            if (event.key.toLowerCase() === 'g') {
-                signatureB = getColorSample();
-                speak(`${PROFILE_B_NAME} profile saved.`);
-                actionText.innerText = "//GRANDMA PROFILE CACHED";
-                lastSpokenIdentity = ""; 
-            }
-        });
-
-        startEDITH();
-    </script>
-</body>
-</html>
