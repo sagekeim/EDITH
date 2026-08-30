@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v1.0</title>
+    <title>E.D.I.T.H. OS v1.5</title>
     <style>
         body {
             background-color: black;
@@ -61,9 +61,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v1.4</div>
-            <div id="status" class="hud-text">//STATUS: CAMERA REBOOT</div>
-            <div id="action" class="hud-text">//INITIALIZING SENSORS...</div>
+            <div class="hud-text">//E.D.I.T.H. OS v1.5</div>
+            <div id="status" class="hud-text">//STATUS: CALIBRATION ACTIVE</div>
+            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: 00:00:00</div>
@@ -79,8 +79,8 @@
     <div class="instructions">
         <button class="reset-btn" onclick="startEDITH()">[ REBOOT OPTICAL CAMERA ]</button><br><br>
         <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to save your profile.<br>
-        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center friend's face and press the <b style="color:#fff;">[G] key</b> to save guest template.<br>
-        <span style="color: #00ff00;">[AUTOMATIC MODE]</span> Once calibrated, the scanner continuously loops hands-free!
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to save her template.<br>
+        <span style="color: #00ff00;">[SMART RADAR]</span> Once calibrated, she greets each target ONCE without repeating!
     </div>
 
     <script>
@@ -90,10 +90,9 @@
         const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
 
+        // Targets Configured
         const PROFILE_A_NAME = "Sage Keim";
-        const PROFILE_B_NAME = "Jody Aronson";
-        const PROFILE_C_NAME = "Jack Keim";
-        const PROFILE_D_NAME = "Tess Keim";
+        const PROFILE_B_NAME = "Grandma"; 
 
         let signatureA = null;
         let signatureB = null;
@@ -102,6 +101,10 @@
         let scanY = 0;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
+
+        // SMART MEMORY GUARDS: Track state changes
+        let lastAnnouncedIdentity = ""; 
+        let framesWithoutTargetCount = 0; 
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
@@ -115,30 +118,23 @@
         setInterval(updateClock, 1000);
 
         async function startEDITH() {
-            actionText.innerText = "//REQUESTING HARDWARE ACCESS...";
             try {
-                // Force a brand new streaming link connection
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                
                 statusText.innerText = "//STATUS: CALIBRATION ACTIVE";
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("Optical streaming engaged. System ready for calibration inputs.");
+                speak("E.D.I.T.H. smart memory core online.");
             } catch (err) {
-                console.error(err);
                 actionText.innerText = "//ERROR: HARDWARE PERMISSION BLOCKED";
-                speak("Hardware alert. Camera permissions restricted.");
             }
         }
 
-        // Dedicated HUD layer loop
+        // HUD Layer drawing loop (30 frames per second)
         setInterval(() => {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw cycling radar line
+            // Draw scanning laser line
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -161,8 +157,8 @@
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.font = 'bold 13px Courier New';
             
-            let label = "AWAITING USER CALIBRATION MAPS [S] / [G]";
-            if (signatureA && !signatureB) label = "SAGE TEMPLATE SAVED. AWAITING GUEST [G]";
+            let label = "AWAITING CALIBRATION [S] / [G]";
+            if (signatureA && !signatureB) label = "SAGE RECORDED. AWAITING GRANDMA [G]";
             if (signatureA && signatureB) label = identifiedLabel || "PASSIVE RADAR SWEEP ACTIVE";
             
             ctx.fillText(label, -(boxX + boxW) + 5, boxY - 10);
@@ -184,11 +180,27 @@
             return { r: r / total, g: g / total, b: b / total };
         }
 
-        // Automatic comparative engine
+        // Automatic comparison engine running every 3 seconds
         setInterval(() => {
             if (!signatureA || !signatureB || isIdentifying) return;
 
             const sample = getColorSample();
+            
+            // If the square box is completely empty (dark backdrop), count it as away
+            if ((sample.r + sample.g + sample.b) / 3 < 15) {
+                framesWithoutTargetCount++;
+                // If the box stays empty for 2 straight checks, clear memory so they can be greeted again later
+                if (framesWithoutTargetCount >= 2) {
+                    lastAnnouncedIdentity = "";
+                    identifiedLabel = "PASSIVE RADAR SWEEP ACTIVE";
+                    currentHUDColor = "#00bfff";
+                }
+                return;
+            }
+
+            // Reset frame counter because someone is definitely in the box
+            framesWithoutTargetCount = 0;
+
             const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
             const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
 
@@ -197,35 +209,12 @@
 
             setTimeout(() => {
                 isIdentifying = false;
-                if (diffA < diffB) {
-                    identifiedLabel = `TARGET MATCHED: ${PROFILE_A_NAME.toUpperCase()}`;
-                    actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_A_NAME.toUpperCase()}`;
-                    currentHUDColor = "#00bfff"; // Return to original blue
-                    speak(`Welcome back, ${PROFILE_A_NAME}.`);
-                } else {
-                    identifiedLabel = `TARGET MATCHED: ${PROFILE_B_NAME.toUpperCase()}`;
-                    actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_B_NAME.toUpperCase()}`;
-                    currentHUDColor = "#ffaa00"; // Switch to tactical amber alert
-                    speak(`Target identified as ${PROFILE_B_NAME}.`);
-                }
-            }, 1200);
-        }, 5000);
-
-        window.addEventListener('keydown', (event) => {
+                
+                if (diffA  {
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
-                speak(`${PROFILE_A_NAME} blueprint archived.`);
+                speak(`${PROFILE_A_NAME} baseline blueprint archived.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
             }
             if (event.key.toLowerCase() === 'g') {
                 signatureB = getColorSample();
-                speak(`${PROFILE_B_NAME} template archived.`);
-                actionText.innerText = "//GUEST PROFILE CACHED";
-            }
-        });
-
-        // Initialize script logic
-        startEDITH();
-    </script>
-</body>
-</html>
