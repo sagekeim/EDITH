@@ -54,22 +54,24 @@
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
-    <div class="instructions">
-        // PRESS THE [SPACEBAR] TO ACTIVATE TARGET BIOMETRIC IDENTIFICATION.
+    <div id="hint" class="instructions">
+        // LOADING DATA FILES. PLEASE WAIT...
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const hintText = document.getElementById('hint');
 
-        // Target configurations linked directly to your uploaded photo!
+        // Config linked directly to your uploaded photo!
         const TARGET_NAME = "Sage Keim";
-        const TARGET_IMAGE_URL = "WIN_20260830_10_40_22_Pro.jpg";
+        const TARGET_IMAGE_URL = "./WIN_20260830_10_40_22_Pro.jpg";
 
-        let faceMatcher;
+        let faceMatcher = null;
         let isIdentifying = false;
         let identifiedLabel = "";
+        let isSystemReady = false;
         let scanY = 0;
         let scanDirection = 1;
 
@@ -93,19 +95,23 @@
                 
                 // 3. Extract your mathematical faceprint from your uploaded image
                 actionText.innerText = "//MEMORIZING TARGET REGISTRY...";
+                
+                // Force crossOrigin anonymous so browser security doesn't block local file readings
                 const img = await faceapi.fetchImage(TARGET_IMAGE_URL);
                 const detection = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
                 
                 if (detection) {
-                    // Save your custom face coordinates into a labeled matcher
                     const labeledDescriptor = new faceapi.LabeledFaceDescriptors(TARGET_NAME, [detection.descriptor]);
-                    faceMatcher = new faceapi.FaceMatcher(labeledDescriptor, 0.6); // 0.6 is the standard tolerance distance
+                    faceMatcher = new faceapi.FaceMatcher(labeledDescriptor, 0.6);
                     
+                    isSystemReady = true;
                     actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                    hintText.innerText = "// PRESS THE [SPACEBAR] TO ACTIVATE TARGET BIOMETRIC IDENTIFICATION.";
                     speak("E.D.I.T.H. systems synchronized. Target profiles loaded.");
                 } else {
                     actionText.innerText = "//ERROR: PHOTO SCANNING FAILED";
-                    speak("Warning. Unable to detect clear facial vectors in your reference photo.");
+                    hintText.innerText = "// RE-UPLOAD A CLEARER FACE PHOTO AS WIN_20260830_10_40_22_Pro.jpg";
+                    speak("Warning. Unable to detect face points in reference file.");
                 }
                 
                 trackFaces();
@@ -122,13 +128,14 @@
             const ctx = canvas.getContext('2d');
 
             setInterval(async () => {
-                // Look for faces on the camera stream
+                if (!isSystemReady) return;
+
                 const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
                 const resizedDetections = faceapi.resizeResults(detections, displaySize);
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Draw moving laser scan bar
+                // Scan bar calculation
                 ctx.strokeStyle = isIdentifying ? 'rgba(255, 0, 0, 0.5)' : 'rgba(0, 191, 255, 0.3)';
                 ctx.lineWidth = isIdentifying ? 4 : 2;
                 ctx.beginPath();
@@ -147,12 +154,10 @@
                     resizedDetections.forEach(detection => {
                         const box = detection.detection.box;
                         
-                        // Cyberpunk rectangle around your head
                         ctx.strokeStyle = isIdentifying ? '#ff3333' : '#00bfff';
                         ctx.lineWidth = isIdentifying ? 5 : 3;
                         ctx.strokeRect(box.x, box.y, box.width, box.height);
                         
-                        // Unflip the canvas context just for text so it reads left-to-right
                         ctx.save();
                         ctx.scale(-1, 1);
                         
@@ -172,7 +177,6 @@
                         
                         ctx.restore();
 
-                        // Perform actual face-matching calculations when spacebar is active!
                         if (isIdentifying && faceMatcher) {
                             const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
                             
@@ -185,9 +189,9 @@
                                 } else {
                                     identifiedLabel = "TARGET MATCHED: UNKNOWN SUBJECT";
                                     actionText.innerText = "//ALERT: UNIDENTIFIED SIGNATURE";
-                                    speak("Target identity unknown. Tactical precautions advised.");
+                                    speak("Target identity unknown.");
                                 }
-                            }, 1500); // 1.5 seconds scanning delay for a cool movie effect
+                            }, 1500); 
                         }
                     });
                 } else {
@@ -199,9 +203,8 @@
             }, 100);
         }
 
-        // Tap the Spacebar to tell E.D.I.T.H. to do the math check
         window.addEventListener('keydown', (event) => {
-            if (event.code === "Space" && !isIdentifying) {
+            if (event.code === "Space" && isSystemReady && !isIdentifying) {
                 isIdentifying = true;
                 identifiedLabel = "";
                 actionText.innerText = "//ANALYZING BIOMETRIC EMBEDDINGS...";
