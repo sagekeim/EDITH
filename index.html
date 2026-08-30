@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v1.5</title>
+    <title>E.D.I.T.H. OS v1.6</title>
     <style>
         body {
             background-color: black;
@@ -61,8 +61,8 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v1.5</div>
-            <div id="status" class="hud-text">//STATUS: CALIBRATION ACTIVE</div>
+            <div class="hud-text">//E.D.I.T.H. OS v1.6</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
             <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
         <div style="text-align: right;">
@@ -78,21 +78,20 @@
 
     <div class="instructions">
         <button class="reset-btn" onclick="startEDITH()">[ REBOOT OPTICAL CAMERA ]</button><br><br>
-        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to save your profile.<br>
-        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to save her template.<br>
-        <span style="color: #00ff00;">[SMART RADAR]</span> Once calibrated, she greets each target ONCE without repeating!
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate.<br>
+        <span style="color: #00ff00;">[SMART SPEECH]</span> She will only welcome a target ONCE until the face changes!
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
-        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
 
-        // Targets Configured
+        // Targets Configuration
         const PROFILE_A_NAME = "Sage Keim";
-        const PROFILE_B_NAME = "Grandma"; 
+        const PROFILE_B_NAME = "Grandma";
 
         let signatureA = null;
         let signatureB = null;
@@ -102,9 +101,8 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
 
-        // SMART MEMORY GUARDS: Track state changes
-        let lastAnnouncedIdentity = ""; 
-        let framesWithoutTargetCount = 0; 
+        // SMART SPEECH LOCK: Remembers who she spoke to last
+        let lastSpokenIdentity = "";
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
@@ -121,15 +119,13 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                statusText.innerText = "//STATUS: CALIBRATION ACTIVE";
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. smart memory core online.");
+                speak("Smart speech module online.");
             } catch (err) {
                 actionText.innerText = "//ERROR: HARDWARE PERMISSION BLOCKED";
             }
         }
 
-        // HUD Layer drawing loop (30 frames per second)
+        // HUD Layer drawing loop
         setInterval(() => {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -157,8 +153,8 @@
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.font = 'bold 13px Courier New';
             
-            let label = "AWAITING CALIBRATION [S] / [G]";
-            if (signatureA && !signatureB) label = "SAGE RECORDED. AWAITING GRANDMA [G]";
+            let label = "AWAITING CALIBRATION INPUTS [S] / [G]";
+            if (signatureA && !signatureB) label = "SAGE TEMPLATE SAVED. AWAITING GRANDMA [G]";
             if (signatureA && signatureB) label = identifiedLabel || "PASSIVE RADAR SWEEP ACTIVE";
             
             ctx.fillText(label, -(boxX + boxW) + 5, boxY - 10);
@@ -180,27 +176,11 @@
             return { r: r / total, g: g / total, b: b / total };
         }
 
-        // Automatic comparison engine running every 3 seconds
+        // Automatic comparison engine running every 4 seconds
         setInterval(() => {
             if (!signatureA || !signatureB || isIdentifying) return;
 
             const sample = getColorSample();
-            
-            // If the square box is completely empty (dark backdrop), count it as away
-            if ((sample.r + sample.g + sample.b) / 3 < 15) {
-                framesWithoutTargetCount++;
-                // If the box stays empty for 2 straight checks, clear memory so they can be greeted again later
-                if (framesWithoutTargetCount >= 2) {
-                    lastAnnouncedIdentity = "";
-                    identifiedLabel = "PASSIVE RADAR SWEEP ACTIVE";
-                    currentHUDColor = "#00bfff";
-                }
-                return;
-            }
-
-            // Reset frame counter because someone is definitely in the box
-            framesWithoutTargetCount = 0;
-
             const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
             const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
 
@@ -213,8 +193,19 @@
                 if (diffA  {
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
-                speak(`${PROFILE_A_NAME} baseline blueprint archived.`);
+                speak(`${PROFILE_A_NAME} profile logged.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
+                lastSpokenIdentity = ""; // Clear speech lock on reset calibration
             }
             if (event.key.toLowerCase() === 'g') {
                 signatureB = getColorSample();
+                speak(`${PROFILE_B_NAME} profile logged.`);
+                actionText.innerText = "//GRANDMA PROFILE CACHED";
+                lastSpokenIdentity = ""; // Clear speech lock on reset calibration
+            }
+        });
+
+        startEDITH();
+    </script>
+</body>
+</html>
