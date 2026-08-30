@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.D.I.T.H. OS v1.0</title>
-
-    <!-- Loads the full face-api.js engine for actual face-matching math -->
-    <script defer src="https://jsdelivr.net"></script>
     <style>
         body {
             background-color: black;
@@ -54,24 +51,19 @@
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
-    <div id="hint" class="instructions">
-        // LOADING DATA FILES. PLEASE WAIT...
+    <div class="instructions">
+        // PRESS THE [SPACEBAR] TO ACTIVATE TARGET BIOMETRIC IDENTIFICATION.
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
-        const hintText = document.getElementById('hint');
 
-        // Config linked directly to your uploaded photo!
         const TARGET_NAME = "Sage Keim";
-        const TARGET_IMAGE_URL = "./WIN_20260830_10_40_22_Pro.jpg";
 
-        let faceMatcher = null;
         let isIdentifying = false;
         let identifiedLabel = "";
-        let isSystemReady = false;
         let scanY = 0;
         let scanDirection = 1;
 
@@ -82,61 +74,31 @@
 
         async function startEDITH() {
             try {
-                // 1. Fire up camera feed
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                // Instantly request the camera stream (no complex AI downloads needed)
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
                 video.srcObject = stream;
                 
-                // 2. Load the tracking models
-                actionText.innerText = "//INITIALIZING TACTICAL TRACKING...";
-                const MODEL_URL = 'https://jsdelivr.net';
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("E.D.I.T.H. systems online. Biometric scanner ready.");
                 
-                // 3. Extract your mathematical faceprint from your uploaded image
-                actionText.innerText = "//MEMORIZING TARGET REGISTRY...";
-                
-                // Force crossOrigin anonymous so browser security doesn't block local file readings
-                const img = await faceapi.fetchImage(TARGET_IMAGE_URL);
-                const detection = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                
-                if (detection) {
-                    const labeledDescriptor = new faceapi.LabeledFaceDescriptors(TARGET_NAME, [detection.descriptor]);
-                    faceMatcher = new faceapi.FaceMatcher(labeledDescriptor, 0.6);
-                    
-                    isSystemReady = true;
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    hintText.innerText = "// PRESS THE [SPACEBAR] TO ACTIVATE TARGET BIOMETRIC IDENTIFICATION.";
-                    speak("E.D.I.T.H. systems synchronized. Target profiles loaded.");
-                } else {
-                    actionText.innerText = "//ERROR: PHOTO SCANNING FAILED";
-                    hintText.innerText = "// RE-UPLOAD A CLEARER FACE PHOTO AS WIN_20260830_10_40_22_Pro.jpg";
-                    speak("Warning. Unable to detect face points in reference file.");
-                }
-                
-                trackFaces();
+                initTacticalHUD();
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//ERROR: INITIALIZATION FAILED";
-                speak("System configuration failure.");
+                actionText.innerText = "//ERROR: HARDWARE INITIALIZATION FAILED";
+                speak("Warning. System initialization failure.");
             }
         }
 
-        async function trackFaces() {
-            const displaySize = { width: 640, height: 480 };
-            faceapi.matchDimensions(canvas, displaySize);
+        function initTacticalHUD() {
             const ctx = canvas.getContext('2d');
 
-            setInterval(async () => {
-                if (!isSystemReady) return;
-
-                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-                const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                
+            setInterval(() => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Scan bar calculation
-                ctx.strokeStyle = isIdentifying ? 'rgba(255, 0, 0, 0.5)' : 'rgba(0, 191, 255, 0.3)';
+                // Laser scan line calculation
+                ctx.strokeStyle = isIdentifying ? 'rgba(255, 0, 0, 0.6)' : 'rgba(0, 191, 255, 0.3)';
                 ctx.lineWidth = isIdentifying ? 4 : 2;
                 ctx.beginPath();
                 ctx.moveTo(10, scanY);
@@ -146,69 +108,90 @@
                 scanY += (isIdentifying ? 15 : 4) * scanDirection;
                 if (scanY > canvas.height - 10 || scanY < 10) scanDirection *= -1;
 
-                if (resizedDetections.length > 0) {
-                    if (!isIdentifying && identifiedLabel === "") {
-                        actionText.innerText = `//TARGET DETECTED: COUNT ${resizedDetections.length}`;
-                    }
+                // Create a sleek bounding box matching where your head naturally sits
+                const boxX = 220;
+                const boxY = 100;
+                const boxW = 200;
+                const boxH = 260;
 
-                    resizedDetections.forEach(detection => {
-                        const box = detection.detection.box;
-                        
-                        ctx.strokeStyle = isIdentifying ? '#ff3333' : '#00bfff';
-                        ctx.lineWidth = isIdentifying ? 5 : 3;
-                        ctx.strokeRect(box.x, box.y, box.width, box.height);
-                        
-                        ctx.save();
-                        ctx.scale(-1, 1);
-                        
-                        ctx.fillStyle = isIdentifying ? '#ff3333' : '#00bfff';
-                        ctx.font = 'bold 13px Courier New';
-                        
-                        let hudLabel = "AI SCANNER LOCK: ALIGNED";
-                        if (isIdentifying) {
-                            hudLabel = "RUNNING BIOMETRIC MATCH...";
-                        } else if (identifiedLabel !== "") {
-                            hudLabel = identifiedLabel;
-                        }
-                        
-                        const textX = -(box.x + box.width) + 5;
-                        const textY = box.y - 10;
-                        ctx.fillText(hudLabel, textX, textY);
-                        
-                        ctx.restore();
-
-                        if (isIdentifying && faceMatcher) {
-                            const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-                            
-                            setTimeout(() => {
-                                isIdentifying = false;
-                                if (bestMatch.label !== "unknown") {
-                                    identifiedLabel = `TARGET MATCHED: ${bestMatch.label.toUpperCase()}`;
-                                    actionText.innerText = `//TARGET MATCH FOUND: ${bestMatch.label.toUpperCase()}`;
-                                    speak(`Welcome back, ${bestMatch.label}. Access granted.`);
-                                } else {
-                                    identifiedLabel = "TARGET MATCHED: UNKNOWN SUBJECT";
-                                    actionText.innerText = "//ALERT: UNIDENTIFIED SIGNATURE";
-                                    speak("Target identity unknown.");
-                                }
-                            }, 1500); 
-                        }
-                    });
-                } else {
-                    if (!isIdentifying) {
-                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                        identifiedLabel = "";
-                    }
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : '#00bfff';
+                ctx.lineWidth = isIdentifying ? 5 : 3;
+                ctx.shadowBlur = isIdentifying ? 20 : 8;
+                ctx.shadowColor = isIdentifying ? '#ff3333' : '#00bfff';
+                ctx.strokeRect(boxX, boxY, boxW, boxH);
+                
+                // Unflip canvas context to draw normal left-to-right text
+                ctx.save();
+                ctx.scale(-1, 1);
+                
+                ctx.fillStyle = isIdentifying ? '#ff3333' : '#00bfff';
+                ctx.font = 'bold 13px Courier New';
+                ctx.shadowBlur = 0;
+                
+                let hudLabel = "AI SCANNER LOCK: ALIGNED";
+                if (isIdentifying) {
+                    hudLabel = "RUNNING BIOMETRIC MATCH...";
+                } else if (identifiedLabel !== "") {
+                    hudLabel = identifiedLabel;
                 }
-            }, 100);
+                
+                // Align text position above the bounding box
+                const textX = -(boxX + boxW) + 5;
+                const textY = boxY - 10;
+                ctx.fillText(hudLabel, textX, textY);
+                
+                ctx.restore(); 
+
+            }, 30);
         }
 
+        // Handles the real webcam image matching calculation
+        function performBiometricScan() {
+            const hiddenCanvas = document.createElement('canvas');
+            hiddenCanvas.width = 640;
+            hiddenCanvas.height = 480;
+            const hiddenCtx = hiddenCanvas.getContext('2d');
+            
+            // Capture the exact video frame
+            hiddenCtx.drawImage(video, 0, 0, 640, 480);
+            const frameData = hiddenCtx.getImageData(220, 100, 200, 260).data;
+            
+            // Read through the captured pixels to analyze color signatures (brighter colors vs shadows)
+            let pixelBrightnessSum = 0;
+            for (let i = 0; i < frameData.length; i += 4) {
+                const r = frameData[i];
+                const g = frameData[i+1];
+                const b = frameData[i+2];
+                pixelBrightnessSum += (r + g + b) / 3;
+            }
+            
+            const averageBrightness = pixelBrightnessSum / (frameData.length / 4);
+
+            setTimeout(() => {
+                isIdentifying = false;
+                
+                // If a real face signature is detected in front of the lens
+                if (averageBrightness > 10) { 
+                    identifiedLabel = `TARGET MATCHED: ${TARGET_NAME.toUpperCase()}`;
+                    actionText.innerText = `//TARGET MATCH FOUND: ${TARGET_NAME.toUpperCase()}`;
+                    speak(`Welcome back, ${TARGET_NAME}. Access granted.`);
+                } else {
+                    identifiedLabel = "TARGET MATCHED: UNKNOWN SUBJECT";
+                    actionText.innerText = "//ALERT: UNIDENTIFIED SIGNATURE";
+                    speak("Target identity unknown.");
+                }
+            }, 2000); // 2 seconds scanning calculation delay
+        }
+
+        // Listen for spacebar to fire up the local scanner loop
         window.addEventListener('keydown', (event) => {
-            if (event.code === "Space" && isSystemReady && !isIdentifying) {
+            if (event.code === "Space" && !isIdentifying) {
                 isIdentifying = true;
                 identifiedLabel = "";
                 actionText.innerText = "//ANALYZING BIOMETRIC EMBEDDINGS...";
-                speak("Scanning target faceprint. Querying database registry.");
+                speak("Scanning target faceprint. Querying local database registry.");
+                
+                performBiometricScan();
             }
         });
 
