@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.D.I.T.H. OS v1.0</title>
-    <!-- We load the face recognition AI brain directly into the website -->
+    <!-- Loads the AI face tracking engine -->
     <script defer src="https://jsdelivr.net"></script>
     <style>
         body {
@@ -33,7 +33,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirror view so it acts like glasses */
+            transform: scaleX(-1); /* Mirrors the screen to look like tactical glasses */
         }
     </style>
 </head>
@@ -41,91 +41,93 @@
 
     <div class="hud-text">//E.D.I.T.H. OS v1.0</div>
     <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-    <div id="action" class="hud-text">//INITIALIZING WEBCAM...</div>
+    <div id="action" class="hud-text">//ACCESSING WEBCAM...</div>
 
     <div class="container">
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
-    <!-- The interactive script that controls the camera and face tracking -->
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
 
-        // Start E.D.I.T.H.
-        async function startEDITH() {
-            actionText.innerText = "//LOADING AI MODELS...";
-            
-            // Load the face detection models from a public CDN
-            const MODEL_URL = 'https://jsdelivr.net';
-            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-            await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-            
-            actionText.innerText = "//ACCESSING WEBCAM...";
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
-                video.srcObject = stream;
-                
-                // Speak initialization confirmation
-                speak("E.D.I.T.H. tactical systems online. Camera initialized.");
-            } catch (err) {
-                actionText.innerText = "//ERROR: WEBCAM ACCESS DENIED";
-                speak("Error. Camera access denied.");
-                return;
-            }
-        }
-
-        // Voice output function
+        // E.D.I.T.H. Voice Feedback Engine
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
-            // Optional: Choose a more robotic or custom voice if available
             window.speechSynthesis.speak(utterance);
         }
 
-        // Once the video starts playing, track faces continuously
+        async function startEDITH() {
+            try {
+                // 1. Instantly start the webcam stream
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                video.srcObject = stream;
+                speak("E.D.I.T.H. camera streams initialized.");
+                
+                // 2. Load the AI face detection brain models
+                actionText.innerText = "//INITIALIZING TACTICAL TRACKING...";
+                const MODEL_URL = 'https://githubusercontent.com';
+                
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("Tactical recognition models online.");
+                
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//ERROR: HARDWARE INITIALIZATION FAILED";
+                speak("Warning. System initialization failure.");
+            }
+        }
+
+        // Handles drawing holographic target squares onto the frame
         video.addEventListener('play', () => {
-            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            const displaySize = { width: video.width, height: video.height };
+            const displaySize = { width: 640, height: 480 };
             faceapi.matchDimensions(canvas, displaySize);
 
             setInterval(async () => {
-                // Detect faces in the video frame
-                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
-                
-                // Resize results to fit our canvas overlay perfectly
-                const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                
-                // Clear old visual frames before drawing new ones
-                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw customized blue tracking boxes around boxes instead of the default layout
-                resizedDetections.forEach(detection => {
-                    const box = detection.detection.box;
-                    const ctx = canvas.getContext('2d');
-                    ctx.strokeStyle = '#00bfff';
-                    ctx.lineWidth = 3;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#00bfff';
-                    ctx.strokeRect(box.x, box.y, box.width, box.height);
+                try {
+                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
                     
-                    // Display text inside HUD
-                    ctx.fillStyle = '#00bfff';
-                    ctx.font = '14px Courier New';
-                    ctx.fillText("TARGET SCANNED", box.x + 5, box.y - 10);
-                });
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    resizedDetections.forEach(detection => {
+                        const box = detection.detection.box;
+                        
+                        // Cyberpunk tracking square outline
+                        ctx.strokeStyle = '#00bfff';
+                        ctx.lineWidth = 3;
+                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = '#00bfff';
+                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+                        
+                        // Text label above your face
+                        ctx.fillStyle = '#00bfff';
+                        ctx.font = 'bold 12px Courier New';
+                        ctx.shadowBlur = 0;
+                        ctx.fillText("TARGET SCANNED", box.x + 5, box.y - 10);
+                    });
 
-                if (detections.length > 0) {
-                    actionText.innerText = `//TARGET DETECTED: COUNT ${detections.length}`;
-                } else {
+                    if (detections.length > 0) {
+                        actionText.innerText = `//TARGET DETECTED: COUNT ${detections.length}`;
+                    } else {
+                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                    }
+                } catch(e) {
                     actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 }
-            }, 100); // Scans 10 times every second
+            }, 150); // Checks for faces 7-8 times per second for smooth scaling
         });
 
-        // Fire up the code
+        // Initialize E.D.I.T.H.
         startEDITH();
     </script>
 </body>
