@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v2.0</title>
+    <title>E.D.I.T.H. OS v2.2</title>
     <style>
         body {
             background-color: black;
@@ -50,9 +50,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v2.0</div>
+            <div class="hud-text">//E.D.I.T.H. OS v2.2</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//INITIALIZING CAMERA STREAMS...</div>
+            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: CONNECTING...</div>
@@ -66,9 +66,9 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate your signature.<br>
-        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate her template.<br>
-        <span style="color: #00ff00;">[SMART SPEECH]</span> System will automatically cycle and greet each target ONCE without repeating!
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate.<br>
+        <span style="color: #00ff00;">[SMART SPEECH]</span> She welcomes each target ONCE and stays quiet while locked!
     </div>
 
     <script>
@@ -77,7 +77,7 @@
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
 
-        // Perfectly Cleaned Target Profiles
+        // Clean Configuration
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
@@ -174,13 +174,13 @@
             
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
-                speak(`${PROFILE_A_NAME} blueprint saved.`);
+                speak(`${PROFILE_A_NAME} profile logged.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
             if (event.key.toLowerCase() === 'g') {
                 signatureB = getColorSample();
-                speak(`${PROFILE_B_NAME} blueprint saved.`);
+                speak(`${PROFILE_B_NAME} profile logged.`);
                 actionText.innerText = "//GRANDMA PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
@@ -197,7 +197,7 @@
                 speak("E.D.I.T.H. systems online.");
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//CAMERA PERMISSION RESTRICTED. RESET PERMISSIONS NEAR ADDRESS BAR.";
+                actionText.innerText = "//CAMERA ACCESS BLOCKED.";
             }
         }
 
