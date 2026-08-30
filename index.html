@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v2.3</title>
+    <title>E.D.I.T.H. OS v2.4</title>
     <style>
         body {
             background-color: black;
@@ -44,23 +44,47 @@
             font-size: 13px;
             line-height: 1.6;
         }
+        .override-btn {
+            position: absolute;
+            top: 200px;
+            left: 195px;
+            z-index: 100;
+            background-color: #00bfff;
+            color: black;
+            border: none;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 20px #00bfff;
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px #00bfff; }
+            50% { box-shadow: 0 0 20px #00bfff; }
+            100% { box-shadow: 0 0 5px #00bfff; }
+        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v2.3</div>
+            <div class="hud-text">//E.D.I.T.H. OS v2.4</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//INITIALIZING CAMERA STREAMS...</div>
+            <div id="action" class="hud-text">//AWAITING SYSTEM HANDSHAKE...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
 
     <div class="container">
+        <!-- The critical manual bypass trigger button -->
+        <button id="overrideBtn" class="override-btn" onclick="engageTacticalHUD()">[ 🔓 ACTIVATE LENS CONNECTIONS ]</button>
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
@@ -76,8 +100,8 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
+        const overrideBtn = document.getElementById('overrideBtn');
 
-        // Target Names
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
@@ -95,15 +119,32 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // PRIORITY 1: Clock Loop (Runs instantly without waiting for camera hardware)
+        // Clicking this completely forces the browser safety gate open
+        async function engageTacticalHUD() {
+            overrideBtn.style.display = "none";
+            actionText.innerText = "//ENGAGING OPTICAL CHANNELS...";
+            
+            // Instantly spin up graphics engines and time monitors
+            setInterval(updateClock, 1000);
+            updateClock();
+            setInterval(renderHUD, 30);
+            startRadarEngine();
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("E.D.I.T.H. tactical networks active.");
+            } catch (err) {
+                actionText.innerText = "//CAMERA REJECTED: VERIFY SYSTEM SLIDER SHUTTER IS OPEN";
+            }
+        }
+
         function updateClock() {
             const now = new Date();
             clockText.innerText = "TIME: " + now.toLocaleTimeString();
         }
-        setInterval(updateClock, 1000);
-        updateClock();
 
-        // PRIORITY 2: HUD Graphics System (Draws center box and scanning lines immediately)
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -135,7 +176,6 @@
             ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
-        setInterval(renderHUD, 30);
 
         function getColorSample() {
             try {
@@ -156,7 +196,6 @@
             }
         }
 
-        // Passive Radar Automatic Checking Logic
         function startRadarEngine() {
             setInterval(() => {
                 if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
@@ -172,39 +211,18 @@
                     isIdentifying = false;
                     if (diffA  {
             if (video.readyState !== 4) return;
-            
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
-                speak(`${PROFILE_A_NAME} profile logged.`);
+                speak(`${PROFILE_A_NAME} profile saved.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
             if (event.key.toLowerCase() === 'g') {
                 signatureB = getColorSample();
-                speak(`${PROFILE_B_NAME} profile logged.`);
+                speak(`${PROFILE_B_NAME} profile saved.`);
                 actionText.innerText = "//GRANDMA PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
         });
-
-        // PRIORITY 3: Camera requested safely at the very end
-        async function connectOpticalCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
-                video.srcObject = stream;
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. systems online.");
-                startRadarEngine();
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//CAMERA ACCESS BLOCKED.";
-            }
-        }
-
-        // Trigger camera load after a slight delay to let HUD draw
-        setTimeout(connectOpticalCamera, 500);
     </script>
 </body>
-</html>
