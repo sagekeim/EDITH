@@ -59,22 +59,6 @@
             cursor: pointer;
             border-radius: 3px;
         }
-        .upgrade-btn {
-            background-color: #ff3333;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 3px;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 51, 51, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); }
-        }
     </style>
 </head>
 <body>
@@ -83,10 +67,10 @@
         <div>
             <div class="hud-text">//E.D.I.T.H. OS v1.8</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+            <div id="action" class="hud-text">//INITIALIZING SYSTEM GRID...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: INITIALIZING...</div>
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -98,8 +82,7 @@
 
     <div class="instructions">
         <div class="btn-panel">
-            <button class="reset-btn" onclick="startEDITH()">[ FORCE REBOOT CAMERA ]</button>
-            <button class="upgrade-btn" onclick="forceSystemUpgrade()">[ ⚠️ FORCE UPGRADE TO V1.8 ]</button>
+            <button class="reset-btn" onclick="startEDITHCamera()">[ 🔄 REBOOT WEBCAM STREAM ]</button>
         </div>
         <br>
         <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
@@ -113,6 +96,7 @@
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
 
+        // Configuration
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
@@ -130,23 +114,15 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Action function for the glowing force upgrade button
-        function forceSystemUpgrade() {
-            // This destroys the browser's old cache instantly
-            window.location.href = window.location.origin + window.location.pathname + '?v=' + Math.random();
-        }
-
+        // PRIORITY 1: Clock loop turns on instantly without blocking anything
         function updateClock() {
-            try {
-                const now = new Date();
-                clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            } catch(e) {
-                clockText.innerText = "TIME: RESETTING";
-            }
+            const now = new Date();
+            clockText.innerText = "TIME: " + now.toLocaleTimeString();
         }
         setInterval(updateClock, 1000);
         updateClock();
 
+        // PRIORITY 2: HUD Graphics system draws text boxes and scanner lines instantly
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -180,20 +156,6 @@
         }
         setInterval(renderHUD, 30);
 
-        async function startEDITH() {
-            actionText.innerText = "//CONNECTING CAMERA LINK...";
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
-                video.srcObject = stream;
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. systems stable.");
-            } catch (err) {
-                actionText.innerText = "//CAMERA LINKS RESTRICTED: CLICK REBOOT";
-            }
-        }
-
         function getColorSample() {
             try {
                 const hiddenCanvas = document.createElement('canvas');
@@ -209,10 +171,11 @@
                 const total = imgData.length / 4;
                 return { r: r / total, g: g / total, b: b / total };
             } catch (e) {
-                return { r: 100, g: 100, b: 100 };
+                return { r: 120, g: 120, b: 120 };
             }
         }
 
+        // Passive scanning system checks coordinates every 4 seconds
         setInterval(() => {
             if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
 
@@ -232,3 +195,33 @@
                 signatureA = getColorSample();
                 speak(`${PROFILE_A_NAME} profile saved.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
+                lastSpokenIdentity = ""; 
+            }
+            if (event.key.toLowerCase() === 'g') {
+                signatureB = getColorSample();
+                speak(`${PROFILE_B_NAME} profile saved.`);
+                actionText.innerText = "//GRANDMA PROFILE CACHED";
+                lastSpokenIdentity = ""; 
+            }
+        });
+
+        // PRIORITY 3: Camera is triggered last so any hardware delays can't pause the layout!
+        async function startEDITHCamera() {
+            actionText.innerText = "//CONNECTING CAMERA LINK...";
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                video.srcObject = stream;
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("Tactical grids initialized.");
+            } catch (err) {
+                actionText.innerText = "//CAMERA RESTRICTED: PLEASE ALLOW ACCESS";
+            }
+        }
+        
+        // Boot up camera safely in the background
+        setTimeout(startEDITHCamera, 500);
+    </script>
+</body>
+</html>
