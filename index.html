@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.D.I.T.H. OS v1.0</title>
+    <!-- Core tracking libraries that are now working! -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
     <style>
         body {
             background-color: black;
@@ -31,7 +34,12 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
+            transform: scaleX(-1); /* Mirrors the webcam video stream */
+        }
+        .instructions {
+            margin-top: 500px;
+            color: #888;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -46,10 +54,23 @@
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
+    <div class="instructions">
+        // PRESS THE [SPACEBAR] TO ACTIVATE TARGET BIOMETRIC IDENTIFICATION.
+    </div>
+
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        let model;
+
+        // 1. CHANGE THIS TO YOUR ACTUAL NAME!
+        const AGENT_NAME = "Peter Parker"; 
+
+        let isIdentifying = false;
+        let identifiedName = "";
+        let scanY = 0;
+        let scanDirection = 1;
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
@@ -58,17 +79,18 @@
 
         async function startEDITH() {
             try {
-                // Instantly request the camera stream
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: 640, height: 480 } 
                 });
                 video.srcObject = stream;
                 
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. core systems online. Initiating scanning grid.");
+                actionText.innerText = "//INITIALIZING TACTICAL TRACKING...";
+                model = await blazeface.load();
                 
-                // Start drawing the tactical elements onto your face video
-                initTacticalHUD();
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("E.D.I.T.H. tactical systems online.");
+                
+                trackFaces();
             } catch (err) {
                 console.error(err);
                 actionText.innerText = "//ERROR: HARDWARE INITIALIZATION FAILED";
@@ -76,82 +98,91 @@
             }
         }
 
-        function initTacticalHUD() {
+        async function trackFaces() {
             const ctx = canvas.getContext('2d');
-            let scanY = 0;
-            let scanDirection = 1;
-
-            // Check if your browser has the brand-new built-in FaceDetector engine
-            const hasNativeDetector = 'FaceDetector' in window;
-
+            
             setInterval(async () => {
+                if (!model) return;
+
+                const predictions = await model.estimateFaces(video, false);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // 1. Draw a cycling horizontal laser scan line across the HUD
-                ctx.strokeStyle = 'rgba(0, 191, 255, 0.3)';
-                ctx.lineWidth = 2;
+                // Laser scan line calculation
+                ctx.strokeStyle = isIdentifying ? 'rgba(255, 0, 0, 0.5)' : 'rgba(0, 191, 255, 0.3)';
+                ctx.lineWidth = isIdentifying ? 4 : 2;
                 ctx.beginPath();
                 ctx.moveTo(10, scanY);
                 ctx.lineTo(canvas.width - 10, scanY);
                 ctx.stroke();
                 
-                // Move the scan line up and down
-                scanY += 4 * scanDirection;
-                if (scanY > canvas.height - 10 || scanY < 10) {
-                    scanDirection *= -1;
-                }
+                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                if (scanY > canvas.height - 10 || scanY < 10) scanDirection *= -1;
 
-                // 2. Try scanning for real faces using the browser's native engine if available
-                if (hasNativeDetector) {
-                    try {
-                        const faceDetector = new FaceDetector({ fastMode: true });
-                        const faces = await faceDetector.detect(video);
+                if (predictions.length > 0) {
+                    if (!isIdentifying && identifiedName === "") {
+                        actionText.innerText = `//TARGET DETECTED: COUNT ${predictions.length}`;
+                    }
+                    
+                    predictions.forEach(prediction => {
+                        const start = prediction.topLeft;
+                        const end = prediction.bottomRight;
+                        const width = end[0] - start[0];
+                        const height = end[1] - start[1];
                         
-                        if (faces.length > 0) {
-                            actionText.innerText = `//TARGET DETECTED: COUNT ${faces.length}`;
-                            
-                            faces.forEach(face => {
-                                const box = face.boundingBox;
-                                
-                                // Draw a cyber tracking box over your face
-                                ctx.strokeStyle = '#00bfff';
-                                ctx.lineWidth = 4;
-                                ctx.shadowBlur = 15;
-                                ctx.shadowColor = '#00bfff';
-                                ctx.strokeRect(box.x, box.y, box.width, box.height);
-                                
-                                // Label the target right on your forehead
-                                ctx.fillStyle = '#00bfff';
-                                ctx.font = 'bold 14px Courier New';
-                                ctx.shadowBlur = 0;
-                                ctx.fillText("TARGET SCANNED", box.x + 5, box.y - 10);
-                            });
-                            return; // Stop here if native face tracking worked!
+                        // Cyber tracking box outline
+                        ctx.strokeStyle = isIdentifying ? '#ff3333' : '#00bfff';
+                        ctx.lineWidth = isIdentifying ? 5 : 3;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = isIdentifying ? '#ff3333' : '#00bfff';
+                        ctx.strokeRect(start[0], start[1], width, height);
+                        
+                        // SMART FIX: We temporarily un-mirror the canvas context 
+                        // just to draw the text so it reads perfectly left-to-right!
+                        ctx.save();
+                        ctx.scale(-1, 1);
+                        
+                        ctx.fillStyle = isIdentifying ? '#ff3333' : '#00bfff';
+                        ctx.font = 'bold 13px Courier New';
+                        ctx.shadowBlur = 0;
+                        
+                        let hudLabel = "AI SCANNER LOCK: ALIGNED";
+                        if (isIdentifying) {
+                            hudLabel = "RUNNING BIOMETRIC MATCH...";
+                        } else if (identifiedName !== "") {
+                            hudLabel = `TARGET MATCHED: ${identifiedName.toUpperCase()}`;
                         }
-                    } catch (e) {
-                        // Muted fallback if detector drops a frame
+                        
+                        // Calculate flipped coordinates for text position
+                        const textX = -(start[0] + width) + 5;
+                        const textY = start[1] - 10;
+                        ctx.fillText(hudLabel, textX, textY);
+                        
+                        ctx.restore(); // Restore back to normal mirrored mode
+                    });
+                } else {
+                    if (!isIdentifying) {
+                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                        identifiedName = ""; // Clear name if you step away
                     }
                 }
-
-                // 3. FALLBACK INTEL GRID: If browser security completely blocks AI detection,
-                // we lock a tracking grid to the center area so you still get a fully working tactical HUD
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                
-                ctx.strokeStyle = 'rgba(0, 191, 255, 0.5)';
-                ctx.lineWidth = 2;
-                ctx.shadowBlur = 8;
-                ctx.shadowColor = '#00bfff';
-                
-                // Draw a sleek target grid box in the center where your face naturally sits
-                ctx.strokeRect(220, 120, 200, 240);
-                
-                ctx.fillStyle = '#00bfff';
-                ctx.font = 'bold 12px Courier New';
-                ctx.shadowBlur = 0;
-                ctx.fillText("AI SCANNER LOCK: ALIGNED", 225, 145);
-
-            }, 30); // Runs ultra-smoothly at ~30 frames per second
+            }, 50); 
         }
+
+        // Spacebar listener to lock in your identity query
+        window.addEventListener('keydown', (event) => {
+            if (event.code === "Space" && !isIdentifying) {
+                isIdentifying = true;
+                actionText.innerText = "//ANALYZING BIOMETRIC EMBEDDINGS...";
+                speak("Scanning target faceprint. Querying local database.");
+
+                setTimeout(() => {
+                    isIdentifying = false;
+                    identifiedName = AGENT_NAME;
+                    actionText.innerText = `//TARGET MATCH FOUND: ${AGENT_NAME.toUpperCase()}`;
+                    speak(`Welcome back, ${AGENT_NAME}. Access granted.`);
+                }, 2500);
+            }
+        });
 
         startEDITH();
     </script>
