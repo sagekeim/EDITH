@@ -6,9 +6,16 @@
     <title>E.D.I.T.H. OS v1.0</title>
 
     <!-- ==================================================== -->
-    <!-- ⚙️ CONFIGURATION: TYPE YOUR REAL NAME BELOW INSTEAD OF PETER PARKER -->
+    <!-- ⚙️ CONFIGURATION: ADD YOUR TARGET DATABASE BELOW! -->
     <script>
-        const AGENT_NAME = "Sage Keim"; 
+        // You can add dozens of names here! Just make sure to use commas between them.
+        const TARGET_DATABASE = [
+            "Sage Olivia Josephine Keim",
+            "Jack Walker Keim",
+            "Tesslyn Suzanne Keim",
+            "Jody Lee Aronson",
+            "Edwin Garth Aronson"
+        ];
     </script>
     <!-- ==================================================== -->
 
@@ -74,6 +81,7 @@
 
         let isIdentifying = false;
         let identifiedName = "";
+        let currentTargetIndex = 0; // Rotates names for simulation testing
         let scanY = 0;
         let scanDirection = 1;
 
@@ -176,13 +184,20 @@
             if (event.code === "Space" && !isIdentifying) {
                 isIdentifying = true;
                 actionText.innerText = "//ANALYZING BIOMETRIC EMBEDDINGS...";
-                speak("Scanning target faceprint. Querying local database.");
+                speak("Scanning target faceprint. Querying database registry.");
 
                 setTimeout(() => {
                     isIdentifying = false;
-                    identifiedName = AGENT_NAME;
-                    actionText.innerText = `//TARGET MATCH FOUND: ${AGENT_NAME.toUpperCase()}`;
-                    speak(`Welcome back, ${AGENT_NAME}. Access granted.`);
+                    
+                    // Pull a name out of our custom database list!
+                    const matchName = TARGET_DATABASE[currentTargetIndex];
+                    identifiedName = matchName;
+                    
+                    actionText.innerText = `//TARGET MATCH FOUND: ${matchName.toUpperCase()}`;
+                    speak(`Target identified as ${matchName}. Profile loaded.`);
+                    
+                    // Rotate to the next name in the list for your next scan test
+                    currentTargetIndex = (currentTargetIndex + 1) % TARGET_DATABASE.length;
                 }, 2500);
             }
         });
