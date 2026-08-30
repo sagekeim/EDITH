@@ -4,7 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.D.I.T.H. OS v1.0</title>
-    <!-- Core tracking libraries that are now working! -->
+
+    <!-- ==================================================== -->
+    <!-- ⚙️ CONFIGURATION: TYPE YOUR REAL NAME BELOW INSTEAD OF PETER PARKER -->
+    <script>
+        const AGENT_NAME = "Sage Keim"; 
+    </script>
+    <!-- ==================================================== -->
+
+    <!-- Core AI tracking libraries -->
     <script src="https://jsdelivr.net"></script>
     <script src="https://jsdelivr.net"></script>
     <style>
@@ -34,7 +42,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirrors the webcam video stream */
+            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
         }
         .instructions {
             margin-top: 500px;
@@ -63,9 +71,6 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         let model;
-
-        // 1. CHANGE THIS TO YOUR ACTUAL NAME!
-        const AGENT_NAME = "Sage Keim"; 
 
         let isIdentifying = false;
         let identifiedName = "";
@@ -126,18 +131,17 @@
                     predictions.forEach(prediction => {
                         const start = prediction.topLeft;
                         const end = prediction.bottomRight;
-                        const width = end[0] - start[0];
-                        const height = end[1] - start[1];
+                        const width = end - start;
+                        const height = end - start;
                         
                         // Cyber tracking box outline
                         ctx.strokeStyle = isIdentifying ? '#ff3333' : '#00bfff';
                         ctx.lineWidth = isIdentifying ? 5 : 3;
                         ctx.shadowBlur = 15;
                         ctx.shadowColor = isIdentifying ? '#ff3333' : '#00bfff';
-                        ctx.strokeRect(start[0], start[1], width, height);
+                        ctx.strokeRect(start, start, width, height);
                         
-                        // SMART FIX: We temporarily un-mirror the canvas context 
-                        // just to draw the text so it reads perfectly left-to-right!
+                        // Fix text mirror flip
                         ctx.save();
                         ctx.scale(-1, 1);
                         
@@ -152,23 +156,22 @@
                             hudLabel = `TARGET MATCHED: ${identifiedName.toUpperCase()}`;
                         }
                         
-                        // Calculate flipped coordinates for text position
-                        const textX = -(start[0] + width) + 5;
-                        const textY = start[1] - 10;
+                        const textX = -(start + width) + 5;
+                        const textY = start - 10;
                         ctx.fillText(hudLabel, textX, textY);
                         
-                        ctx.restore(); // Restore back to normal mirrored mode
+                        ctx.restore(); 
                     });
                 } else {
                     if (!isIdentifying) {
                         actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                        identifiedName = ""; // Clear name if you step away
+                        identifiedName = ""; 
                     }
                 }
             }, 50); 
         }
 
-        // Spacebar listener to lock in your identity query
+        // Spacebar tracking trigger
         window.addEventListener('keydown', (event) => {
             if (event.code === "Space" && !isIdentifying) {
                 isIdentifying = true;
