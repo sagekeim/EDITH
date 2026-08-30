@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Baseline OS</title>
+    <title>E.D.I.T.H. OS v2.0</title>
     <style>
         body {
             background-color: black;
@@ -19,6 +19,11 @@
             margin-bottom: 5px;
             text-shadow: 0 0 8px #00bfff;
         }
+        .hud-grid {
+            display: flex;
+            justify-content: space-between;
+            width: 640px;
+        }
         .container {
             position: relative;
             display: inline-block;
@@ -31,64 +36,172 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1);
+            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
+        }
+        .instructions {
+            margin-top: 500px;
+            color: #888;
+            font-size: 13px;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
 
-    <div class="hud-text">//E.D.I.T.H. OS v2.1</div>
-    <div id="action" class="hud-text">//CONNECTING OPTICAL FEED...</div>
+    <div class="hud-grid">
+        <div>
+            <div class="hud-text">//E.D.I.T.H. OS v2.0</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//INITIALIZING CAMERA STREAMS...</div>
+        </div>
+        <div style="text-align: right;">
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
+            <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
+        </div>
+    </div>
 
     <div class="container">
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
+    <div class="instructions">
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate your signature.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate her template.<br>
+        <span style="color: #00ff00;">[SMART SPEECH]</span> System will automatically cycle and greet each target ONCE without repeating!
+    </div>
+
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const clockText = document.getElementById('clock');
 
+        // Perfectly Cleaned Target Profiles
+        const PROFILE_A_NAME = "Sage Keim";
+        const PROFILE_B_NAME = "Grandma";
+
+        let signatureA = null;
+        let signatureB = null;
+        let isIdentifying = false;
+        let identifiedLabel = "";
         let scanY = 120;
         let scanDirection = 1;
+        let currentHUDColor = "#00bfff";
+        let lastSpokenIdentity = "";
 
-        // 1. Draw the basic layout immediately
-        function drawHUD() {
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Live System Clock Loop
+        function updateClock() {
+            const now = new Date();
+            clockText.innerText = "TIME: " + now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Cyber HUD Rendering Engine
+        function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Scanner Line
-            ctx.strokeStyle = 'rgba(0, 191, 255, 0.4)';
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(10, scanY);
             ctx.lineTo(canvas.width - 10, scanY);
             ctx.stroke();
             
-            scanY += 4 * scanDirection;
+            scanY += (isIdentifying ? 15 : 4) * scanDirection;
             if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            // Targeting box
-            ctx.strokeStyle = '#00bfff';
+            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 3;
-            ctx.strokeRect(220, 100, 200, 260);
-
-            requestAnimationFrame(drawHUD);
+            ctx.strokeRect(boxX, boxY, boxW, boxH);
+            
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.font = 'bold 13px Courier New';
+            
+            let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
+            if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
+            if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
+            
+            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+            ctx.restore();
         }
-        requestAnimationFrame(drawHUD);
+        setInterval(renderHUD, 30);
 
-        // 2. Open Camera stream cleanly
-        async function startCamera() {
+        function getColorSample() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            } catch (err) {
-                actionText.innerText = "//CAMERA PERMISSION REQUIRED. CHECK LOCK ICON IN ADDRESS BAR.";
+                const hiddenCanvas = document.createElement('canvas');
+                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
+                const ctx = hiddenCanvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                
+                const imgData = ctx.getImageData(220, 100, 200, 260).data;
+                let r = 0; let g = 0; let b = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    r += imgData[i]; g += imgData[i+1]; b += imgData[i+2];
+                }
+                const total = imgData.length / 4;
+                return { r: r / total, g: g / total, b: b / total };
+            } catch (e) {
+                return { r: 120, g: 120, b: 120 };
             }
         }
-        startCamera();
+
+        // Passive Radar Automatic Checking Logic
+        setInterval(() => {
+            if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
+
+            const sample = getColorSample();
+            const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
+            const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
+
+            isIdentifying = true;
+            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
+
+            setTimeout(() => {
+                isIdentifying = false;
+                if (diffA  {
+            if (video.readyState !== 4) return;
+            
+            if (event.key.toLowerCase() === 's') {
+                signatureA = getColorSample();
+                speak(`${PROFILE_A_NAME} blueprint saved.`);
+                actionText.innerText = "//SAGE PROFILE CACHED";
+                lastSpokenIdentity = ""; 
+            }
+            if (event.key.toLowerCase() === 'g') {
+                signatureB = getColorSample();
+                speak(`${PROFILE_B_NAME} blueprint saved.`);
+                actionText.innerText = "//GRANDMA PROFILE CACHED";
+                lastSpokenIdentity = ""; 
+            }
+        });
+
+        // Launch Browser Camera Feed Safely
+        async function connectOpticalCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
+                video.srcObject = stream;
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("E.D.I.T.H. systems online.");
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA PERMISSION RESTRICTED. RESET PERMISSIONS NEAR ADDRESS BAR.";
+            }
+        }
+
+        connectOpticalCamera();
     </script>
 </body>
 </html>
