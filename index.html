@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v2.2</title>
+    <title>E.D.I.T.H. OS v2.3</title>
     <style>
         body {
             background-color: black;
@@ -50,9 +50,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v2.2</div>
+            <div class="hud-text">//E.D.I.T.H. OS v2.3</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+            <div id="action" class="hud-text">//INITIALIZING CAMERA STREAMS...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: CONNECTING...</div>
@@ -77,7 +77,7 @@
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
 
-        // Clean Configuration
+        // Target Names
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
@@ -95,7 +95,7 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Live System Clock Loop
+        // PRIORITY 1: Clock Loop (Runs instantly without waiting for camera hardware)
         function updateClock() {
             const now = new Date();
             clockText.innerText = "TIME: " + now.toLocaleTimeString();
@@ -103,7 +103,7 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Cyber HUD Rendering Engine
+        // PRIORITY 2: HUD Graphics System (Draws center box and scanning lines immediately)
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -157,19 +157,20 @@
         }
 
         // Passive Radar Automatic Checking Logic
-        setInterval(() => {
-            if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
+        function startRadarEngine() {
+            setInterval(() => {
+                if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
 
-            const sample = getColorSample();
-            const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
-            const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
+                const sample = getColorSample();
+                const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
+                const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
 
-            isIdentifying = true;
-            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
+                isIdentifying = true;
+                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
 
-            setTimeout(() => {
-                isIdentifying = false;
-                if (diffA  {
+                setTimeout(() => {
+                    isIdentifying = false;
+                    if (diffA  {
             if (video.readyState !== 4) return;
             
             if (event.key.toLowerCase() === 's') {
@@ -186,7 +187,7 @@
             }
         });
 
-        // Launch Browser Camera Feed Safely
+        // PRIORITY 3: Camera requested safely at the very end
         async function connectOpticalCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -195,13 +196,15 @@
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 speak("E.D.I.T.H. systems online.");
+                startRadarEngine();
             } catch (err) {
                 console.error(err);
                 actionText.innerText = "//CAMERA ACCESS BLOCKED.";
             }
         }
 
-        connectOpticalCamera();
+        // Trigger camera load after a slight delay to let HUD draw
+        setTimeout(connectOpticalCamera, 500);
     </script>
 </body>
 </html>
