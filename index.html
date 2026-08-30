@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.D.I.T.H. OS v1.0</title>
-    <!-- We load a lightweight face tracking script directly from a fast server -->
+    <!-- Core tracking libraries -->
     <script src="https://jsdelivr.net"></script>
     <script src="https://jsdelivr.net"></script>
     <style>
@@ -34,7 +34,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirrors the stream to act like smart glasses */
+            transform: scaleX(-1); /* Mirrors the view to act like HUD glasses */
         }
     </style>
 </head>
@@ -62,21 +62,21 @@
 
         async function startEDITH() {
             try {
-                // 1. Fire up the camera feed that we know works!
+                // 1. Instantly start the working camera stream
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: 640, height: 480 } 
                 });
                 video.srcObject = stream;
-                speak("E.D.I.T.H. core camera systems online.");
+                speak("E.D.I.T.H. camera streams initialized.");
                 
-                // 2. Load Google's ultra-fast BlazerFace tracking engine
+                // 2. Load the tracking engine
                 actionText.innerText = "//INITIALIZING TACTICAL TRACKING...";
                 model = await blazeface.load();
                 
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 speak("Tactical recognition models online.");
                 
-                // Start scanning the video frames
+                // Begin our continuous tracking loop
                 trackFaces();
                 
             } catch (err) {
@@ -92,42 +92,44 @@
             setInterval(async () => {
                 if (!model) return;
 
-                // Tell the AI to look at the webcam video frame for faces
+                // Let the AI search the webcam frame for faces
                 const predictions = await model.estimateFaces(video, false);
                 
+                // Clear the canvas completely so old boxes don't stay stuck on screen
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw a standard HUD target border just for style
-                ctx.strokeStyle = 'rgba(0, 191, 255, 0.2)';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
 
                 if (predictions.length > 0) {
                     actionText.innerText = `//TARGET DETECTED: COUNT ${predictions.length}`;
                     
-                    // Loop through every face the camera sees
-                    predictions.forEach(prediction => {
-                        const start = prediction.topLeft;
-                        const end = prediction.bottomRight;
-                        const size = [end[0] - start[0], end[1] - start[1]];
+                    // Loop through every face found
+                    for (let i = 0; i < predictions.length; i++) {
+                        const face = predictions[i];
                         
-                        // Draw a glowing cyberpunk holographic box over your face!
+                        // Extract precise tracking points
+                        const x = face.topLeft[0];
+                        const y = face.topLeft[1];
+                        const width = face.bottomRight[0] - x;
+                        const height = face.bottomRight[1] - y;
+                        
+                        // Style the cyan cyberpunk tracking square
                         ctx.strokeStyle = '#00bfff';
-                        ctx.lineWidth = 3;
+                        ctx.lineWidth = 4;
                         ctx.shadowBlur = 15;
                         ctx.shadowColor = '#00bfff';
-                        ctx.strokeRect(start[0], start[1], size[0], size[1]);
                         
-                        // Label the target
+                        // Draw the square box over your face
+                        ctx.strokeRect(x, y, width, height);
+                        
+                        // Draw text label right above your forehead
                         ctx.fillStyle = '#00bfff';
-                        ctx.font = 'bold 12px Courier New';
-                        ctx.shadowBlur = 0;
-                        ctx.fillText("TARGET SCANNED", start[0] + 5, start[1] - 10);
-                    });
+                        ctx.font = 'bold 14px Courier New';
+                        ctx.shadowBlur = 0; // Turn off glow for text so it's readable
+                        ctx.fillText("TARGET SCANNED", x + 5, y - 10);
+                    }
                 } else {
                     actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 }
-            }, 100); // Scans 10 times every single second for smooth tracking
+            }, 100); // 10 scans per second
         }
 
         startEDITH();
