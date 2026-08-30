@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v2.5</title>
+    <title>E.D.I.T.H. OS v2.6</title>
     <style>
         body {
             background-color: black;
@@ -44,18 +44,24 @@
             font-size: 13px;
             line-height: 1.6;
         }
+        .activate-link {
+            color: #ff3333;
+            text-decoration: underline;
+            cursor: pointer;
+            text-shadow: 0 0 8px #ff3333;
+        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v2.5</div>
-            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//CONNECTING CAMERA VECTOR LINK...</div>
+            <div class="hud-text">//E.D.I.T.H. OS v2.6</div>
+            <div id="status" class="hud-text">//STATUS: <span id="linkZone" class="activate-link" onclick="forceSystemLaunch()">[ CLICK TO ACTIVATE CORE ]</span></div>
+            <div id="action" class="hud-text">//AWAITING HARDWARE HANDSHAKE...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -76,6 +82,7 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
+        const linkZone = document.getElementById('linkZone');
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
@@ -88,71 +95,77 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
+        let trackingActive = false;
 
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(utterance);
         }
 
-        // Clock Engine
-        function startClockEngine() {
-            function updateClock() {
-                const now = new Date();
-                clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            }
+        // Clicking the text link fires up the engines instantly
+        async function forceSystemLaunch() {
+            linkZone.removeAttribute('onclick');
+            linkZone.className = "";
+            linkZone.style.color = "#00bfff";
+            linkZone.style.textShadow = "0 0 8px #00bfff";
+            linkZone.innerText = "ACTIVE";
+            
+            actionText.innerText = "//ENGAGING OPTICAL VECTORS...";
+            trackingActive = true;
+
+            // Start processing tracks
             setInterval(updateClock, 1000);
             updateClock();
-        }
-
-        // HUD Renderer Engine
-        function startGraphicsEngine() {
-            function renderHUD() {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(10, scanY);
-                ctx.lineTo(canvas.width - 10, scanY);
-                ctx.stroke();
-                
-                scanY += (isIdentifying ? 15 : 4) * scanDirection;
-                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
-
-                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 3;
-                ctx.strokeRect(boxX, boxY, boxW, boxH);
-                
-                ctx.save();
-                ctx.scale(-1, 1);
-                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.font = 'bold 13px Courier New';
-                
-                let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
-                if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
-                if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
-                
-                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-                ctx.restore();
-            }
             setInterval(renderHUD, 30);
-        }
+            startRadarEngine();
 
-        // Camera Feed Link
-        async function connectOpticalCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. systems stable.");
+                speak("E.D.I.T.H. online.");
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//CAMERA ACCESS ERROR: CHECK BROWSER PRIVACY SETTINGS";
+                actionText.innerText = "//CAMERA REJECTED: VERIFY EDGE HARDWARE SLIDER IS OPEN";
             }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            clockText.innerText = "TIME: " + now.toLocaleTimeString();
+        }
+
+        function renderHUD() {
+            if (!trackingActive) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(10, scanY);
+            ctx.lineTo(canvas.width - 10, scanY);
+            ctx.stroke();
+            
+            scanY += (isIdentifying ? 15 : 4) * scanDirection;
+            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+
+            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(boxX, boxY, boxW, boxH);
+            
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.font = 'bold 13px Courier New';
+            
+            let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
+            if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
+            if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
+            
+            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+            ctx.restore();
         }
 
         function getColorSample() {
@@ -174,7 +187,6 @@
             }
         }
 
-        // Passive Radar Engine
         function startRadarEngine() {
             setInterval(() => {
                 if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
@@ -189,7 +201,7 @@
                 setTimeout(() => {
                     isIdentifying = false;
                     if (diffA  {
-            if (video.readyState !== 4) return;
+            if (!trackingActive || video.readyState !== 4) return;
             
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
@@ -203,14 +215,6 @@
                 actionText.innerText = "//GRANDMA PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
-        });
-
-        // Trigger everything completely frictionless on load
-        window.addEventListener('DOMContentLoaded', () => {
-            startClockEngine();
-            startGraphicsEngine();
-            startRadarEngine();
-            connectOpticalCamera();
         });
     </script>
 </body>
