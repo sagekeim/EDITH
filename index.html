@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.D.I.T.H. OS v1.0</title>
-    <!-- Loads the AI face tracking engine -->
-    <script defer src="https://jsdelivr.net"></script>
+    <!-- We load a lightweight face tracking script directly from a fast server -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
     <style>
         body {
             background-color: black;
@@ -33,7 +34,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirrors the screen to look like tactical glasses */
+            transform: scaleX(-1); /* Mirrors the stream to act like smart glasses */
         }
     </style>
 </head>
@@ -52,8 +53,8 @@
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        let model;
 
-        // E.D.I.T.H. Voice Feedback Engine
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(utterance);
@@ -61,73 +62,74 @@
 
         async function startEDITH() {
             try {
-                // 1. Instantly start the webcam stream
+                // 1. Fire up the camera feed that we know works!
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { width: 640, height: 480 } 
                 });
                 video.srcObject = stream;
-                speak("E.D.I.T.H. camera streams initialized.");
+                speak("E.D.I.T.H. core camera systems online.");
                 
-                // 2. Load the AI face detection brain models
+                // 2. Load Google's ultra-fast BlazerFace tracking engine
                 actionText.innerText = "//INITIALIZING TACTICAL TRACKING...";
-                const MODEL_URL = 'https://githubusercontent.com';
-                
-                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                model = await blazeface.load();
                 
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 speak("Tactical recognition models online.");
                 
+                // Start scanning the video frames
+                trackFaces();
+                
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//ERROR: HARDWARE INITIALIZATION FAILED";
-                speak("Warning. System initialization failure.");
+                actionText.innerText = "//ERROR: INITIALIZATION FAILED";
+                speak("Warning. System setup failure.");
             }
         }
 
-        // Handles drawing holographic target squares onto the frame
-        video.addEventListener('play', () => {
-            const displaySize = { width: 640, height: 480 };
-            faceapi.matchDimensions(canvas, displaySize);
-
+        async function trackFaces() {
+            const ctx = canvas.getContext('2d');
+            
             setInterval(async () => {
-                try {
-                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
-                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                if (!model) return;
+
+                // Tell the AI to look at the webcam video frame for faces
+                const predictions = await model.estimateFaces(video, false);
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw a standard HUD target border just for style
+                ctx.strokeStyle = 'rgba(0, 191, 255, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+                if (predictions.length > 0) {
+                    actionText.innerText = `//TARGET DETECTED: COUNT ${predictions.length}`;
                     
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
-                    resizedDetections.forEach(detection => {
-                        const box = detection.detection.box;
+                    // Loop through every face the camera sees
+                    predictions.forEach(prediction => {
+                        const start = prediction.topLeft;
+                        const end = prediction.bottomRight;
+                        const size = [end[0] - start[0], end[1] - start[1]];
                         
-                        // Cyberpunk tracking square outline
+                        // Draw a glowing cyberpunk holographic box over your face!
                         ctx.strokeStyle = '#00bfff';
                         ctx.lineWidth = 3;
-                        ctx.shadowBlur = 12;
+                        ctx.shadowBlur = 15;
                         ctx.shadowColor = '#00bfff';
-                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+                        ctx.strokeRect(start[0], start[1], size[0], size[1]);
                         
-                        // Text label above your face
+                        // Label the target
                         ctx.fillStyle = '#00bfff';
                         ctx.font = 'bold 12px Courier New';
                         ctx.shadowBlur = 0;
-                        ctx.fillText("TARGET SCANNED", box.x + 5, box.y - 10);
+                        ctx.fillText("TARGET SCANNED", start[0] + 5, start[1] - 10);
                     });
-
-                    if (detections.length > 0) {
-                        actionText.innerText = `//TARGET DETECTED: COUNT ${detections.length}`;
-                    } else {
-                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    }
-                } catch(e) {
+                } else {
                     actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 }
-            }, 150); // Checks for faces 7-8 times per second for smooth scaling
-        });
+            }, 100); // Scans 10 times every single second for smooth tracking
+        }
 
-        // Initialize E.D.I.T.H.
         startEDITH();
     </script>
 </body>
