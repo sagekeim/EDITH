@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v1.8</title>
+    <title>E.D.I.T.H. OS v2.0</title>
     <style>
         body {
             background-color: black;
@@ -50,12 +50,12 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v1.8</div>
+            <div class="hud-text">//E.D.I.T.H. OS v2.0</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//INITIALIZING CAMERA FEED...</div>
+            <div id="action" class="hud-text">//INITIALIZING CAMERA STREAMS...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: WAITING</div>
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -77,6 +77,7 @@
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
 
+        // Clean Database Configs
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
@@ -94,48 +95,47 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Clean Clock Loop
-        function startClockEngine() {
-            setInterval(() => {
-                const now = new Date();
-                clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            }, 1000);
+        // Independent Clock Function
+        function updateClock() {
+            const now = new Date();
+            clockText.innerText = "TIME: " + now.toLocaleTimeString();
         }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-        // Clean Graphics Loop
-        function startGraphicsEngine() {
-            setInterval(() => {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(10, scanY);
-                ctx.lineTo(canvas.width - 10, scanY);
-                ctx.stroke();
-                
-                scanY += (isIdentifying ? 15 : 4) * scanDirection;
-                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+        // Independent HUD Drawing Function
+        function renderHUD() {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(10, scanY);
+            ctx.lineTo(canvas.width - 10, scanY);
+            ctx.stroke();
+            
+            scanY += (isIdentifying ? 15 : 4) * scanDirection;
+            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 3;
-                ctx.strokeRect(boxX, boxY, boxW, boxH);
-                
-                ctx.save();
-                ctx.scale(-1, 1);
-                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.font = 'bold 13px Courier New';
-                
-                let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
-                if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
-                if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
-                
-                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-                ctx.restore();
-            }, 30);
+            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(boxX, boxY, boxW, boxH);
+            
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.font = 'bold 13px Courier New';
+            
+            let displayMsg = "AWAITING PROFILE MAPS [S] OR [G]";
+            if (signatureA && !signatureB) displayMsg = "SAGE CAPTURED. AWAITING GRANDMA [G]";
+            if (signatureA && signatureB) displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
+            
+            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+            ctx.restore();
         }
+        setInterval(renderHUD, 30);
 
         function getColorSample() {
             try {
@@ -156,20 +156,20 @@
             }
         }
 
-        function startRadarEngine() {
-            setInterval(() => {
-                if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
+        // Radar Analytics Loop
+        setInterval(() => {
+            if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
 
-                const sample = getColorSample();
-                const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
-                const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
+            const sample = getColorSample();
+            const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
+            const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
 
-                isIdentifying = true;
-                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
+            isIdentifying = true;
+            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
 
-                setTimeout(() => {
-                    isIdentifying = false;
-                    if (diffA  {
+            setTimeout(() => {
+                isIdentifying = false;
+                if (diffA  {
             if (video.readyState !== 4) return;
             
             if (event.key.toLowerCase() === 's') {
@@ -186,28 +186,22 @@
             }
         });
 
-        // Safe Initialization Chain
-        async function initCamera() {
+        // Safe Hardware Launch
+        async function connectOpticalCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480 } 
+                });
                 video.srcObject = stream;
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                speak("E.D.I.T.H. systems online.");
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//CAMERA ACCESS INITIALIZATION ERROR";
+                actionText.innerText = "//CAMERA PERMISSION BLOCKED. RE-ALLOW VIA ADDRESS BAR PERMISSIONS.";
             }
         }
 
-        // CRITICAL FIX: Wait until the video hardware starts streaming *before* turning on the rest of the website
-        video.addEventListener('playing', () => {
-            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            speak("E.D.I.T.H. systems stable.");
-            startClockEngine();
-            startGraphicsEngine();
-            startRadarEngine();
-        });
-
-        // Run the camera link right away
-        initCamera();
+        connectOpticalCamera();
     </script>
 </body>
 </html>
