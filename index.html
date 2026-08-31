@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v12.2</title>
+    <title>E.D.I.T.H. Pure Camera OS v13.0</title>
     <style>
         body {
             background-color: black;
@@ -36,7 +36,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1);
+            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
         }
         .instructions {
             margin-top: 500px;
@@ -44,34 +44,18 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .lock-alert {
-            color: #ff3333;
-            text-shadow: 0 0 8px #ff3333;
-            animation: blinkText 1.5s infinite;
-        }
-        .prompt-text {
-            color: #00bfff;
-            font-size: 15px;
-            text-transform: uppercase;
-            animation: blinkText 1.2s infinite;
-        }
-        @keyframes blinkText {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. DUAL SENSORY OS v12.2</div>
-            <div id="status" class="hud-text">//USER: <span id="userLock" class="lock-alert">BIOMETRIC AUTHENTICATION REQUIRED</span></div>
-            <div id="action" class="hud-text prompt-text">// PRESS THE [ENTER] KEY TO INITIALIZE SENSORS //</div>
+            <div class="hud-text">//E.D.I.T.H. GLASSES PROTOTYPE v13.0</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//AWAITING INITIAL DATA BIOMETRICS...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -82,12 +66,9 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #fff; font-weight: bold;">[STEP 1] Click the black screen once to focus, then press [ENTER] to turn the system on!</span><br><br>
-        <span style="color: #00bfff; font-weight: bold;">[INITIAL SETUP]</span> Once live, center face and press <b style="color: #fff;">[S] once</b> to train face. Step back 2s for background map.<br>
-        <span style="color: #00ff00; font-weight: bold;">[CHOOSE AUTH METHOD]</span> To unlock system from standby:<br>
-        👉 **FACIAL:** Center face inside box for 3s to trigger automatic light pattern match.<br>
-        👉 **VOICE:** Speak clearly into microphone: <b style="color: #fff;">"Edith engage master user"</b><br><br>
-        <span style="color: #ffaa00;">[OUTWARD TARGETS]</span> Once unlocked, use keys to simulate looking at others: **[G]** Grandma | **[T]** Tony Stark
+        <span style="color: #00bfff;">[CALIBRATE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> once to cache your signature.<br>
+        <span style="color: #ffaa00;">[CALIBRATE GRANDMA]</span> Center grandma and press the <b style="color:#fff;">[G] key</b> once to cache her template.<br>
+        <span style="color: #00ff00;">[AUTOMATED SCANNERS ACTIVE]</span> Tracking handles user departures and matches 100% hands-free with zero loops!
     </div>
 
     <script>
@@ -95,26 +76,21 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
-        const userLock = document.getElementById('userLock');
 
-        const MASTER_NAME = "Sage Keim";
+        const PROFILE_A_NAME = "Sage Keim";
+        const PROFILE_B_NAME = "Grandma";
 
-        const TARGETS = {
-            'g': { name: "Grandma", greeting: "Biometric match found: Grandma. Profile loaded.", color: "#ffaa00" },
-            't': { name: "Tony Stark", greeting: "Threat level neutral. Welcome back, Mr. Stark.", color: "#ff3333" }
-        };
+        // Biometric Light Memory Storage Matrix
+        let signatureA = null;
+        let signatureB = null;
+        let baselineBackground = null; 
 
-        let faceSignatureSage = null;
-        let baselineBackground = null;
-        let isMasterUnlocked = false;
         let isIdentifying = false;
         let identifiedLabel = "";
         let scanY = 120;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let clearHUDTimeout = null;
-        let isActivated = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -125,43 +101,15 @@
             }
         }
 
-        // Bypasses browser safety gates cleanly using keyboard channels instead of clicks
-        async function forceEngageSensoryCore() {
-            if (isActivated) return;
-            isActivated = true;
-            
-            actionText.className = "hud-text"; // Reset animation blinking class
-            actionText.innerText = "//INITIALIZING OPTICAL CHANNELS...";
-            
-            setInterval(updateClock, 1000);
-            updateClock();
-            setInterval(renderHUD, 30);
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 },
-                    audio: true 
-                });
-                video.srcObject = stream;
-                
-                setTimeout(() => {
-                    baselineBackground = getLumaSampleValue();
-                    actionText.innerText = "//DUAL TRACKING ENGAGED: AWAITING MASTER LOG IN";
-                    startRadarEngine();
-                    startVoiceSensoryLock();
-                }, 2000);
-
-                speak("E.D.I.T.H. core links active.");
-            } catch (err) {
-                actionText.innerText = "//HARDWARE LINK ERROR: ALLOW MIC AND CAMERA IN EDGE SETTINGS";
-            }
-        }
-
+        // Clock loop starts completely independently
         function updateClock() {
             const now = new Date();
             clockText.innerText = "TIME: " + now.toLocaleTimeString();
         }
+        setInterval(updateClock, 1000);
+        updateClock();
 
+        // HUD graphics render completely independently
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -186,14 +134,14 @@
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.font = 'bold 13px Courier New';
             
-            let displayMsg = "DUAL BIOMETRICS STANDBY: AUTHENTICATING...";
-            if (isMasterUnlocked) {
-                displayMsg = identifiedLabel || "SEARCHING FIELD FOR BIOMETRIC SIGNATURES...";
-            }
+            let displayMsg = "AWAITING SAGE [S] & GRANDMA [G] EYE CALIBRATIONS";
+            if (signatureA && !signatureB) displayMsg = "SAGE BIOMETRIC CACHED. AWAITING GRANDMA [G]";
+            if (signatureA && signatureB) displayMsg = identifiedLabel || "AUTONOMOUS EYE-TRACKING ENGINES ACTIVE";
             
             ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
+        setInterval(renderHUD, 30);
 
         function getLumaSampleValue() {
             try {
@@ -201,50 +149,70 @@
                 hiddenCanvas.width = 640; hiddenCanvas.height = 480;
                 const ctx = hiddenCanvas.getContext('2d');
                 ctx.drawImage(video, 0, 0, 640, 480);
+                
                 const imgData = ctx.getImageData(220, 100, 200, 260).data;
                 let totalLuma = 0;
                 for (let i = 0; i < imgData.length; i += 4) {
                     let luma = (imgData[i] * 0.299) + (imgData[i+1] * 0.587) + (imgData[i+2] * 0.114);
                     totalLuma += luma;
                 }
-                return totalLuma / (imgData.length / 4);
+                return totalLuma / (imgData.length / 4); 
             } catch (e) { return 120; }
         }
 
-        function unlockMasterProfile(methodText) {
-            if (isMasterUnlocked) return;
-            isMasterUnlocked = true;
-            userLock.className = "";
-            userLock.style.color = "#00bfff";
-            userLock.style.textShadow = "0 0 8px #00bfff";
-            userLock.innerText = `${MASTER_NAME.toUpperCase()}`;
-            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            speak(`${methodText} verified. Welcome back, Operator Sage.`);
+        // Hands-Free Biometric Matrix Scanner (Fires every 3.5 seconds)
+        setInterval(() => {
+            if (signatureA === null || signatureB === null || isIdentifying || video.readyState !== 4) return;
+
+            const liveLuma = getLumaSampleValue();
+            const diffBg = Math.abs(liveLuma - baselineBackground);
+            const diffA = Math.abs(liveLuma - signatureA);
+            const diffB = Math.abs(liveLuma - signatureB);
+
+            isIdentifying = true;
+            actionText.innerText = "//PASSIVE SCAN: PARSING OPTICAL SPECTRUM...";
+
+            setTimeout(() => {
+                isIdentifying = false;
+
+                // If values fall back to matching the empty background, reset to Standby automatically!
+                if (diffBg  {
+            if (video.readyState !== 4) return;
+            const key = event.key.toLowerCase();
+            
+            if (key === 's') {
+                signatureA = getLumaSampleValue();
+                speak(`${PROFILE_A_NAME} blueprint archived.`);
+                actionText.innerText = "//SAGE PROFILE VALUE CALCULATED";
+                lastSpokenIdentity = ""; 
+            }
+            if (key === 'g') {
+                signatureB = getLumaSampleValue();
+                speak(`${PROFILE_B_NAME} blueprint archived.`);
+                actionText.innerText = "//GRANDMA PROFILE VALUE CALCULATED";
+                lastSpokenIdentity = ""; 
+            }
+        });
+
+        // Safe Single-Channel Hardware Connection
+        async function connectOpticalCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+                
+                setTimeout(() => {
+                    baselineBackground = getLumaSampleValue();
+                    actionText.innerText = "//BACKGROUND RADAR CALIBRATED: ACTIVE";
+                }, 2000);
+
+                speak("E.D.I.T.H. systems stable.");
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA PERMISSION BLOCKED. CLICK LOCK ICON TO ALLOW.";
+            }
         }
 
-        function startRadarEngine() {
-            setInterval(() => {
-                if (isMasterUnlocked || faceSignatureSage === null || isIdentifying || video.readyState !== 4) return;
-
-                const liveLuma = getLumaSampleValue();
-                const diffSage = Math.abs(liveLuma - faceSignatureSage);
-                const diffBg = Math.abs(liveLuma - baselineBackground);
-
-                if (diffSage < diffBg && diffSage < 3) {
-                    isIdentifying = true;
-                    actionText.innerText = "//FACIAL RADAR: SCANNING SPECTRUM MATRICES...";
-                    setTimeout(() => {
-                        isIdentifying = false;
-                        unlockMasterProfile("Facial biometric recognition");
-                    }, 1200);
-                }
-            }, 3000);
-        }
-
-        function startVoiceSensoryLock() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return;
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.lang = 'en-US';
-            recognition.onresult = (event) => {
+        connectOpticalCamera();
+    </script>
+</body>
+</html>
