@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v22.0</title>
+    <title>E.D.I.T.H. Master OS v22.1</title>
     <style>
         body {
             background-color: black;
@@ -50,9 +50,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. STARK MEMORY CORE v22.0</div>
+            <div class="hud-text">//E.D.I.T.H. STARK PROTOTYPE v22.1</div>
             <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
-            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+            <div id="action" class="hud-text">//WARMING UP WEBCAM STREAM...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: CONNECTING...</div>
@@ -79,8 +79,7 @@
 
         const MASTER_USER = "Sage Keim";
 
-        // Pull saved values straight out of the browser's permanent database storage memory
-        let faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
+        let faceSignatureSage = null;
         let baselineBackground = null;
 
         let isIdentifying = false;
@@ -131,7 +130,7 @@
                 ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
                 ctx.font = 'bold 13px Courier New';
                 
-                let displayMsg = identifiedLabel || "PASSIVE RADAR FIELD SWEEP ACTIVE...";
+                let displayMsg = displayMsg = identifiedLabel || "PASSIVE RADAR FIELD SWEEP ACTIVE...";
                 ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
                 ctx.restore();
             }, 30);
@@ -154,10 +153,10 @@
             } catch (e) { return 120; }
         }
 
-        // ONE-TIME PERMANENT INITIALIZATION HANDSHAKE
         function saveProfileSignature() {
+            if (video.readyState !== 4) return;
             const measuredLuma = getLumaSampleValue();
-            localStorage.setItem('edith_master_luma', measuredLuma); // Write directly to permanent browser memory
+            localStorage.setItem('edith_master_luma', measuredLuma);
             faceSignatureSage = measuredLuma;
             
             setupPrompt.style.color = "#00ff00";
@@ -165,7 +164,6 @@
             speak(`${MASTER_USER} database profile logged permanently.`);
         }
 
-        // AUTONOMOUS CONTINUOUS VALIDATOR LOOP
         function startRadarTrackingEngine() {
             setInterval(() => {
                 if (video.readyState !== 4 || faceSignatureSage === null || isIdentifying) return;
@@ -180,20 +178,23 @@
                 setTimeout(() => {
                     isIdentifying = false;
 
-                    // If you walk away and it sees the empty wall background, instantly drop your name!
                     if (diffBg  {
-            if (faceSignatureSage) {
-                setupPrompt.style.color = "#00ff00";
-                setupPrompt.innerText = `// MASTER BIOMETRIC FILE RECOGNIZED FROM MEMORY BANK.`;
-            }
+            actionText.innerText = "//HARDWARE ONLINE. CALIBRATING SENSORS...";
             
+            // Give the camera hardware 2 full seconds to completely stabilize before firing memory tasks
             setTimeout(() => {
+                faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
+                if (faceSignatureSage) {
+                    setupPrompt.style.color = "#00ff00";
+                    setupPrompt.innerText = `// MASTER BIOMETRIC FILE RECOGNIZED FROM MEMORY BANK.`;
+                }
+                
                 baselineBackground = getLumaSampleValue();
-                actionText.innerText = //ENVIRONMENT SCANNING: ACTIVE;
+                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                 startRadarTrackingEngine();
             }, 2000);
 
-            speak("E.D.I.T.H. network database active.");
+            speak("E.D.I.T.H. firmware initialized.");
             startClockEngine();
             startGraphicsEngine();
         });
