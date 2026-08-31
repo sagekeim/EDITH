@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v18.0</title>
+    <title>E.D.I.T.H. Master OS v18.1</title>
     <style>
         body {
             background-color: black;
@@ -50,7 +50,7 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v18.0</div>
+            <div class="hud-text">//E.D.I.T.H. OS v18.1</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
             <div id="action" class="hud-text">//INITIALIZING QUANTUM OPTICAL LINK...</div>
         </div>
@@ -66,7 +66,7 @@
     </div>
 
     <div class="instructions">
-        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[INITIAL NOTLAND MATRIX] Center your face inside the box and CLICK THE IMAGE ONCE to save your face file permanently!</span><br>
+        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[INITIAL STANDBY MATRIX] Center your face inside the box and CLICK THE IMAGE ONCE to save your face file permanently!</span><br>
         <span style="color: #00ff00;">// SYSTEM AUTOMATION LIVE:</span> Once calibrated, the system will track Sage Keim completely hands-free on every visit.
     </div>
 
@@ -79,8 +79,8 @@
 
         const MASTER_USER = "Sage Keim";
 
-        // Pull face values straight out of the browser's permanent database storage memory
-        let faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
+        // Global Biometric Reference Values
+        let faceSignatureSage = null;
         let baselineBackground = null;
 
         let isIdentifying = false;
@@ -96,6 +96,17 @@
                 window_speech.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(text);
                 window_speech.speak(utterance);
+            }
+        }
+
+        // PRIORITY 1: Launch native camera hardware stream immediately on execution
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA REJECTED LINK CONNECTION";
             }
         }
 
@@ -184,6 +195,9 @@
 
                     // If you walk away and it sees the empty wall background, instantly drop your name!
                     if (diffBg  {
+            // Safe Database Read
+            faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
+
             if (faceSignatureSage) {
                 setupPrompt.style.color = "#00ff00";
                 setupPrompt.innerText = `// MASTER BIOMETRIC FILE RECOGNIZED FROM MEMORY BANK.`;
@@ -200,6 +214,7 @@
             startGraphicsEngine();
         });
 
+        // Trigger camera deployment right out of the gate
         initCamera();
     </script>
 </body>
