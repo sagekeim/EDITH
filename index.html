@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v14.0</title>
+    <title>E.D.I.T.H. OS v15.0</title>
     <style>
         body {
             background-color: black;
@@ -36,7 +36,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1);
+            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
         }
         .instructions {
             margin-top: 500px;
@@ -44,30 +44,18 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .activate-prompt {
-            color: #ff3333;
-            text-decoration: underline;
-            cursor: pointer;
-            text-shadow: 0 0 8px #ff3333;
-            animation: pulseText 1.5s infinite;
-        }
-        @keyframes pulseText {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; }
-            100% { opacity: 0.4; }
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v14.0</div>
-            <div id="status" class="hud-text">//STATUS: <span id="linkZone" class="activate-prompt" onclick="forceSystemLaunchSequence()">[ ENGAGE E.D.I.T.H. CORE ]</span></div>
-            <div id="action" class="hud-text">//AWAITING HARDWARE HANDSHAKE LOCK...</div>
+            <div class="hud-text">//E.D.I.T.H. OS v15.0</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//INITIALIZING CAMERA FEED...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: WAITING</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -78,10 +66,9 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #ff3333; font-weight: bold;">[INITIALIZE] Click the flashing red link text at the top left to unfreeze the system loops!</span><br><br>
-        <span style="color: #00bfff;">[CALIBRATE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> once to cache your signature.<br>
-        <span style="color: #ffaa00;">[CALIBRATE GRANDMA]</span> Center grandma and press the <b style="color:#fff;">[G] key</b> once to cache her template.<br>
-        <span style="color: #00ff00;">[AUTOMATED]</span> Once both profiles are cached, comparison tracking loops run 100% hands-free.
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to load your tracking profile.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to load her tracking template.<br>
+        <span style="color: #00ff00;">[SMART ENGINE]</span> Commands are instantaneous and greet each target ONCE without repeating!
     </div>
 
     <script>
@@ -89,14 +76,9 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
-        const linkZone = document.getElementById('linkZone');
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
-
-        let signatureA = null;
-        let signatureB = null;
-        let baselineBackground = null; 
 
         let isIdentifying = false;
         let identifiedLabel = "";
@@ -104,145 +86,111 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let isActivated = false;
 
         function speak(text) {
-            const window_speech = window.speechSynthesis;
-            if (window_speech) {
-                window_speech.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                window_speech.speak(utterance);
-            }
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
         }
 
-        // Fired manually on mouse click to satisfy the browser interaction rule
-        async function forceSystemLaunchSequence() {
-            if (isActivated) return;
-            isActivated = true;
+        // Clean Clock Loop
+        function startClockEngine() {
+            setInterval(() => {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }, 1000);
+        }
 
-            // Update status text layouts cleanly
-            linkZone.removeAttribute('onclick');
-            linkZone.className = "";
-            linkZone.style.color = "#00bfff";
-            linkZone.style.textShadow = "0 0 8px #00bfff";
-            linkZone.innerText = "ACTIVE";
+        // Clean Graphics Loop
+        function startGraphicsEngine() {
+            setInterval(() => {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(10, scanY);
+                ctx.lineTo(canvas.width - 10, scanY);
+                ctx.stroke();
+                
+                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+
+                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(boxX, boxY, boxW, boxH);
+                
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.font = 'bold 13px Courier New';
+                
+                let displayMsg = identifiedLabel || "PASSIVE AUTOMATIC LOCK: ACTIVE";
+                
+                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+                ctx.restore();
+            }, 30);
+        }
+
+        // Routing engine sequence handler
+        function triggerBiometricRouting(name, greeting, colorTheme) {
+            isIdentifying = true;
+            identifiedLabel = "";
+            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
             
-            actionText.innerText = "//ENGAGING OPTICAL GRID CHANNELS...";
+            setTimeout(() => {
+                isIdentifying = false;
+                identifiedLabel = `TARGET MATCHED: ${name.toUpperCase()}`;
+                actionText.innerText = `//TARGET MATCH FOUND: ${name.toUpperCase()}`;
+                currentHUDColor = colorTheme;
 
-            // Fire up background tracking timers and renderers
-            setInterval(updateClock, 1000);
-            updateClock();
-            setInterval(renderHUD, 30);
+                if (lastSpokenIdentity !== name) {
+                    speak(greeting);
+                    lastSpokenIdentity = name;
+                }
+            }, 1000);
+        }
 
+        window.addEventListener('keydown', (event) => {
+            const key = event.key.toLowerCase();
+            if (key === 's') {
+                triggerBiometricRouting(
+                    PROFILE_A_NAME, 
+                    `Welcome back, ${PROFILE_A_NAME}. Access approved.`, 
+                    "#00bfff"
+                );
+            }
+            if (key === 'g') {
+                triggerBiometricRouting(
+                    PROFILE_B_NAME, 
+                    `Identity verified: ${PROFILE_B_NAME}. Greetings.`, 
+                    "#ffaa00"
+                );
+            }
+        });
+
+        // Safe Hardware Launch
+        async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                
-                setTimeout(() => {
-                    baselineBackground = getLumaSampleValue();
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    startRadarEngine();
-                }, 2000);
-
-                speak("E.D.I.T.H. online.");
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//CAMERA REJECTED: VERIFY EDGE PERMISSIONS";
+                actionText.innerText = "//CAMERA ACCESS INITIALIZATION ERROR";
             }
         }
 
-        function updateClock() {
-            const now = new Date();
-            clockText.innerText = "TIME: " + now.toLocaleTimeString();
-        }
+        // Wait until the video hardware starts streaming *before* turning on the rest of the website loops
+        video.addEventListener('playing', () => {
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+            speak("E.D.I.T.H. systems completely stable.");
+            startClockEngine();
+            startGraphicsEngine();
+        });
 
-        function renderHUD() {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(10, scanY);
-            ctx.lineTo(canvas.width - 10, scanY);
-            ctx.stroke();
-            
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
-
-            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(boxX, boxY, boxW, boxH);
-            
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let displayMsg = "AWAITING SAGE [S] & GRANDMA [G] EYE CALIBRATIONS";
-            if (signatureA && !signatureB) displayMsg = "SAGE BIOMETRIC CACHED. AWAITING GRANDMA [G]";
-            if (signatureA && signatureB) displayMsg = identifiedLabel || "AUTONOMOUS EYE-TRACKING ENGINES ACTIVE";
-            
-            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-            ctx.restore();
-        }
-
-        function getLumaSampleValue() {
-            try {
-                const hiddenCanvas = document.createElement('canvas');
-                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
-                const ctx = hiddenCanvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, 640, 480);
-                
-                const imgData = ctx.getImageData(220, 100, 200, 260).data;
-                let totalLuma = 0;
-                for (let i = 0; i < imgData.length; i += 4) {
-                    let luma = (imgData[i] * 0.299) + (imgData[i+1] * 0.587) + (imgData[i+2] * 0.114);
-                    totalLuma += luma;
-                }
-                return totalLuma / (imgData.length / 4); 
-            } catch (e) { return 120; }
-        }
-
-        function startRadarEngine() {
-            setInterval(() => {
-                if (signatureA === null || signatureB === null || isIdentifying || video.readyState !== 4) return;
-
-                const liveLuma = getLumaSampleValue();
-                const diffBg = Math.abs(liveLuma - baselineBackground);
-                const diffA = Math.abs(liveLuma - signatureA);
-                const diffB = Math.abs(liveLuma - signatureB);
-
-                isIdentifying = true;
-                actionText.innerText = "//PASSIVE SCAN: PARSING OPTICAL SPECTRUM...";
-
-                setTimeout(() => {
-                    isIdentifying = false;
-
-                    if (diffBg < diffA && diffBg < diffB && Math.abs(liveLuma - baselineBackground) < 3) {
-                        identifiedLabel = "";
-                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                        currentHUDColor = "#00bfff";
-                        lastSpokenIdentity = ""; 
-                        return;
-                    }
-
-                    if (diffA < diffB) {
-                        identifiedLabel = `TARGET MATCHED: ${PROFILE_A_NAME.toUpperCase()}`;
-                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_A_NAME.toUpperCase()}`;
-                        currentHUDColor = "#00bfff"; 
-
-                        if (lastSpokenIdentity !== PROFILE_A_NAME) {
-                            speak(`Welcome back, ${PROFILE_A_NAME}.`);
-                            lastSpokenIdentity = PROFILE_A_NAME; 
-                        }
-                    } else {
-                        identifiedLabel = `TARGET MATCHED: ${PROFILE_B_NAME.toUpperCase()}`;
-                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_B_NAME.toUpperCase()}`;
-                        currentHUDColor = "#ffaa00"; 
-
-                        if (lastSpokenIdentity !== PROFILE_B_NAME) {
-                            speak(`Identity verified: ${PROFILE_B_NAME}.`);
-                            lastSpokenIdentity = PROFILE_B_NAME; 
-                        }
+        // Run the camera link right away
+        initCamera();
+    </script>
+</body>
+</html>
