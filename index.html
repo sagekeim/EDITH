@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v4.0</title>
+    <title>E.D.I.T.H. OS v5.0</title>
     <style>
         body {
             background-color: black;
@@ -50,9 +50,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v4.0</div>
-            <div id="status" class="hud-text">//STATUS: SYSTEM CALIBRATION ACTIVE</div>
-            <div id="action" class="hud-text">//AWAITING INITIAL CALIBRATION DATA...</div>
+            <div class="hud-text">//E.D.I.T.H. OS v5.0</div>
+            <div id="status" class="hud-text">//STATUS: SYSTEM OPERATIONS ACTIVE</div>
+            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: PASSIVE ACTIVE</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: CONNECTING...</div>
@@ -66,30 +66,27 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[MAP SAGE]</span> Center face inside box and press the <b style="color:#fff;">[S] key</b> once to cache your footprint.<br>
-        <span style="color: #ffaa00;">[MAP GRANDMA]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> once to cache her template.<br>
-        <span style="color: #00ff00;">[HANDS-FREE]</span> Once both math signatures are stored, tracking runs entirely automatically with zero guessing!
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and tap the <b style="color:#fff;">[S] key</b> to load your tracking profile.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and tap the <b style="color:#fff;">[G] key</b> to load her tracking template.<br>
+        <span style="color: #00ff00;">[SMART ENGINE]</span> Commands are instantaneous and greet each target ONCE without repeating!
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
-        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
-
-        // Global memory structures to hold the raw RGB pixel averages
-        let signatureA = null;
-        let signatureB = null;
 
         let isIdentifying = false;
         let identifiedLabel = "";
         let scanY = 120;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
+        
+        // Smart Voice Guard Memory variable
         let lastSpokenIdentity = "";
 
         function speak(text) {
@@ -97,6 +94,7 @@
             window.speechSynthesis.speak(utterance);
         }
 
+        // Live Local Clock Engine
         function updateClock() {
             const now = new Date();
             clockText.innerText = "TIME: " + now.toLocaleTimeString();
@@ -104,10 +102,12 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // High-Speed Tactical HUD Renderer
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Draw animated vector line
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -118,6 +118,7 @@
             scanY += (isIdentifying ? 15 : 4) * scanDirection;
             if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
+            // Draw center wireframe targeting bracket
             const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 3;
@@ -128,78 +129,52 @@
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.font = 'bold 13px Courier New';
             
-            let displayMsg = "AWAITING INITIAL PROFILE CALIBRATION DATA";
-            if (signatureA && !signatureB) displayMsg = "SAGE BLUEPRINT LOGGED. AWAITING GRANDMA DATA [G]";
-            if (signatureA && signatureB) displayMsg = identifiedLabel || "TRUE BIOMETRIC PASSIVE RADAR: ENGAGED";
-            
+            let displayMsg = identifiedLabel || "PASSIVE RADAR SWEEP ACTIVE: STANDBY";
             ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
         setInterval(renderHUD, 30);
 
-        // MATHEMATICAL PIXEL EXTRACTOR ENGINE
-        // This takes a direct physical snapshot of the color values inside the targeting wireframe
-        function captureTargetFootprint() {
-            try {
-                const hiddenCanvas = document.createElement('canvas');
-                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
-                const ctx = hiddenCanvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, 640, 480);
-                
-                // Read array matrix exactly matching the bounds of our on-screen box
-                const imgData = ctx.getImageData(220, 100, 200, 260).data;
-                let r = 0; let g = 0; let b = 0;
-                
-                for (let i = 0; i < imgData.length; i += 4) {
-                    r += imgData[i];
-                    g += imgData[i+1];
-                    b += imgData[i+2];
-                }
-                const totalPixels = imgData.length / 4;
-                return { r: r / totalPixels, g: g / totalPixels, b: b / totalPixels };
-            } catch (e) {
-                return { r: 120, g: 120, b: 120 };
-            }
-        }
-
-        // HANDS-FREE BACKGROUND SCANNING ENGINE
-        // Runs calculations every 4 seconds completely on its own
-        setInterval(() => {
-            // Do not run if both memory bank slots haven't been calibrated yet
-            if (!signatureA || !signatureB || isIdentifying || video.readyState !== 4) return;
-
-            // Grab a live pixel footprint reading from whoever is sitting there right now
-            const sample = captureTargetFootprint();
-            
-            // Calculate absolute statistical distance difference between the current feed and saved maps
-            const diffA = Math.abs(sample.r - signatureA.r) + Math.abs(sample.g - signatureA.g) + Math.abs(sample.b - signatureA.b);
-            const diffB = Math.abs(sample.r - signatureB.r) + Math.abs(sample.g - signatureB.g) + Math.abs(sample.b - signatureB.b);
-
+        // Instant Handshake Execution Module
+        function triggerBiometricRouting(name, greeting, colorTheme) {
             isIdentifying = true;
-            actionText.innerText = "//PASSIVE RADAR: COMPARATIVE VECTOR RUN...";
-
+            identifiedLabel = "";
+            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
+            
             setTimeout(() => {
                 isIdentifying = false;
-                
-                // Route to whichever signature profile has the closest mathematical value!
-                if (diffA  {
+                identifiedLabel = `TARGET MATCHED: ${name.toUpperCase()}`;
+                actionText.innerText = `//TARGET MATCH FOUND: ${name.toUpperCase()}`;
+                currentHUDColor = colorTheme;
+
+                // SMART SPEECH CHECK: Only welcome if the identity has actually changed!
+                if (lastSpokenIdentity !== name) {
+                    speak(greeting);
+                    lastSpokenIdentity = name; // Remember who we just talked to
+                }
+            }, 1000);
+        }
+
+        window.addEventListener('keydown', (event) => {
             if (video.readyState !== 4) return;
             
             if (event.key.toLowerCase() === 's') {
-                signatureA = captureTargetFootprint();
-                speak(`${PROFILE_A_NAME} baseline vector stored.`);
-                actionText.innerText = "//SAGE PROFILE CACHED IN SECTOR BANNER";
-                lastSpokenIdentity = ""; 
+                triggerBiometricRouting(
+                    PROFILE_A_NAME, 
+                    `Welcome back, ${PROFILE_A_NAME}. Access approved.`, 
+                    "#00bfff"
+                );
             }
             if (event.key.toLowerCase() === 'g') {
-                signatureB = captureTargetFootprint();
-                speak(`${PROFILE_B_NAME} baseline vector stored.`);
-                actionText.innerText = "//GRANDMA PROFILE CACHED IN SECTOR BANNER";
-                lastSpokenIdentity = ""; 
-                statusText.innerText = "//STATUS: AUTONOMOUS SCANNING LIVE";
+                triggerBiometricRouting(
+                    PROFILE_B_NAME, 
+                    `Identity verified: ${PROFILE_B_NAME}. Greetings.`, 
+                    "#ffaa00"
+                );
             }
         });
 
+        // Launch Native Webcam Device link
         async function connectOpticalCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -207,9 +182,10 @@
                 });
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. multi identity database active.");
+                speak("E.D.I.T.H. tactical systems operational.");
             } catch (err) {
-                actionText.innerText = "//CAMERA REJECTED.";
+                console.error(err);
+                actionText.innerText = "//CAMERA LINKS REJECTED.";
             }
         }
 
