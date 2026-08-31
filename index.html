@@ -115,12 +115,10 @@
             }
         }
 
-        // Fired manually on mouse click to satisfy the browser interaction rule
         async function forceSystemLaunchSequence() {
             if (isActivated) return;
             isActivated = true;
 
-            // Update status text layouts cleanly
             linkZone.removeAttribute('onclick');
             linkZone.className = "";
             linkZone.style.color = "#00bfff";
@@ -129,7 +127,6 @@
             
             actionText.innerText = "//ENGAGING OPTICAL GRID CHANNELS...";
 
-            // Fire up background tracking timers and renderers
             setInterval(updateClock, 1000);
             updateClock();
             setInterval(renderHUD, 30);
@@ -220,29 +217,5 @@
                 setTimeout(() => {
                     isIdentifying = false;
 
-                    if (diffBg < diffA && diffBg < diffB && Math.abs(liveLuma - baselineBackground) < 3) {
-                        identifiedLabel = "";
-                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                        currentHUDColor = "#00bfff";
-                        lastSpokenIdentity = ""; 
-                        return;
-                    }
-
-                    if (diffA < diffB) {
-                        identifiedLabel = `TARGET MATCHED: ${PROFILE_A_NAME.toUpperCase()}`;
-                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_A_NAME.toUpperCase()}`;
-                        currentHUDColor = "#00bfff"; 
-
-                        if (lastSpokenIdentity !== PROFILE_A_NAME) {
-                            speak(`Welcome back, ${PROFILE_A_NAME}.`);
-                            lastSpokenIdentity = PROFILE_A_NAME; 
-                        }
-                    } else {
-                        identifiedLabel = `TARGET MATCHED: ${PROFILE_B_NAME.toUpperCase()}`;
-                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_B_NAME.toUpperCase()}`;
-                        currentHUDColor = "#ffaa00"; 
-
-                        if (lastSpokenIdentity !== PROFILE_B_NAME) {
-                            speak(`Identity verified: ${PROFILE_B_NAME}.`);
-                            lastSpokenIdentity = PROFILE_B_NAME; 
-                        }
+                    if (diffBg  {
+            if (!isActivated || video.readyState !== 4) return;
