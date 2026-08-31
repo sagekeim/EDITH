@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v22.3</title>
+    <title>E.D.I.T.H. Master OS v22.4</title>
     <style>
         body {
             background-color: black;
@@ -44,28 +44,18 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .blink-prompt {
-            color: #ff3333;
-            text-shadow: 0 0 8px #ff3333;
-            animation: pulseText 1.2s infinite;
-        }
-        @keyframes pulseText {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. STARK PROTOTYPE v22.3</div>
-            <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text blink-prompt">// PRESS THE [ENTER] KEY TO INITIALIZE HUD CODES //</div>
+            <div class="hud-text">//E.D.I.T.H. STARK PROTOTYPE v22.4</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//INITIALIZING HUD CODES...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -76,8 +66,7 @@
     </div>
 
     <div class="instructions">
-        <b style="color: #fff;">[STEP 1] Click once anywhere on the dark background to focus, then press [ENTER] to boot the OS!</b><br><br>
-        <span id="setupPrompt" style="color: #ffaa00;">[STEP 2] Once live, center face and tap the [S] key ONCE to save your face permanently!</span><br>
+        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[TRAINING DATA] Center your face inside the box and tap the [S] key ONCE to save your face permanently!</span><br>
         <span style="color: #00ff00;">// PERMANENT DATABASE ACTIVE:</span> Following setup, tracking loops handle profile matching 100% hands-free.
     </div>
 
@@ -99,7 +88,6 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let isActivated = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -107,27 +95,6 @@
                 window_speech.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(text);
                 window_speech.speak(utterance);
-            }
-        }
-
-        async function forceEngageCamera() {
-            if (isActivated) return;
-            isActivated = true;
-
-            actionText.className = "hud-text"; 
-            statusText.innerText = "//STATUS: ACTIVE";
-            actionText.innerText = "//INITIALIZING HARDWARE VECTORS...";
-            
-            setInterval(updateClock, 1000);
-            updateClock();
-            setInterval(startGraphicsEngine, 30);
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//CAMERA ACCESS BLOCKED. VERIFY PRIVACY LOCK.";
             }
         }
 
@@ -208,32 +175,33 @@
                     isIdentifying = false;
 
                     if (diffBg  {
-            actionText.innerText = "//HARDWARE ONLINE. CALIBRATING SENSORS...";
-            
-            setTimeout(() => {
-                faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
-                if (faceSignatureSage) {
-                    setupPrompt.style.color = "#00ff00";
-                    setupPrompt.innerText = `// MASTER BIOMETRIC FILE RECOGNIZED FROM MEMORY BANK.`;
-                }
-                
-                baselineBackground = getLumaSampleValue();
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                startRadarTrackingEngine();
-            }, 2000);
-
-            speak("E.D.I.T.H. firmware initialized.");
-        });
+                    actionText.innerText = "//HARDWARE ONLINE. CALIBRATING SENSORS...";
+                    setTimeout(() => {
+                        faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
+                        if (faceSignatureSage) {
+                            setupPrompt.style.color = "#00ff00";
+                            setupPrompt.innerText = `// MASTER BIOMETRIC FILE RECOGNIZED FROM MEMORY BANK.`;
+                        }
+                        baselineBackground = getLumaSampleValue();
+                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                        startRadarTrackingEngine();
+                    }, 2000);
+                    speak("E.D.I.T.H. active.");
+                });
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA DETECT DELAY: VERIFY PRIVACY SLIDER IS UNCOVERED";
+            }
+        }
 
         window.addEventListener('keydown', (event) => {
-            if (event.key === "Enter") {
-                forceEngageCamera();
-                return;
-            }
             if (event.key.toLowerCase() === 's') {
                 saveProfileSignature();
             }
         });
+
+        // Trigger loop deployment passively
+        runPassiveLaunch();
     </script>
 </body>
 </html>
