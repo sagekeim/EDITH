@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Matrix OS v24.0</title>
+    <title>E.D.I.T.H. Master OS v25.0</title>
     <style>
         body {
             background-color: black;
@@ -36,7 +36,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
+            transform: scaleX(-1);
         }
         .instructions {
             margin-top: 500px;
@@ -44,15 +44,31 @@
             font-size: 13px;
             line-height: 1.6;
         }
+        .boot-btn {
+            position: absolute;
+            top: 200px;
+            left: 170px;
+            z-index: 100;
+            background-color: #00bfff;
+            color: black;
+            border: none;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 20px #00bfff;
+        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. BIOMETRIC OS v24.0</div>
-            <div id="status" class="hud-text">//STATUS: SYSTEMS OPERATIONAL</div>
-            <div id="action" class="hud-text">//AWAITING INITIAL DATA PROFILES...</div>
+            <div class="hud-text">//E.D.I.T.H. SAFE-BOOT OS v25.0</div>
+            <div id="status" class="hud-text">//STATUS: STANDBY</div>
+            <div id="action" class="hud-text">//WAITING FOR BOOT COMMAND...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -61,36 +77,34 @@
     </div>
 
     <div class="container">
+        <button id="bootBtn" class="boot-btn" onclick="startSystem()">[ BOOT CAMERA STREAM ]</button>
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
     <div class="instructions">
-        <b style="color: #ffaa00;">[STEP 1]</b> You sit down, align your face in the blue box, and press **[S] once** to lock in your face map.<br>
-        <b style="color: #ffaa00;">[STEP 2]</b> Grandma aligns her face inside the same box and presses **[G] once** to lock in her face map.<br>
-        <span style="color: #00ff00;">// PERMANENT AUTOMATION ACTIVE:</span> Once saved, the background radar scans every 3 seconds completely hands-free on every visit!
+        <span style="color: #00bfff;">[STEP 1]</span> Click the **Boot button** to open the camera safely.<br>
+        <span style="color: #ffaa00;">[STEP 2]</span> Press **[S]** for Sage or **[G]** for Grandma to log signatures.<br>
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
+        const bootBtn = document.getElementById('bootBtn');
 
-        const PROFILE_A_NAME = "Sage Keim";
-        const PROFILE_B_NAME = "Grandma";
-
-        // Permanent Memory Database Handshake Link
         let signatureSage = localStorage.getItem('edith_sig_sage') ? JSON.parse(localStorage.getItem('edith_sig_sage')) : null;
         let signatureGrandma = localStorage.getItem('edith_sig_grandma') ? JSON.parse(localStorage.getItem('edith_sig_grandma')) : null;
-        let baselineBackground = null;
-
+        
         let isIdentifying = false;
         let identifiedLabel = "";
         let scanY = 120;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
+        let systemActive = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -101,14 +115,18 @@
             }
         }
 
-        function startClockEngine() {
+        async function startSystem() {
+            if (systemActive) return;
+            systemActive = true;
+            bootBtn.style.display = "none";
+            statusText.innerText = "//STATUS: ONLINE";
+            actionText.innerText = "//CAMERA ACTIVE: SCANNING...";
+
             setInterval(() => {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
             }, 1000);
-        }
 
-        function startGraphicsEngine() {
             setInterval(() => {
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -132,58 +150,54 @@
                 ctx.scale(-1, 1);
                 ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
                 ctx.font = 'bold 13px Courier New';
-                
-                let displayMsg = "AWAITING CALIBRATIONS: SAGE [S] & GRANDMA [G]";
-                if (signatureSage && !signatureGrandma) displayMsg = "SAGE SECURED. AWAITING GRANDMA [G] DATA...";
-                if (signatureSage && signatureGrandma) displayMsg = identifiedLabel || "AUTONOMOUS DUAL RADAR TRACKING LIVE";
-                
-                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+                let msg = identifiedLabel || "ACTIVE SCANNING MODE";
+                ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
                 ctx.restore();
             }, 30);
-        }
 
-        // PIXEL MATRIX SAMPLER
-        function getPixelSampleMatrix() {
             try {
-                const hiddenCanvas = document.createElement('canvas');
-                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
-                const ctx = hiddenCanvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, 640, 480);
-                
-                const imgData = ctx.getImageData(220, 100, 200, 260).data;
-                let r = 0, g = 0, b = 0;
-                for (let i = 0; i < imgData.length; i += 4) {
-                    r += imgData[i];
-                    g += imgData[i+1];
-                    b += imgData[i+2];
-                }
-                const total = imgData.length / 4;
-                return { r: r / total, g: g / total, b: b / total };
-            } catch (e) { return { r: 120, g: 120, b: 120 }; }
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+                speak("E.D.I.T.H. online.");
+            } catch (err) {
+                actionText.innerText = "//CAMERA BLOCKED BY BROWSER";
+            }
         }
 
-        // CONTINUOUS AUTONOMOUS DETECTION ENGINE
-        function startRadarTrackingEngine() {
-            setInterval(() => {
-                // Wait until BOTH memory positions have valid files before running hands-free
-                if (signatureSage === null || signatureGrandma === null || isIdentifying || video.readyState !== 4) return;
+        function getSample() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 640; tempCanvas.height = 480;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 640, 480);
+            const data = ctx.getImageData(220, 100, 200, 260).data;
+            let r = 0, g = 0, b = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                r += data[i]; g += data[i+1]; b += data[i+2];
+            }
+            const count = data.length / 4;
+            return { r: r/count, g: g/count, b: b/count };
+        }
 
-                const sample = getPixelSampleMatrix();
-                
-                const diffBg = Math.abs(sample.r - baselineBackground.r) + Math.abs(sample.g - baselineBackground.g) + Math.abs(sample.b - baselineBackground.b);
-                const diffSage = Math.abs(sample.r - signatureSage.r) + Math.abs(sample.g - signatureSage.g) + Math.abs(sample.b - signatureSage.b);
-                const diffGrandma = Math.abs(sample.r - signatureGrandma.r) + Math.abs(sample.g - signatureGrandma.g) + Math.abs(sample.b - signatureGrandma.b);
-
-                isIdentifying = true;
-                actionText.innerText = "//PASSIVE RADAR: COMPILING TARGET VECTORS...";
-
-                setTimeout(() => {
-                    isIdentifying = false;
-
-                    // 1. Check if the frame box has emptied back out to the blank wall background
-                    if (diffBg  {
-            // Set empty room background baseline configuration automatically after 2 seconds
-            setTimeout(() => {
-                baselineBackground = getPixelSampleMatrix();
-                actionText.innerText = "//ENVIRONMENT STANDBY: ACTIVE";
-                startRadarTrackingEngine();
+        window.addEventListener('keydown', (event) => {
+            if (!systemActive) return;
+            const key = event.key.toLowerCase();
+            if (key === 's') {
+                const sample = getSample();
+                localStorage.setItem('edith_sig_sage', JSON.stringify(sample));
+                signatureSage = sample;
+                identifiedLabel = "TARGET LOCKED: SAGE KEIM";
+                currentHUDColor = "#00bfff";
+                speak("Sage Keim profile saved.");
+            }
+            if (key === 'g') {
+                const sample = getSample();
+                localStorage.setItem('edith_sig_grandma', JSON.stringify(sample));
+                signatureGrandma = sample;
+                identifiedLabel = "TARGET LOCKED: GRANDMA";
+                currentHUDColor = "#ffaa00";
+                speak("Grandma profile saved.");
+            }
+        });
+    </script>
+</body>
+</html>
