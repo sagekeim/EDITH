@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Multi-OS v20.1</title>
+    <title>E.D.I.T.H. OS v21.0</title>
     <style>
         body {
             background-color: black;
@@ -44,72 +44,41 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .override-btn {
-            position: absolute;
-            top: 200px;
-            left: 155px;
-            z-index: 100;
-            background-color: #00bfff;
-            color: black;
-            border: none;
-            padding: 15px 25px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 0 20px #00bfff;
-            animation: glowPulse 2s infinite;
-        }
-        @keyframes glowPulse {
-            0% { box-shadow: 0 0 5px #00bfff; }
-            50% { box-shadow: 0 0 20px #00bfff; }
-            100% { box-shadow: 0 0 5px #00bfff; }
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. MULTI-OS v20.1</div>
-            <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//AWAITING MASTER HANDSHAKE CRADLE...</div>
+            <div class="hud-text">//E.D.I.T.H. STARK MASTER GRID v21.0</div>
+            <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
+            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
 
     <div class="container">
-        <!-- The unblockable mechanical handshake override key -->
-        <button id="overrideBtn" class="override-btn" onclick="forceEngageMultiOS()">[ 🚀 INITIALIZE DUAL GRID LINK ]</button>
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
     <div class="instructions">
-        <b style="color: #fff;">[STEP 1] Click that glowing blue button on your screen to authorize the live video feeds!</b><br><br>
-        <span style="color: #00bfff;">[STEP 2]</span> Sit down, face the box, and press the **[S] key** to store your profile layout.<br>
-        <span style="color: #ffaa00;">[STEP 3]</span> Grandma sits down, faces the box, and presses the **[G] key** to store her template layout.<br>
-        <span style="color: #00ff00;">// AUTOMATION ACTIVE:</span> Following setup, tracking loops handle profile matching 100% hands-free.
+        <span style="color: #00bfff;">[TRACK SAGE]</span> Press the <b style="color:#fff;">[S] key</b> to instantly lock onto your signature map.<br>
+        <span style="color: #ffaa00;">[TRACK GRANDMA]</span> Press the <b style="color:#fff;">[G] key</b> to instantly lock onto her template map.<br>
+        <span style="color: #00ff00;">[AUTO-TIMEOUT]</span> Profiles lock for 5 seconds, then clear back to standby search automatically!
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
-        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
-        const overrideBtn = document.getElementById('overrideBtn');
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
-
-        let signatureSage = null;
-        let signatureGrandma = null;
-        let baselineBackground = null; 
 
         let isIdentifying = false;
         let identifiedLabel = "";
@@ -117,7 +86,7 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let isActivated = false;
+        let clearHUDTimeout = null;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -128,119 +97,112 @@
             }
         }
 
-        // Clicking this completely shatters browser privacy protection loops
-        async function forceEngageMultiOS() {
-            if (isActivated) return;
-            isActivated = true;
+        // Clean Clock Loop
+        function startClockEngine() {
+            setInterval(() => {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }, 1000);
+        }
 
-            overrideBtn.style.display = "none";
-            statusText.innerText = "//STATUS: ACTIVE";
-            actionText.innerText = "//ENGAGING OPTICAL CAMERA MATRIX...";
+        // Clean Graphics Loop
+        function startGraphicsEngine() {
+            setInterval(() => {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(10, scanY);
+                ctx.lineTo(canvas.width - 10, scanY);
+                ctx.stroke();
+                
+                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            // Instantly wake up the tracking math clocks and canvas renderers
-            setInterval(updateClock, 1000);
-            updateClock();
-            setInterval(startGraphicsLoop, 30);
+                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(boxX, boxY, boxW, boxH);
+                
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.font = 'bold 13px Courier New';
+                
+                let displayMsg = identifiedLabel || "PASSIVE RADAR SWEEP ACTIVE: SCANNING FIELD...";
+                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+                ctx.restore();
+            }, 30);
+        }
 
+        function lockOutwardTarget(name, greeting, colorTheme) {
+            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
+
+            isIdentifying = true;
+            identifiedLabel = "";
+            actionText.innerText = "//PASSIVE RADAR: LOCKING ONTO TARGET SIGNATURE...";
+            
+            setTimeout(() => {
+                isIdentifying = false;
+                identifiedLabel = `TARGET LOCKED: ${name.toUpperCase()}`;
+                actionText.innerText = `//TARGET TRACKING ACTIVE: ${name.toUpperCase()}`;
+                currentHUDColor = colorTheme;
+
+                if (lastSpokenIdentity !== name) {
+                    speak(greeting);
+                    lastSpokenIdentity = name; 
+                }
+
+                // THE AUTONOMOUS TIMEOUT FLUSH
+                // Holds the profile details for 5 seconds, then returns cleanly to standby blue
+                clearHUDTimeout = setTimeout(() => {
+                    identifiedLabel = "";
+                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                    currentHUDColor = "#00bfff"; 
+                    lastSpokenIdentity = ""; 
+                }, 5000);
+
+            }, 800);
+        }
+
+        window.addEventListener('keydown', (event) => {
+            const key = event.key.toLowerCase();
+            if (key === 's') {
+                lockOutwardTarget(
+                    PROFILE_A_NAME, 
+                    `Welcome back, ${PROFILE_A_NAME}. Clearances verified.`, 
+                    "#00bfff"
+                );
+            }
+            if (key === 'g') {
+                lockOutwardTarget(
+                    PROFILE_B_NAME, 
+                    `Identity verified: ${PROFILE_B_NAME}. Sector status: secure.`, 
+                    "#ffaa00"
+                );
+            }
+        });
+
+        async function initCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//CAMERA ACCESS INITIALIZATION ERROR: RECHECK SITE PERMISSIONS";
+                actionText.innerText = "//CAMERA ACCESS BLOCKED. CLICK LOCK ICON TO ALLOW.";
             }
         }
 
-        function updateClock() {
-            const now = new Date();
-            clockText.innerText = "TIME: " + now.toLocaleTimeString();
-        }
+        video.addEventListener('playing', () => {
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+            speak("E.D.I.T.H. systems stable.");
+            startClockEngine();
+            startGraphicsEngine();
+        });
 
-        function startGraphicsLoop() {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(10, scanY);
-            ctx.lineTo(canvas.width - 10, scanY);
-            ctx.stroke();
-            
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
-
-            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(boxX, boxY, boxW, boxH);
-            
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let displayMsg = "AWAITING PROFILES: SAGE [S] & GRANDMA [G]";
-            if (signatureSage && !signatureGrandma) displayMsg = "SAGE LOGGED. AWAITING GRANDMA [G] LOCK...";
-            if (signatureSage && signatureGrandma) displayMsg = identifiedLabel || "AUTONOMOUS DUAL PROFILE RADAR ENGAGED";
-            
-            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-            ctx.restore();
-        }
-
-        function getLumaSampleValue() {
-            try {
-                const hiddenCanvas = document.createElement('canvas');
-                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
-                const ctx = hiddenCanvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, 640, 480);
-                
-                const imgData = ctx.getImageData(220, 100, 200, 260).data;
-                let totalLuma = 0;
-                for (let i = 0; i < imgData.length; i += 4) {
-                    let luma = (imgData[i] * 0.299) + (imgData[i+1] * 0.587) + (imgData[i+2] * 0.114);
-                    totalLuma += luma;
-                }
-                return totalLuma / (imgData.length / 4); 
-            } catch (e) { return 120; }
-        }
-
-        function startRadarTrackingEngine() {
-            setInterval(() => {
-                if (signatureSage === null || signatureGrandma === null || isIdentifying || video.readyState !== 4) return;
-
-                const liveLuma = getLumaSampleValue();
-                
-                const diffBg = Math.abs(liveLuma - baselineBackground);
-                const diffSage = Math.abs(liveLuma - signatureSage);
-                const diffGrandma = Math.abs(liveLuma - signatureGrandma);
-
-                isIdentifying = true;
-                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN SECTOR COMPARISON...";
-
-                setTimeout(() => {
-                    isIdentifying = false;
-
-                    if (diffBg < diffSage && diffBg < diffGrandma && Math.abs(liveLuma - baselineBackground) < 3) {
-                        identifiedLabel = "";
-                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                        currentHUDColor = "#00bfff";
-                        lastSpokenIdentity = ""; 
-                        return;
-                    }
-
-                    if (diffSage < diffGrandma) {
-                        identifiedLabel = `TARGET LOCK: ${PROFILE_A_NAME.toUpperCase()}`;
-                        actionText.innerText = `//TARGET TRACKING ACTIVE: ${PROFILE_A_NAME.toUpperCase()}`;
-                        currentHUDColor = "#00bfff"; 
-
-                        if (lastSpokenIdentity !== PROFILE_A_NAME) {
-                            speak(`Welcome back, ${PROFILE_A_NAME}.`);
-                            lastSpokenIdentity = PROFILE_A_NAME;
-                        }
-                    } else {
-                        identifiedLabel = `TARGET LOCK: ${PROFILE_B_NAME.toUpperCase()}`;
-                        actionText.innerText = `//TARGET TRACKING ACTIVE: ${PROFILE_B_NAME.toUpperCase()}`;
-                        currentHUDColor = "#ffaa00"; 
-
-                        if (lastSpokenIdentity !== PROFILE_B_NAME) {
+        initCamera();
+    </script>
+</body>
+</html>
