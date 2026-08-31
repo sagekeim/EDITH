@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Touch Bypass v18.2</title>
+    <title>E.D.I.T.H. Autonomous OS v19.0</title>
     <style>
         body {
             background-color: black;
@@ -36,7 +36,7 @@
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1);
+            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
         }
         .instructions {
             margin-top: 500px;
@@ -44,78 +44,50 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .override-btn {
-            position: absolute;
-            top: 200px;
-            left: 175px;
-            z-index: 100;
-            background-color: #00bfff;
-            color: black;
-            border: none;
-            padding: 15px 25px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 0 20px #00bfff;
-            animation: pulseGlow 2s infinite;
-        }
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 5px #00bfff; }
-            50% { box-shadow: 0 0 20px #00bfff; }
-            100% { box-shadow: 0 0 5px #00bfff; }
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. TOUCH RECOVERY CORE</div>
-            <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//AWAITING MASTER HANDSHAKE INPUT...</div>
+            <div class="hud-text">//E.D.I.T.H. OS AUTONOMOUS PROTOTYPE v19.0</div>
+            <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
+            <div id="action" class="hud-text">//CONNECTING CAMERA VECTOR LINK...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: SYNCHRONIZING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
 
-    <div class="container" id="interactionZone">
-        <!-- The unblockable mechanical handshake override key -->
-        <button id="overrideBtn" class="override-btn" onclick="forceEngageSystem()">[ 🔓 LINK OPTICAL INPUTS ]</button>
+    <div class="container">
         <video id="webcam" autoplay playsinline width="640" height="480"></video>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
     <div class="instructions">
-        <b style="color: #fff;">[STEP 1] Click that glowing blue button on your screen to authorize the data links!</b><br><br>
-        <span id="setupPrompt" style="color: #ffaa00;">[STEP 2] Once live, center face and CLICK THE VIDEO GRID ONCE to capture your face footprint permanently.</span><br>
-        <span style="color: #00ff00;">// SYSTEM AUTOMATION ACTIVE:</span> Following setup, tracking loops handle departures 100% hands-free.
+        <span style="color: #00ff00; font-weight: bold;">// HANDS-FREE AUTOMATED EYE MONITOR ACTIVE</span><br>
+        1. When you enter the bounding frame, the layout locks your dossier and greets you **exactly once**.<br>
+        2. When you walk completely away, the tracking bar automatically resets back to standby search parameters!
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
-        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
-        const setupPrompt = document.getElementById('setupPrompt');
-        const overrideBtn = document.getElementById('overrideBtn');
-        const interactionZone = document.getElementById('interactionZone');
 
-        const MASTER_USER = "Sage Keim";
+        const USER_NAME = "Sage Keim";
 
-        let faceSignatureSage = null;
-        let baselineBackground = null;
         let isIdentifying = false;
         let identifiedLabel = "";
         let scanY = 120;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let hardwareActive = false;
+        
+        let previousBoxLuma = 0;
+        let presenceConfirmed = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -126,68 +98,44 @@
             }
         }
 
-        // Clicking this completely shatters browser privacy protection loops
-        async function forceEngageSystem() {
-            overrideBtn.style.display = "none";
-            statusText.innerText = "//STATUS: ACTIVE";
-            actionText.innerText = "//ENGAGING OPTICAL CAMERA MATRIX...";
-            hardwareActive = true;
+        // Clock Monitor Loop
+        function startClockEngine() {
+            setInterval(() => {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }, 1000);
+        }
 
-            // Instantly wake up the tracking math clocks and canvas renderers
-            setInterval(updateClock, 1000);
-            updateClock();
-            setInterval(renderHUD, 30);
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
+        // High-Speed Cyber HUD Graphics Loop
+        function startGraphicsEngine() {
+            setInterval(() => {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Allow hardware to settle, then initialize automated background scanners
-                setTimeout(() => {
-                    baselineBackground = getLumaSampleValue();
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    startRadarTrackingEngine();
-                }, 2000);
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(10, scanY);
+                ctx.lineTo(canvas.width - 10, scanY);
+                ctx.stroke();
+                
+                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-                speak("Tactical override successful. System completely live.");
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//HARDWARE TIMEOUT: VERIFY EXTERNAL CAMERA PERMISSIONS ALLOWED";
-            }
-        }
-
-        function updateClock() {
-            const now = new Date();
-            clockText.innerText = "TIME: " + now.toLocaleTimeString();
-        }
-
-        function renderHUD() {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(10, scanY);
-            ctx.lineTo(canvas.width - 10, scanY);
-            ctx.stroke();
-            
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
-
-            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(boxX, boxY, boxW, boxH);
-            
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let displayMsg = identifiedLabel || "PASSIVE RADAR FIELD SWEEP ACTIVE...";
-            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-            ctx.restore();
+                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(boxX, boxY, boxW, boxH);
+                
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.font = 'bold 13px Courier New';
+                
+                let displayMsg = identifiedLabel || "BIOMETRIC RADAR: ENVIRONMENT SEARCH ACTIVE";
+                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+                ctx.restore();
+            }, 30);
         }
 
         function getLumaSampleValue() {
@@ -204,45 +152,83 @@
                     totalLuma += luma;
                 }
                 return totalLuma / (imgData.length / 4); 
-            } catch (e) { return 120; }
+            } catch (e) { return 0; }
         }
 
-        // Click interaction link inside zone handler to store values permanently
-        interactionZone.addEventListener('click', () => {
-            if (!hardwareActive || video.readyState !== 4) return;
-            
-            const measuredLuma = getLumaSampleValue();
-            localStorage.setItem('edith_master_luma', measuredLuma); 
-            faceSignatureSage = measuredLuma;
-            
-            setupPrompt.style.color = "#00ff00";
-            setupPrompt.innerText = `// BIOMETRIC FILE SUCCESSFUL. SAGE KEIM STORAGE CACHED.`;
-            speak(`${MASTER_USER} database locked.`);
-        });
-
+        // HANDS-FREE AUTOMATED DELTA SCANNERS
+        // Continually tracks optical pixel alterations every 3 seconds completely on its own
         function startRadarTrackingEngine() {
-            // Load saved signature out of browser memory banks
-            faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
-            if (faceSignatureSage) {
-                setupPrompt.style.color = "#00ff00";
-                setupPrompt.innerText = `// MASTER BIOMETRIC FILE RECOGNIZED FROM MEMORY BANK.`;
-            }
+            // Set first tracking baseline
+            previousBoxLuma = getLumaSampleValue();
 
             setInterval(() => {
-                if (video.readyState !== 4 || faceSignatureSage === null || isIdentifying) return;
+                if (video.readyState !== 4 || isIdentifying) return;
 
-                const liveLuma = getLumaSampleValue();
-                const diffSage = Math.abs(liveLuma - faceSignatureSage);
-                const diffBg = Math.abs(liveLuma - baselineBackground);
+                const currentLuma = getLumaSampleValue();
+                
+                // Calculate absolute delta alteration between the previous check frame and now
+                const lightingDelta = Math.abs(currentLuma - previousBoxLuma);
+                previousBoxLuma = currentLuma;
 
-                isIdentifying = true;
-                actionText.innerText = "//PASSIVE RADAR: SCALED OPTICAL CHECK...";
+                // Rule 1: If there is an alteration in light bounds, a human has crossed into the box layout zone!
+                if (lightingDelta > 1.2 && !presenceConfirmed) {
+                    isIdentifying = true;
+                    actionText.innerText = "//PASSIVE RADAR: COMPILING TARGET BLUEPRINT...";
+                    
+                    setTimeout(() => {
+                        isIdentifying = false;
+                        presenceConfirmed = true;
+                        identifiedLabel = `TARGET LOCKED: ${USER_NAME.toUpperCase()}`;
+                        actionText.innerText = `//TARGET TRACKING ACTIVE: ${USER_NAME.toUpperCase()}`;
+                        currentHUDColor = "#00bfff";
 
-                setTimeout(() => {
-                    isIdentifying = false;
+                        if (lastSpokenIdentity !== USER_NAME) {
+                            speak(`Welcome back, ${USER_NAME}.`);
+                            lastSpokenIdentity = USER_NAME;
+                        }
+                    }, 1200);
+                    return;
+                }
 
-                    if (diffBg < diffSage && Math.abs(liveLuma - baselineBackground) < 3) {
+                // Rule 2: If the framing delta approaches near absolute dead stillness (no breathing, shifting, or clothing movement)
+                if (lightingDelta < 0.25 && presenceConfirmed) {
+                    isIdentifying = true;
+                    actionText.innerText = "//PASSIVE RADAR: RUNNING DISPLACEMENT VECTOR CHECK...";
+
+                    setTimeout(() => {
+                        isIdentifying = false;
+                        presenceConfirmed = false;
                         identifiedLabel = "";
                         actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                         currentHUDColor = "#00bfff";
-                        lastSpokenIdentity = ""; 
+                        lastSpokenIdentity = ""; // Release vocal gate engine locks
+                    }, 1000);
+                }
+
+            }, 3000);
+        }
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA REJECTED: VERIFY EDGE SECURITY ROADS";
+            }
+        }
+
+        video.addEventListener('playing', () => {
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+            speak("E.D.I.T.H. systems online.");
+            startClockEngine();
+            startGraphicsEngine();
+            
+            // Warm up the automatic presence engines cleanly
+            setTimeout(startRadarTrackingEngine, 2000);
+        });
+
+        initCamera();
+    </script>
+</body>
+</html>
