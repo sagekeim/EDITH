@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v5.0</title>
+    <title>E.D.I.T.H. OS v5.2</title>
     <style>
         body {
             background-color: black;
@@ -50,9 +50,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v5.0</div>
-            <div id="status" class="hud-text">//STATUS: SYSTEM OPERATIONS ACTIVE</div>
-            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: PASSIVE ACTIVE</div>
+            <div class="hud-text">//E.D.I.T.H. OS v5.2</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: CONNECTING...</div>
@@ -68,7 +68,7 @@
     <div class="instructions">
         <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and tap the <b style="color:#fff;">[S] key</b> to load your tracking profile.<br>
         <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and tap the <b style="color:#fff;">[G] key</b> to load her tracking template.<br>
-        <span style="color: #00ff00;">[SMART ENGINE]</span> Commands are instantaneous and greet each target ONCE without repeating!
+        <span style="color: #00ff00;">[AUTO-CLEAR]</span> When a target leaves the frame, the HUD resets to standby automatically after 4 seconds!
     </div>
 
     <script>
@@ -85,13 +85,18 @@
         let scanY = 120;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
-        
-        // Smart Voice Guard Memory variable
         let lastSpokenIdentity = "";
+        
+        // Timer memory to track departures
+        let clearHUDTimeout = null;
 
         function speak(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(utterance);
+            const window_speech = window.speechSynthesis;
+            if (window_speech) {
+                window_speech.cancel(); // Clear any backed-up speech lines instantly
+                const utterance = new SpeechSynthesisUtterance(text);
+                window_speech.speak(utterance);
+            }
         }
 
         // Live Local Clock Engine
@@ -135,8 +140,10 @@
         }
         setInterval(renderHUD, 30);
 
-        // Instant Handshake Execution Module
         function triggerBiometricRouting(name, greeting, colorTheme) {
+            // Cancel any pending reset timers because a new key was pressed
+            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
+            
             isIdentifying = true;
             identifiedLabel = "";
             actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
@@ -147,17 +154,24 @@
                 actionText.innerText = `//TARGET MATCH FOUND: ${name.toUpperCase()}`;
                 currentHUDColor = colorTheme;
 
-                // SMART SPEECH CHECK: Only welcome if the identity has actually changed!
                 if (lastSpokenIdentity !== name) {
                     speak(greeting);
-                    lastSpokenIdentity = name; // Remember who we just talked to
+                    lastSpokenIdentity = name; 
                 }
+
+                // HANDS-FREE SECTOR AUTO-RESET TRIGGER
+                // Starts counting the moment the name is displayed. If no keys override it, it clears out in 4 seconds!
+                clearHUDTimeout = setTimeout(() => {
+                    identifiedLabel = "";
+                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                    currentHUDColor = "#00bfff"; // Return layout to baseline blue
+                    lastSpokenIdentity = ""; // Reset voice memory slot
+                }, 4000);
+
             }, 1000);
         }
 
         window.addEventListener('keydown', (event) => {
-            if (video.readyState !== 4) return;
-            
             if (event.key.toLowerCase() === 's') {
                 triggerBiometricRouting(
                     PROFILE_A_NAME, 
@@ -182,7 +196,7 @@
                 });
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. tactical systems operational.");
+                speak("E.D.I.T.H. tracking arrays initialized.");
             } catch (err) {
                 console.error(err);
                 actionText.innerText = "//CAMERA LINKS REJECTED.";
