@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v2.6</title>
+    <title>E.D.I.T.H. OS v2.7</title>
     <style>
         body {
             background-color: black;
@@ -44,11 +44,15 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .activate-link {
+        .flash-prompt {
             color: #ff3333;
-            text-decoration: underline;
-            cursor: pointer;
             text-shadow: 0 0 8px #ff3333;
+            animation: pulseText 1.5s infinite;
+        }
+        @keyframes pulseText {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
         }
     </style>
 </head>
@@ -56,9 +60,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v2.6</div>
-            <div id="status" class="hud-text">//STATUS: <span id="linkZone" class="activate-link" onclick="forceSystemLaunch()">[ CLICK TO ACTIVATE CORE ]</span></div>
-            <div id="action" class="hud-text">//AWAITING HARDWARE HANDSHAKE...</div>
+            <div class="hud-text">//E.D.I.T.H. OS v2.7</div>
+            <div id="status" class="hud-text">//STATUS: <span id="statusTxt" class="flash-prompt">[ PRESS SPACEBAR TO INITIALIZE CORE ]</span></div>
+            <div id="action" class="hud-text">//AWAITING HARDWARE LINK...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -72,9 +76,10 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate your signature.<br>
-        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate her template.<br>
-        <span style="color: #00ff00;">[SMART SPEECH]</span> System will automatically cycle and greet each target ONCE without repeating!
+        <span style="color: #fff; font-weight: bold;">[INITIALIZE] Click the screen once, then tap the Spacebar key to turn everything on!</span><br><br>
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> to calibrate.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and press the <b style="color:#fff;">[G] key</b> to calibrate.<br>
+        <span style="color: #00ff00;">[SMART SPEECH]</span> She welcomes each target ONCE and stays quiet while locked!
     </div>
 
     <script>
@@ -82,7 +87,7 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
-        const linkZone = document.getElementById('linkZone');
+        const statusTxt = document.getElementById('statusTxt');
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
@@ -102,18 +107,19 @@
             window.speechSynthesis.speak(utterance);
         }
 
-        // Clicking the text link fires up the engines instantly
-        async function forceSystemLaunch() {
-            linkZone.removeAttribute('onclick');
-            linkZone.className = "";
-            linkZone.style.color = "#00bfff";
-            linkZone.style.textShadow = "0 0 8px #00bfff";
-            linkZone.innerText = "ACTIVE";
-            
-            actionText.innerText = "//ENGAGING OPTICAL VECTORS...";
+        // Mechanical Keyboard Handshake Event
+        async function runSystemLaunchSequence() {
+            if (trackingActive) return;
             trackingActive = true;
 
-            // Start processing tracks
+            statusTxt.className = "";
+            statusTxt.style.color = "#00bfff";
+            statusTxt.style.textShadow = "0 0 8px #00bfff";
+            statusTxt.innerText = "ACTIVE";
+            
+            actionText.innerText = "//ENGAGING OPTICAL GRID LINK...";
+
+            // Fire up background tracking modules
             setInterval(updateClock, 1000);
             updateClock();
             setInterval(renderHUD, 30);
@@ -123,10 +129,10 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. online.");
+                speak("E.D.I.T.H. systems completely synchronized.");
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//CAMERA REJECTED: VERIFY EDGE HARDWARE SLIDER IS OPEN";
+                actionText.innerText = "//CAMERA LINKS RESTRICTED. VERIFY SLIDER SWITCH IS UNCOVERED.";
             }
         }
 
@@ -201,21 +207,18 @@
                 setTimeout(() => {
                     isIdentifying = false;
                     if (diffA  {
+            // Check if user taps spacebar to force initial system start
+            if (event.code === "Space" || event.key === " ") {
+                event.preventDefault();
+                runSystemLaunchSequence();
+                return;
+            }
+
             if (!trackingActive || video.readyState !== 4) return;
             
             if (event.key.toLowerCase() === 's') {
                 signatureA = getColorSample();
-                speak(`${PROFILE_A_NAME} blueprint saved.`);
+                speak(`${PROFILE_A_NAME} profile logged.`);
                 actionText.innerText = "//SAGE PROFILE CACHED";
                 lastSpokenIdentity = ""; 
             }
-            if (event.key.toLowerCase() === 'g') {
-                signatureB = getColorSample();
-                speak(`${PROFILE_B_NAME} blueprint saved.`);
-                actionText.innerText = "//GRANDMA PROFILE CACHED";
-                lastSpokenIdentity = ""; 
-            }
-        });
-    </script>
-</body>
-</html>
