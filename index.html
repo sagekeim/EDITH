@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS Stable Prototype</title>
+    <title>E.D.I.T.H. OS v14.0</title>
     <style>
         body {
             background-color: black;
@@ -44,18 +44,30 @@
             font-size: 13px;
             line-height: 1.6;
         }
+        .activate-prompt {
+            color: #ff3333;
+            text-decoration: underline;
+            cursor: pointer;
+            text-shadow: 0 0 8px #ff3333;
+            animation: pulseText 1.5s infinite;
+        }
+        @keyframes pulseText {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. STABLE LOCAL RUNTIME</div>
-            <div id="status" class="hud-text">//STATUS: SYSTEMS OPERATIONAL</div>
-            <div id="action" class="hud-text">//INITIALIZING CAMERA VECTOR LINKS...</div>
+            <div class="hud-text">//E.D.I.T.H. OS v14.0</div>
+            <div id="status" class="hud-text">//STATUS: <span id="linkZone" class="activate-prompt" onclick="forceSystemLaunchSequence()">[ ENGAGE E.D.I.T.H. CORE ]</span></div>
+            <div id="action" class="hud-text">//AWAITING HARDWARE HANDSHAKE LOCK...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: SYNCHRONIZING...</div>
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -66,9 +78,10 @@
     </div>
 
     <div class="instructions">
+        <span style="color: #ff3333; font-weight: bold;">[INITIALIZE] Click the flashing red link text at the top left to unfreeze the system loops!</span><br><br>
         <span style="color: #00bfff;">[CALIBRATE SAGE]</span> Center face and press the <b style="color:#fff;">[S] key</b> once to cache your signature.<br>
         <span style="color: #ffaa00;">[CALIBRATE GRANDMA]</span> Center grandma and press the <b style="color:#fff;">[G] key</b> once to cache her template.<br>
-        <span style="color: #00ff00;">[INDEPENDENT LOOPS ACTIVE]</span> Interface animations and clock run fully separated from camera feeds!
+        <span style="color: #00ff00;">[AUTOMATED]</span> Once both profiles are cached, comparison tracking loops run 100% hands-free.
     </div>
 
     <script>
@@ -76,6 +89,7 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
+        const linkZone = document.getElementById('linkZone');
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
@@ -90,6 +104,7 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
+        let isActivated = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -100,15 +115,47 @@
             }
         }
 
-        // PRIORITY 1: Clock loop starts completely independently
+        // Fired manually on mouse click to satisfy the browser interaction rule
+        async function forceSystemLaunchSequence() {
+            if (isActivated) return;
+            isActivated = true;
+
+            // Update status text layouts cleanly
+            linkZone.removeAttribute('onclick');
+            linkZone.className = "";
+            linkZone.style.color = "#00bfff";
+            linkZone.style.textShadow = "0 0 8px #00bfff";
+            linkZone.innerText = "ACTIVE";
+            
+            actionText.innerText = "//ENGAGING OPTICAL GRID CHANNELS...";
+
+            // Fire up background tracking timers and renderers
+            setInterval(updateClock, 1000);
+            updateClock();
+            setInterval(renderHUD, 30);
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+                
+                setTimeout(() => {
+                    baselineBackground = getLumaSampleValue();
+                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                    startRadarEngine();
+                }, 2000);
+
+                speak("E.D.I.T.H. online.");
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA REJECTED: VERIFY EDGE PERMISSIONS";
+            }
+        }
+
         function updateClock() {
             const now = new Date();
             clockText.innerText = "TIME: " + now.toLocaleTimeString();
         }
-        setInterval(updateClock, 1000);
-        updateClock();
 
-        // PRIORITY 2: HUD graphics render completely independently
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -140,7 +187,6 @@
             ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
-        setInterval(renderHUD, 30);
 
         function getLumaSampleValue() {
             try {
@@ -159,10 +205,9 @@
             } catch (e) { return 120; }
         }
 
-        // Hands-Free Biometric Matrix Scanner (Fires every 3.5 seconds)
-        function startTrackingEngine() {
+        function startRadarEngine() {
             setInterval(() => {
-                if (signatureA === null || signatureB === null || isIdentifying) return;
+                if (signatureA === null || signatureB === null || isIdentifying || video.readyState !== 4) return;
 
                 const liveLuma = getLumaSampleValue();
                 const diffBg = Math.abs(liveLuma - baselineBackground);
@@ -175,44 +220,29 @@
                 setTimeout(() => {
                     isIdentifying = false;
 
-                    if (diffBg  {
-            const key = event.key.toLowerCase();
-            
-            if (key === 's') {
-                signatureA = getLumaSampleValue();
-                speak(`${PROFILE_A_NAME} blueprint archived.`);
-                actionText.innerText = "//SAGE PROFILE VALUE CALCULATED";
-                lastSpokenIdentity = ""; 
-            }
-            if (key === 'g') {
-                signatureB = getLumaSampleValue();
-                speak(`${PROFILE_B_NAME} blueprint archived.`);
-                actionText.innerText = "//GRANDMA PROFILE VALUE CALCULATED";
-                lastSpokenIdentity = ""; 
-            }
-        });
+                    if (diffBg < diffA && diffBg < diffB && Math.abs(liveLuma - baselineBackground) < 3) {
+                        identifiedLabel = "";
+                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                        currentHUDColor = "#00bfff";
+                        lastSpokenIdentity = ""; 
+                        return;
+                    }
 
-        // PRIORITY 3: Camera requested cleanly at the very end
-        async function connectOpticalCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                
-                setTimeout(() => {
-                    baselineBackground = getLumaSampleValue();
-                    actionText.innerText = "//BACKGROUND RADAR CALIBRATED: ACTIVE";
-                    startTrackingEngine();
-                }, 2000);
+                    if (diffA < diffB) {
+                        identifiedLabel = `TARGET MATCHED: ${PROFILE_A_NAME.toUpperCase()}`;
+                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_A_NAME.toUpperCase()}`;
+                        currentHUDColor = "#00bfff"; 
 
-                speak("E.D.I.T.H. tracking protocols ready.");
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//HARDWARE TIMEOUT: CAMERA DRIVER DELAY DETECTED.";
-            }
-        }
+                        if (lastSpokenIdentity !== PROFILE_A_NAME) {
+                            speak(`Welcome back, ${PROFILE_A_NAME}.`);
+                            lastSpokenIdentity = PROFILE_A_NAME; 
+                        }
+                    } else {
+                        identifiedLabel = `TARGET MATCHED: ${PROFILE_B_NAME.toUpperCase()}`;
+                        actionText.innerText = `//TARGET MATCH FOUND: ${PROFILE_B_NAME.toUpperCase()}`;
+                        currentHUDColor = "#ffaa00"; 
 
-        // Trigger camera load after a slight delay to let HUD draw
-        setTimeout(connectOpticalCamera, 500);
-    </script>
-</body>
-</html>
+                        if (lastSpokenIdentity !== PROFILE_B_NAME) {
+                            speak(`Identity verified: ${PROFILE_B_NAME}.`);
+                            lastSpokenIdentity = PROFILE_B_NAME; 
+                        }
