@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v21.0</title>
+    <title>E.D.I.T.H. Master OS v22.0</title>
     <style>
         body {
             background-color: black;
@@ -50,7 +50,7 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. STARK MASTER GRID v21.0</div>
+            <div class="hud-text">//E.D.I.T.H. STARK MEMORY CORE v22.0</div>
             <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
             <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
@@ -66,9 +66,8 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[TRACK SAGE]</span> Press the <b style="color:#fff;">[S] key</b> to instantly lock onto your signature map.<br>
-        <span style="color: #ffaa00;">[TRACK GRANDMA]</span> Press the <b style="color:#fff;">[G] key</b> to instantly lock onto her template map.<br>
-        <span style="color: #00ff00;">[AUTO-TIMEOUT]</span> Profiles lock for 5 seconds, then clear back to standby search automatically!
+        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[TRAINING DATA] Center your face inside the box and tap the [S] key ONCE to save your face permanently!</span><br>
+        <span style="color: #00ff00;">// PERMANENT DATABASE ACTIVE:</span> Once you save your profile once, the system will track Sage Keim completely hands-free on every visit.
     </div>
 
     <script>
@@ -76,9 +75,13 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
+        const setupPrompt = document.getElementById('setupPrompt');
 
-        const PROFILE_A_NAME = "Sage Keim";
-        const PROFILE_B_NAME = "Grandma";
+        const MASTER_USER = "Sage Keim";
+
+        // Pull saved values straight out of the browser's permanent database storage memory
+        let faceSignatureSage = localStorage.getItem('edith_master_luma') ? parseFloat(localStorage.getItem('edith_master_luma')) : null;
+        let baselineBackground = null;
 
         let isIdentifying = false;
         let identifiedLabel = "";
@@ -86,7 +89,6 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let clearHUDTimeout = null;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -97,7 +99,6 @@
             }
         }
 
-        // Clean Clock Loop
         function startClockEngine() {
             setInterval(() => {
                 const now = new Date();
@@ -105,7 +106,6 @@
             }, 1000);
         }
 
-        // Clean Graphics Loop
         function startGraphicsEngine() {
             setInterval(() => {
                 const ctx = canvas.getContext('2d');
@@ -131,75 +131,77 @@
                 ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
                 ctx.font = 'bold 13px Courier New';
                 
-                let displayMsg = identifiedLabel || "PASSIVE RADAR SWEEP ACTIVE: SCANNING FIELD...";
+                let displayMsg = identifiedLabel || "PASSIVE RADAR FIELD SWEEP ACTIVE...";
                 ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
                 ctx.restore();
             }, 30);
         }
 
-        function lockOutwardTarget(name, greeting, colorTheme) {
-            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
+        function getLumaSampleValue() {
+            try {
+                const hiddenCanvas = document.createElement('canvas');
+                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
+                const ctx = hiddenCanvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                
+                const imgData = ctx.getImageData(220, 100, 200, 260).data;
+                let totalLuma = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    let luma = (imgData[i] * 0.299) + (imgData[i+1] * 0.587) + (imgData[i+2] * 0.114);
+                    totalLuma += luma;
+                }
+                return totalLuma / (imgData.length / 4); 
+            } catch (e) { return 120; }
+        }
 
-            isIdentifying = true;
-            identifiedLabel = "";
-            actionText.innerText = "//PASSIVE RADAR: LOCKING ONTO TARGET SIGNATURE...";
+        // ONE-TIME PERMANENT INITIALIZATION HANDSHAKE
+        function saveProfileSignature() {
+            const measuredLuma = getLumaSampleValue();
+            localStorage.setItem('edith_master_luma', measuredLuma); // Write directly to permanent browser memory
+            faceSignatureSage = measuredLuma;
+            
+            setupPrompt.style.color = "#00ff00";
+            setupPrompt.innerText = `// BIOMETRIC DATABASE COMPLETED. CORE LOCKED ONTO SAGE KEIM.`;
+            speak(`${MASTER_USER} database profile logged permanently.`);
+        }
+
+        // AUTONOMOUS CONTINUOUS VALIDATOR LOOP
+        function startRadarTrackingEngine() {
+            setInterval(() => {
+                if (video.readyState !== 4 || faceSignatureSage === null || isIdentifying) return;
+
+                const liveLuma = getLumaSampleValue();
+                const diffSage = Math.abs(liveLuma - faceSignatureSage);
+                const diffBg = Math.abs(liveLuma - baselineBackground);
+
+                isIdentifying = true;
+                actionText.innerText = "//PASSIVE RADAR: MONITORING ROOM SECTOR...";
+
+                setTimeout(() => {
+                    isIdentifying = false;
+
+                    // If you walk away and it sees the empty wall background, instantly drop your name!
+                    if (diffBg  {
+            if (faceSignatureSage) {
+                setupPrompt.style.color = "#00ff00";
+                setupPrompt.innerText = `// MASTER BIOMETRIC FILE RECOGNIZED FROM MEMORY BANK.`;
+            }
             
             setTimeout(() => {
-                isIdentifying = false;
-                identifiedLabel = `TARGET LOCKED: ${name.toUpperCase()}`;
-                actionText.innerText = `//TARGET TRACKING ACTIVE: ${name.toUpperCase()}`;
-                currentHUDColor = colorTheme;
+                baselineBackground = getLumaSampleValue();
+                actionText.innerText = //ENVIRONMENT SCANNING: ACTIVE;
+                startRadarTrackingEngine();
+            }, 2000);
 
-                if (lastSpokenIdentity !== name) {
-                    speak(greeting);
-                    lastSpokenIdentity = name; 
-                }
-
-                // THE AUTONOMOUS TIMEOUT FLUSH
-                // Holds the profile details for 5 seconds, then returns cleanly to standby blue
-                clearHUDTimeout = setTimeout(() => {
-                    identifiedLabel = "";
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    currentHUDColor = "#00bfff"; 
-                    lastSpokenIdentity = ""; 
-                }, 5000);
-
-            }, 800);
-        }
-
-        window.addEventListener('keydown', (event) => {
-            const key = event.key.toLowerCase();
-            if (key === 's') {
-                lockOutwardTarget(
-                    PROFILE_A_NAME, 
-                    `Welcome back, ${PROFILE_A_NAME}. Clearances verified.`, 
-                    "#00bfff"
-                );
-            }
-            if (key === 'g') {
-                lockOutwardTarget(
-                    PROFILE_B_NAME, 
-                    `Identity verified: ${PROFILE_B_NAME}. Sector status: secure.`, 
-                    "#ffaa00"
-                );
-            }
-        });
-
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//CAMERA ACCESS BLOCKED. CLICK LOCK ICON TO ALLOW.";
-            }
-        }
-
-        video.addEventListener('playing', () => {
-            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            speak("E.D.I.T.H. systems stable.");
+            speak("E.D.I.T.H. network database active.");
             startClockEngine();
             startGraphicsEngine();
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key.toLowerCase() === 's') {
+                saveProfileSignature();
+            }
         });
 
         initCamera();
