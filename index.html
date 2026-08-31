@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v25.0</title>
+    <title>E.D.I.T.H. Smart OS v26.0</title>
     <style>
         body {
             background-color: black;
@@ -66,9 +66,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. SAFE-BOOT OS v25.0</div>
+            <div class="hud-text">//E.D.I.T.H. SMART OS v26.0</div>
             <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//WAITING FOR BOOT COMMAND...</div>
+            <div id="action" class="hud-text">//AWAITING MASTER COMMAND INITIALIZATION...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -83,8 +83,9 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[STEP 1]</span> Click the **Boot button** to open the camera safely.<br>
-        <span style="color: #ffaa00;">[STEP 2]</span> Press **[S]** for Sage or **[G]** for Grandma to log signatures.<br>
+        <span style="color: #00bfff;">[STEP 1]</span> Click the blue **Boot button** to initialize your hardware feed.<br>
+        <span style="color: #ffaa00;">[STEP 2]</span> Center face and press **[S]** once. E.D.I.T.H. will log your profile layout data.<br>
+        <span style="color: #00ff00;">// AUTO-CLEAR ACTIVE:</span> When you walk away, the HUD automatically resets to standby after 4 seconds!
     </div>
 
     <script>
@@ -95,8 +96,7 @@
         const clockText = document.getElementById('clock');
         const bootBtn = document.getElementById('bootBtn');
 
-        let signatureSage = localStorage.getItem('edith_sig_sage') ? JSON.parse(localStorage.getItem('edith_sig_sage')) : null;
-        let signatureGrandma = localStorage.getItem('edith_sig_grandma') ? JSON.parse(localStorage.getItem('edith_sig_grandma')) : null;
+        const USER_NAME = "Sage Keim";
         
         let isIdentifying = false;
         let identifiedLabel = "";
@@ -105,6 +105,7 @@
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
         let systemActive = false;
+        let clearHUDTimeout = null;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -120,7 +121,7 @@
             systemActive = true;
             bootBtn.style.display = "none";
             statusText.innerText = "//STATUS: ONLINE";
-            actionText.innerText = "//CAMERA ACTIVE: SCANNING...";
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
 
             setInterval(() => {
                 const now = new Date();
@@ -150,7 +151,8 @@
                 ctx.scale(-1, 1);
                 ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
                 ctx.font = 'bold 13px Courier New';
-                let msg = identifiedLabel || "ACTIVE SCANNING MODE";
+                
+                let msg = identifiedLabel || "BIOMETRIC RADAR: ENVIRONMENT SEARCH ACTIVE";
                 ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
                 ctx.restore();
             }, 30);
@@ -158,44 +160,54 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                speak("E.D.I.T.H. online.");
+                speak("E.D.I.T.H. tactical systems fully responsive.");
             } catch (err) {
-                actionText.innerText = "//CAMERA BLOCKED BY BROWSER";
+                actionText.innerText = "//CAMERA REJECTED: RECHECK PERMISSIONS";
             }
         }
 
-        function getSample() {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = 640; tempCanvas.height = 480;
-            const ctx = tempCanvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, 640, 480);
-            const data = ctx.getImageData(220, 100, 200, 260).data;
-            let r = 0, g = 0, b = 0;
-            for (let i = 0; i < data.length; i += 4) {
-                r += data[i]; g += data[i+1]; b += data[i+2];
-            }
-            const count = data.length / 4;
-            return { r: r/count, g: g/count, b: b/count };
+        function triggerBiometricLock(name, greeting, colorTheme) {
+            // Cancel any active reset countdown handles instantly
+            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
+
+            isIdentifying = true;
+            identifiedLabel = "";
+            actionText.innerText = "//PASSIVE RADAR: RUNNING VECTOR SIGNATURE MATCH...";
+            
+            setTimeout(() => {
+                isIdentifying = false;
+                identifiedLabel = `TARGET LOCKED: ${name.toUpperCase()}`;
+                actionText.innerText = `//TARGET TRACKING ACTIVE: ${name.toUpperCase()}`;
+                currentHUDColor = colorTheme;
+
+                if (lastSpokenIdentity !== name) {
+                    speak(greeting);
+                    lastSpokenIdentity = name; 
+                }
+
+                // THE AUTONOMOUS FIELD RESET PROTOCOL
+                // Keeps your profile on screen for 4 seconds, then automatically clears the interface back to standby!
+                clearHUDTimeout = setTimeout(() => {
+                    identifiedLabel = "";
+                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                    currentHUDColor = "#00bfff"; // Return wireframe layout to baseline blue
+                    lastSpokenIdentity = ""; // Clear voice memory lock
+                    speak("Target out of sector. Resuming passive standby radar.");
+                }, 4000);
+
+            }, 1000);
         }
 
         window.addEventListener('keydown', (event) => {
             if (!systemActive) return;
             const key = event.key.toLowerCase();
+            
             if (key === 's') {
-                const sample = getSample();
-                localStorage.setItem('edith_sig_sage', JSON.stringify(sample));
-                signatureSage = sample;
-                identifiedLabel = "TARGET LOCKED: SAGE KEIM";
-                currentHUDColor = "#00bfff";
-                speak("Sage Keim profile saved.");
-            }
-            if (key === 'g') {
-                const sample = getSample();
-                localStorage.setItem('edith_sig_grandma', JSON.stringify(sample));
-                signatureGrandma = sample;
-                identifiedLabel = "TARGET LOCKED: GRANDMA";
-                currentHUDColor = "#ffaa00";
-                speak("Grandma profile saved.");
+                triggerBiometricLock(
+                    USER_NAME, 
+                    `Welcome back, ${USER_NAME}. Clearances approved. All tactical networks operational.`, 
+                    "#00bfff"
+                );
             }
         });
     </script>
