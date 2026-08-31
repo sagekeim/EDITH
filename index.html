@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v5.2</title>
+    <title>E.D.I.T.H. OS v5.3</title>
     <style>
         body {
             background-color: black;
@@ -50,7 +50,7 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v5.2</div>
+            <div class="hud-text">//E.D.I.T.H. OS v5.3</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
             <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
         </div>
@@ -66,9 +66,9 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and tap the <b style="color:#fff;">[S] key</b> to load your tracking profile.<br>
-        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and tap the <b style="color:#fff;">[G] key</b> to load her tracking template.<br>
-        <span style="color: #00ff00;">[AUTO-CLEAR]</span> When a target leaves the frame, the HUD resets to standby automatically after 4 seconds!
+        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and tap the <b style="color:#fff;">[S] key</b> to lock your tracking profile.<br>
+        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and tap the <b style="color:#fff;">[G] key</b> to lock her template.<br>
+        <span style="color: #ff3333;">[CLEAR SECTOR]</span> Tapping the <b style="color:#fff;">[SPACEBAR]</b> manually clears the target and resets HUD to standby!
     </div>
 
     <script>
@@ -86,14 +86,11 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        
-        // Timer memory to track departures
-        let clearHUDTimeout = null;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
             if (window_speech) {
-                window_speech.cancel(); // Clear any backed-up speech lines instantly
+                window_speech.cancel(); // Mute old speech lines instantly
                 const utterance = new SpeechSynthesisUtterance(text);
                 window_speech.speak(utterance);
             }
@@ -107,12 +104,12 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // High-Speed Tactical HUD Renderer
+        // Tactical HUD Canvas Renderer
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw animated vector line
+            // Vector scanning laser
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -123,7 +120,7 @@
             scanY += (isIdentifying ? 15 : 4) * scanDirection;
             if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            // Draw center wireframe targeting bracket
+            // Wireframe targeting frame
             const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 3;
@@ -141,9 +138,6 @@
         setInterval(renderHUD, 30);
 
         function triggerBiometricRouting(name, greeting, colorTheme) {
-            // Cancel any pending reset timers because a new key was pressed
-            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
-            
             isIdentifying = true;
             identifiedLabel = "";
             actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
@@ -158,20 +152,25 @@
                     speak(greeting);
                     lastSpokenIdentity = name; 
                 }
-
-                // HANDS-FREE SECTOR AUTO-RESET TRIGGER
-                // Starts counting the moment the name is displayed. If no keys override it, it clears out in 4 seconds!
-                clearHUDTimeout = setTimeout(() => {
-                    identifiedLabel = "";
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    currentHUDColor = "#00bfff"; // Return layout to baseline blue
-                    lastSpokenIdentity = ""; // Reset voice memory slot
-                }, 4000);
-
             }, 1000);
         }
 
+        // Sector Manual Clear Action
+        function clearActiveTarget() {
+            identifiedLabel = "";
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+            currentHUDColor = "#00bfff"; // Return grid layout to original cyan blue
+            lastSpokenIdentity = ""; // Clear out audio lock memory block
+            speak("Target cleared. Passive radar scanning engaged.");
+        }
+
         window.addEventListener('keydown', (event) => {
+            // Check if operator hits the spacebar to clear the screen manually
+            if (event.key === " " || event.code === "Space") {
+                event.preventDefault(); // Stop page from scrolling
+                clearActiveTarget();
+                return;
+            }
             if (event.key.toLowerCase() === 's') {
                 triggerBiometricRouting(
                     PROFILE_A_NAME, 
@@ -188,7 +187,7 @@
             }
         });
 
-        // Launch Native Webcam Device link
+        // Launch Native Webcam Link
         async function connectOpticalCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -196,7 +195,7 @@
                 });
                 video.srcObject = stream;
                 actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. tracking arrays initialized.");
+                speak("E.D.I.T.H. tactical networks active.");
             } catch (err) {
                 console.error(err);
                 actionText.innerText = "//CAMERA LINKS REJECTED.";
