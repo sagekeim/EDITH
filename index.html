@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Autonomous OS v19.0</title>
+    <title>E.D.I.T.H. OS v19.5</title>
     <style>
         body {
             background-color: black;
@@ -44,18 +44,28 @@
             font-size: 13px;
             line-height: 1.6;
         }
+        .blink-prompt {
+            color: #ff3333;
+            text-shadow: 0 0 8px #ff3333;
+            animation: pulseText 1.2s infinite;
+        }
+        @keyframes pulseText {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS AUTONOMOUS PROTOTYPE v19.0</div>
-            <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
-            <div id="action" class="hud-text">//CONNECTING CAMERA VECTOR LINK...</div>
+            <div class="hud-text">//E.D.I.T.H. OS PROTOTYPE v19.5</div>
+            <div id="status" class="hud-text">//STATUS: STANDBY</div>
+            <div id="action" class="hud-text blink-prompt">// PRESS THE [ENTER] KEY TO ACTIVATE OVERLAY SYSTEMS //</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: SYNCHRONIZING...</div>
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -66,6 +76,7 @@
     </div>
 
     <div class="instructions">
+        <b style="color: #fff;">[STEP 1] Click once anywhere on the dark background to focus, then press [ENTER] to boot the OS!</b><br><br>
         <span style="color: #00ff00; font-weight: bold;">// HANDS-FREE AUTOMATED EYE MONITOR ACTIVE</span><br>
         1. When you enter the bounding frame, the layout locks your dossier and greets you **exactly once**.<br>
         2. When you walk completely away, the tracking bar automatically resets back to standby search parameters!
@@ -75,6 +86,7 @@
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
 
         const USER_NAME = "Sage Keim";
@@ -88,6 +100,7 @@
         
         let previousBoxLuma = 0;
         let presenceConfirmed = false;
+        let isActivated = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -98,44 +111,60 @@
             }
         }
 
-        // Clock Monitor Loop
-        function startClockEngine() {
-            setInterval(() => {
-                const now = new Date();
-                clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            }, 1000);
+        // Fired instantly by keyboard channel to completely bypass mouse/touch blocks
+        async function launchSystemOS() {
+            if (isActivated) return;
+            isActivated = true;
+
+            actionText.className = "hud-text"; // Remove the blinking class layout style
+            statusText.innerText = "//STATUS: ACTIVE";
+            actionText.innerText = "//ENGAGING OPTICAL CHANNELS...";
+
+            setInterval(updateClock, 1000);
+            updateClock();
+            setInterval(startGraphicsLoop, 30);
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error(err);
+                actionText.innerText = "//CAMERA ACCESS SECURITY INITIALIZATION ERROR";
+            }
         }
 
-        // High-Speed Cyber HUD Graphics Loop
-        function startGraphicsEngine() {
-            setInterval(() => {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(10, scanY);
-                ctx.lineTo(canvas.width - 10, scanY);
-                ctx.stroke();
-                
-                scanY += (isIdentifying ? 15 : 4) * scanDirection;
-                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+        function updateClock() {
+            const now = new Date();
+            clockText.innerText = "TIME: " + now.toLocaleTimeString();
+        }
 
-                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 3;
-                ctx.strokeRect(boxX, boxY, boxW, boxH);
-                
-                ctx.save();
-                ctx.scale(-1, 1);
-                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.font = 'bold 13px Courier New';
-                
-                let displayMsg = identifiedLabel || "BIOMETRIC RADAR: ENVIRONMENT SEARCH ACTIVE";
-                ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
-                ctx.restore();
-            }, 30);
+        function startGraphicsLoop() {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(10, scanY);
+            ctx.lineTo(canvas.width - 10, scanY);
+            ctx.stroke();
+            
+            scanY += (isIdentifying ? 15 : 4) * scanDirection;
+            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+
+            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(boxX, boxY, boxW, boxH);
+            
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.font = 'bold 13px Courier New';
+            
+            let displayMsg = identifiedLabel || "BIOMETRIC RADAR: ENVIRONMENT SEARCH ACTIVE";
+            ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
+            ctx.restore();
         }
 
         function getLumaSampleValue() {
@@ -155,22 +184,16 @@
             } catch (e) { return 0; }
         }
 
-        // HANDS-FREE AUTOMATED DELTA SCANNERS
-        // Continually tracks optical pixel alterations every 3 seconds completely on its own
         function startRadarTrackingEngine() {
-            // Set first tracking baseline
             previousBoxLuma = getLumaSampleValue();
 
             setInterval(() => {
                 if (video.readyState !== 4 || isIdentifying) return;
 
                 const currentLuma = getLumaSampleValue();
-                
-                // Calculate absolute delta alteration between the previous check frame and now
                 const lightingDelta = Math.abs(currentLuma - previousBoxLuma);
                 previousBoxLuma = currentLuma;
 
-                // Rule 1: If there is an alteration in light bounds, a human has crossed into the box layout zone!
                 if (lightingDelta > 1.2 && !presenceConfirmed) {
                     isIdentifying = true;
                     actionText.innerText = "//PASSIVE RADAR: COMPILING TARGET BLUEPRINT...";
@@ -190,7 +213,6 @@
                     return;
                 }
 
-                // Rule 2: If the framing delta approaches near absolute dead stillness (no breathing, shifting, or clothing movement)
                 if (lightingDelta < 0.25 && presenceConfirmed) {
                     isIdentifying = true;
                     actionText.innerText = "//PASSIVE RADAR: RUNNING DISPLACEMENT VECTOR CHECK...";
@@ -201,34 +223,24 @@
                         identifiedLabel = "";
                         actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
                         currentHUDColor = "#00bfff";
-                        lastSpokenIdentity = ""; // Release vocal gate engine locks
+                        lastSpokenIdentity = ""; 
                     }, 1000);
                 }
-
             }, 3000);
-        }
-
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//CAMERA REJECTED: VERIFY EDGE SECURITY ROADS";
-            }
         }
 
         video.addEventListener('playing', () => {
             actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
             speak("E.D.I.T.H. systems online.");
-            startClockEngine();
-            startGraphicsEngine();
-            
-            // Warm up the automatic presence engines cleanly
             setTimeout(startRadarTrackingEngine, 2000);
         });
 
-        initCamera();
+        window.addEventListener('keydown', (event) => {
+            // Listen for the unblockable Enter key token handshake
+            if (event.key === "Enter") {
+                launchSystemOS();
+            }
+        });
     </script>
 </body>
 </html>
