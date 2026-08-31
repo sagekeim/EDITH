@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v5.3</title>
+    <title>E.D.I.T.H. Dual Sensory OS v12.0</title>
     <style>
         body {
             background-color: black;
@@ -44,15 +44,25 @@
             font-size: 13px;
             line-height: 1.6;
         }
+        .lock-alert {
+            color: #ff3333;
+            text-shadow: 0 0 8px #ff3333;
+            animation: blinkText 1.5s infinite;
+        }
+        @keyframes blinkText {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS v5.3</div>
-            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+            <div class="hud-text">//E.D.I.T.H. DUAL SENSORY OS v12.0</div>
+            <div id="status" class="hud-text">//USER: <span id="userLock" class="lock-alert">BIOMETRIC AUTHENTICATION REQUIRED</span></div>
+            <div id="action" class="hud-text">//DUAL SCANNER CORE: STANDBY...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: CONNECTING...</div>
@@ -66,9 +76,11 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[PROFILE SAGE]</span> Center face and tap the <b style="color:#fff;">[S] key</b> to lock your tracking profile.<br>
-        <span style="color: #ffaa00;">[PROFILE GUEST]</span> Center grandma's face and tap the <b style="color:#fff;">[G] key</b> to lock her template.<br>
-        <span style="color: #ff3333;">[CLEAR SECTOR]</span> Tapping the <b style="color:#fff;">[SPACEBAR]</b> manually clears the target and resets HUD to standby!
+        <span style="color: #00bfff; font-weight: bold;">[INITIAL SETUP]</span> Center your face, press <b style="color: #fff;">[S] once</b> to train your face. Step back 2s for background map.<br>
+        <span style="color: #00ff00; font-weight: bold;">[CHOOSE AUTH METHOD]</span> To unlock system from standby:<br>
+        👉 **FACIAL:** Center face inside box for 3s to trigger automatic light pattern match.<br>
+        👉 **VOICE:** Speak clearly into microphone: <b style="color: #fff;">"Edith engage master user"</b><br><br>
+        <span style="color: #ffaa00;">[OUTWARD TARGETS]</span> Once unlocked, use keys to simulate looking at others: **[G]** Grandma | **[T]** Tony Stark
     </div>
 
     <script>
@@ -76,27 +88,37 @@
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
+        const userLock = document.getElementById('userLock');
 
-        const PROFILE_A_NAME = "Sage Keim";
-        const PROFILE_B_NAME = "Grandma";
+        const MASTER_NAME = "Sage Keim";
 
+        const TARGETS = {
+            'g': { name: "Grandma", greeting: "Biometric match found: Grandma. Profile loaded.", color: "#ffaa00" },
+            't': { name: "Tony Stark", greeting: "Threat level neutral. Welcome back, Mr. Stark.", color: "#ff3333" }
+        };
+
+        // Biometric Face Math Storage Banks
+        let faceSignatureSage = null;
+        let baselineBackground = null;
+
+        let isMasterUnlocked = false;
         let isIdentifying = false;
         let identifiedLabel = "";
         let scanY = 120;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
+        let clearHUDTimeout = null;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
             if (window_speech) {
-                window_speech.cancel(); // Mute old speech lines instantly
+                window_speech.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(text);
                 window_speech.speak(utterance);
             }
         }
 
-        // Live Local Clock Engine
         function updateClock() {
             const now = new Date();
             clockText.innerText = "TIME: " + now.toLocaleTimeString();
@@ -104,12 +126,10 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Tactical HUD Canvas Renderer
         function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Vector scanning laser
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -120,7 +140,6 @@
             scanY += (isIdentifying ? 15 : 4) * scanDirection;
             if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            // Wireframe targeting frame
             const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 3;
@@ -131,78 +150,95 @@
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.font = 'bold 13px Courier New';
             
-            let displayMsg = identifiedLabel || "PASSIVE RADAR SWEEP ACTIVE: STANDBY";
+            let displayMsg = "DUAL BIOMETRICS STANDBY: AUTHENTICATING...";
+            if (isMasterUnlocked) {
+                displayMsg = identifiedLabel || "SEARCHING FIELD FOR BIOMETRIC SIGNATURES...";
+            }
+            
             ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
         setInterval(renderHUD, 30);
 
-        function triggerBiometricRouting(name, greeting, colorTheme) {
+        // LIGHT READING MATHEMATICAL FUNCTION
+        function getLumaSampleValue() {
+            try {
+                const hiddenCanvas = document.createElement('canvas');
+                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
+                const ctx = hiddenCanvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                const imgData = ctx.getImageData(220, 100, 200, 260).data;
+                let totalLuma = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    let luma = (imgData[i] * 0.299) + (imgData[i+1] * 0.587) + (imgData[i+2] * 0.114);
+                    totalLuma += luma;
+                }
+                return totalLuma / (imgData.length / 4);
+            } catch (e) { return 120; }
+        }
+
+        // UNLOCK ACCESS LEVEL HANDSHAKE
+        function unlockMasterProfile(methodText) {
+            if (isMasterUnlocked) return;
+            isMasterUnlocked = true;
+            userLock.className = "";
+            userLock.style.color = "#00bfff";
+            userLock.style.textShadow = "0 0 8px #00bfff";
+            userLock.innerText = `${MASTER_NAME.toUpperCase()} [MASTER]`;
+            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+            speak(`${methodText} verified. Welcome back, Operator Sage.`);
+        }
+
+        // BIOMETRIC FACE MONITOR SCANNER LOOP (Fires every 3 seconds)
+        setInterval(() => {
+            if (isMasterUnlocked || faceSignatureSage === null || isIdentifying || video.readyState !== 4) return;
+
+            const liveLuma = getLumaSampleValue();
+            const diffSage = Math.abs(liveLuma - faceSignatureSage);
+            const diffBg = Math.abs(liveLuma - baselineBackground);
+
+            // If the live light map matches your cached face value closer than an empty room, unlock!
+            if (diffSage < diffBg && diffSage < 3) {
+                isIdentifying = true;
+                actionText.innerText = "//FACIAL RADAR: SCANNING SPECTRUM MATRICES...";
+                setTimeout(() => {
+                    isIdentifying = false;
+                    unlockMasterProfile("Facial biometric recognition");
+                }, 1200);
+            }
+        }, 3000);
+
+        // VOICE RECOGNITION MONITOR ENGINE
+        function startVoiceSensoryLock() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
+            const recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.lang = 'en-US';
+            recognition.onresult = (event) => {
+                const latestResultIndex = event.results.length - 1;
+                const spokenText = event.results[latestResultIndex].transcript.toLowerCase().trim();
+                if (spokenText.includes("engage master user") || spokenText.includes("edith engage")) {
+                    unlockMasterProfile("Voice sensory match");
+                }
+            };
+            recognition.onend = () => { if (!isMasterUnlocked) recognition.start(); };
+            recognition.start();
+        }
+
+        function lockOutwardTarget(targetKey) {
+            if (!isMasterUnlocked) return;
+            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
+
+            const target = TARGETS[targetKey];
             isIdentifying = true;
             identifiedLabel = "";
-            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN...";
+            actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN ON TARGET...";
             
             setTimeout(() => {
                 isIdentifying = false;
-                identifiedLabel = `TARGET MATCHED: ${name.toUpperCase()}`;
-                actionText.innerText = `//TARGET MATCH FOUND: ${name.toUpperCase()}`;
-                currentHUDColor = colorTheme;
+                identifiedLabel = `TARGET LOCKED: ${target.name.toUpperCase()}`;
+                actionText.innerText = `//TARGET TRACKING ACTIVE: ${target.name.toUpperCase()}`;
+                currentHUDColor = target.color;
 
-                if (lastSpokenIdentity !== name) {
-                    speak(greeting);
-                    lastSpokenIdentity = name; 
-                }
-            }, 1000);
-        }
-
-        // Sector Manual Clear Action
-        function clearActiveTarget() {
-            identifiedLabel = "";
-            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            currentHUDColor = "#00bfff"; // Return grid layout to original cyan blue
-            lastSpokenIdentity = ""; // Clear out audio lock memory block
-            speak("Target cleared. Passive radar scanning engaged.");
-        }
-
-        window.addEventListener('keydown', (event) => {
-            // Check if operator hits the spacebar to clear the screen manually
-            if (event.key === " " || event.code === "Space") {
-                event.preventDefault(); // Stop page from scrolling
-                clearActiveTarget();
-                return;
-            }
-            if (event.key.toLowerCase() === 's') {
-                triggerBiometricRouting(
-                    PROFILE_A_NAME, 
-                    `Welcome back, ${PROFILE_A_NAME}. Access approved.`, 
-                    "#00bfff"
-                );
-            }
-            if (event.key.toLowerCase() === 'g') {
-                triggerBiometricRouting(
-                    PROFILE_B_NAME, 
-                    `Identity verified: ${PROFILE_B_NAME}. Greetings.`, 
-                    "#ffaa00"
-                );
-            }
-        });
-
-        // Launch Native Webcam Link
-        async function connectOpticalCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: 640, height: 480 } 
-                });
-                video.srcObject = stream;
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                speak("E.D.I.T.H. tactical networks active.");
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//CAMERA LINKS REJECTED.";
-            }
-        }
-
-        connectOpticalCamera();
-    </script>
-</body>
-</html>
+                if (lastSpokenIdentity !== target.name) {
