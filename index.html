@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. OS v19.5</title>
+    <title>E.D.I.T.H. Multi-OS v20.0</title>
     <style>
         body {
             background-color: black;
@@ -44,25 +44,15 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .blink-prompt {
-            color: #ff3333;
-            text-shadow: 0 0 8px #ff3333;
-            animation: pulseText 1.2s infinite;
-        }
-        @keyframes pulseText {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OS PROTOTYPE v19.5</div>
-            <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text blink-prompt">// PRESS THE [ENTER] KEY TO ACTIVATE OVERLAY SYSTEMS //</div>
+            <div class="hud-text">//E.D.I.T.H. MULTI-OS v20.0</div>
+            <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
+            <div id="action" class="hud-text">//PRESS [ENTER] TO INITIALIZE SENSORS...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -76,10 +66,10 @@
     </div>
 
     <div class="instructions">
-        <b style="color: #fff;">[STEP 1] Click once anywhere on the dark background to focus, then press [ENTER] to boot the OS!</b><br><br>
-        <span style="color: #00ff00; font-weight: bold;">// HANDS-FREE AUTOMATED EYE MONITOR ACTIVE</span><br>
-        1. When you enter the bounding frame, the layout locks your dossier and greets you **exactly once**.<br>
-        2. When you walk completely away, the tracking bar automatically resets back to standby search parameters!
+        <span style="color: #fff; font-weight: bold;">[STEP 1] Click screen once to focus, then tap [ENTER] to turn the system on!</span><br>
+        <span style="color: #00bfff;">[STEP 2]</span> You sit down, face the box, and press the **[S] key** once to store your profile.<br>
+        <span style="color: #ffaa00;">[STEP 3]</span> Grandma sits down, faces the box, and presses the **[G] key** once to store her profile.<br>
+        <span style="color: #00ff00;">// AUTOMATION ACTIVE:</span> Once both are saved, it tracks you both 100% hands-free without keys!
     </div>
 
     <script>
@@ -89,7 +79,14 @@
         const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
 
-        const USER_NAME = "Sage Keim";
+        // Target Names Mapping Database
+        const PROFILE_A_NAME = "Sage Keim";
+        const PROFILE_B_NAME = "Grandma";
+
+        // Separate mathematical memory banks to store each face light signature
+        let signatureSage = null;
+        let signatureGrandma = null;
+        let baselineBackground = null; 
 
         let isIdentifying = false;
         let identifiedLabel = "";
@@ -97,9 +94,6 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        
-        let previousBoxLuma = 0;
-        let presenceConfirmed = false;
         let isActivated = false;
 
         function speak(text) {
@@ -111,12 +105,10 @@
             }
         }
 
-        // Fired instantly by keyboard channel to completely bypass mouse/touch blocks
         async function launchSystemOS() {
             if (isActivated) return;
             isActivated = true;
 
-            actionText.className = "hud-text"; // Remove the blinking class layout style
             statusText.innerText = "//STATUS: ACTIVE";
             actionText.innerText = "//ENGAGING OPTICAL CHANNELS...";
 
@@ -129,7 +121,7 @@
                 video.srcObject = stream;
             } catch (err) {
                 console.error(err);
-                actionText.innerText = "//CAMERA ACCESS SECURITY INITIALIZATION ERROR";
+                actionText.innerText = "//CAMERA EXCURSION ACCESS INITIALIZATION ERROR";
             }
         }
 
@@ -162,7 +154,10 @@
             ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.font = 'bold 13px Courier New';
             
-            let displayMsg = identifiedLabel || "BIOMETRIC RADAR: ENVIRONMENT SEARCH ACTIVE";
+            let displayMsg = "AWAITING PROFILES: SAGE [S] & GRANDMA [G]";
+            if (signatureSage && !signatureGrandma) displayMsg = "SAGE LOGGED. AWAITING GRANDMA [G] LOCK...";
+            if (signatureSage && signatureGrandma) displayMsg = identifiedLabel || "AUTONOMOUS DUAL PROFILE RADAR ENGAGED";
+            
             ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
@@ -181,66 +176,37 @@
                     totalLuma += luma;
                 }
                 return totalLuma / (imgData.length / 4); 
-            } catch (e) { return 0; }
+            } catch (e) { return 120; }
         }
 
+        // DUAL BIOMETRIC SECTOR SCANNER ENGINE
         function startRadarTrackingEngine() {
-            previousBoxLuma = getLumaSampleValue();
-
             setInterval(() => {
-                if (video.readyState !== 4 || isIdentifying) return;
+                // Wait until BOTH profiles are trained before tracking automatically
+                if (signatureSage === null || signatureGrandma === null || isIdentifying || video.readyState !== 4) return;
 
-                const currentLuma = getLumaSampleValue();
-                const lightingDelta = Math.abs(currentLuma - previousBoxLuma);
-                previousBoxLuma = currentLuma;
+                const liveLuma = getLumaSampleValue();
+                
+                const diffBg = Math.abs(liveLuma - baselineBackground);
+                const diffSage = Math.abs(liveLuma - signatureSage);
+                const diffGrandma = Math.abs(liveLuma - signatureGrandma);
 
-                if (lightingDelta > 1.2 && !presenceConfirmed) {
-                    isIdentifying = true;
-                    actionText.innerText = "//PASSIVE RADAR: COMPILING TARGET BLUEPRINT...";
-                    
-                    setTimeout(() => {
-                        isIdentifying = false;
-                        presenceConfirmed = true;
-                        identifiedLabel = `TARGET LOCKED: ${USER_NAME.toUpperCase()}`;
-                        actionText.innerText = `//TARGET TRACKING ACTIVE: ${USER_NAME.toUpperCase()}`;
-                        currentHUDColor = "#00bfff";
+                isIdentifying = true;
+                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN SECTOR COMPARISON...";
 
-                        if (lastSpokenIdentity !== USER_NAME) {
-                            speak(`Welcome back, ${USER_NAME}.`);
-                            lastSpokenIdentity = USER_NAME;
-                        }
-                    }, 1200);
-                    return;
-                }
+                setTimeout(() => {
+                    isIdentifying = false;
 
-                if (lightingDelta < 0.25 && presenceConfirmed) {
-                    isIdentifying = true;
-                    actionText.innerText = "//PASSIVE RADAR: RUNNING DISPLACEMENT VECTOR CHECK...";
-
-                    setTimeout(() => {
-                        isIdentifying = false;
-                        presenceConfirmed = false;
-                        identifiedLabel = "";
-                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                        currentHUDColor = "#00bfff";
-                        lastSpokenIdentity = ""; 
-                    }, 1000);
-                }
-            }, 3000);
-        }
-
-        video.addEventListener('playing', () => {
-            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            speak("E.D.I.T.H. systems online.");
-            setTimeout(startRadarTrackingEngine, 2000);
+                    // 1. Check if the frame box is empty background wall
+                    if (diffBg  {
+            setTimeout(() => {
+                baselineBackground = getLumaSampleValue();
+                actionText.innerText = "//AWAITING PROFILE REGISTRATIONS...";
+                startRadarTrackingEngine();
+            }, 2000);
+            speak("E.D.I.T.H. dual database calibration online.");
         });
 
         window.addEventListener('keydown', (event) => {
-            // Listen for the unblockable Enter key token handshake
-            if (event.key === "Enter") {
-                launchSystemOS();
-            }
-        });
-    </script>
-</body>
-</html>
+            const key = event.key.toLowerCase();
+            
