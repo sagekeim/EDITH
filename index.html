@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v23.0</title>
+    <title>E.D.I.T.H. Matrix OS v24.0</title>
     <style>
         body {
             background-color: black;
@@ -50,12 +50,12 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. WEARABLE HUD v23.0</div>
-            <div id="status" class="hud-text">//USER: SAGE KEIM [OPERATOR]</div>
-            <div id="action" class="hud-text">//ENVIRONMENT SCANNING: ACTIVE</div>
+            <div class="hud-text">//E.D.I.T.H. BIOMETRIC OS v24.0</div>
+            <div id="status" class="hud-text">//STATUS: SYSTEMS OPERATIONAL</div>
+            <div id="action" class="hud-text">//AWAITING INITIAL DATA PROFILES...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
@@ -66,9 +66,9 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[ENVIRONMENT TARGET DISCOVERY]</span> Point your camera at a target and tap their key:<br>
-        <span style="color: #ffaa00;">[G] key:</span> Lock onto Grandma Profile layout data.<br><br>
-        <span style="color: #00ff00;">// AUTOMATIC DE-LOCK INTERCEPT:</span> HUD confirms target for 5 seconds, then safely sweeps back to active scanning automatically when you look away!
+        <b style="color: #ffaa00;">[STEP 1]</b> You sit down, align your face in the blue box, and press **[S] once** to lock in your face map.<br>
+        <b style="color: #ffaa00;">[STEP 2]</b> Grandma aligns her face inside the same box and presses **[G] once** to lock in her face map.<br>
+        <span style="color: #00ff00;">// PERMANENT AUTOMATION ACTIVE:</span> Once saved, the background radar scans every 3 seconds completely hands-free on every visit!
     </div>
 
     <script>
@@ -77,9 +77,13 @@
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
 
-        const TARGETS = {
-            'g': { name: "Grandma", greeting: "Biometric match found: Grandma. Clearance approved.", color: "#ffaa00" }
-        };
+        const PROFILE_A_NAME = "Sage Keim";
+        const PROFILE_B_NAME = "Grandma";
+
+        // Permanent Memory Database Handshake Link
+        let signatureSage = localStorage.getItem('edith_sig_sage') ? JSON.parse(localStorage.getItem('edith_sig_sage')) : null;
+        let signatureGrandma = localStorage.getItem('edith_sig_grandma') ? JSON.parse(localStorage.getItem('edith_sig_grandma')) : null;
+        let baselineBackground = null;
 
         let isIdentifying = false;
         let identifiedLabel = "";
@@ -87,7 +91,6 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let clearHUDTimeout = null;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -130,67 +133,57 @@
                 ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
                 ctx.font = 'bold 13px Courier New';
                 
-                let displayMsg = identifiedLabel || "SEARCHING FIELD FOR BIOMETRIC SIGNATURES...";
+                let displayMsg = "AWAITING CALIBRATIONS: SAGE [S] & GRANDMA [G]";
+                if (signatureSage && !signatureGrandma) displayMsg = "SAGE SECURED. AWAITING GRANDMA [G] DATA...";
+                if (signatureSage && signatureGrandma) displayMsg = identifiedLabel || "AUTONOMOUS DUAL RADAR TRACKING LIVE";
+                
                 ctx.fillText(displayMsg, -(boxX + boxW) + 5, boxY - 10);
                 ctx.restore();
             }, 30);
         }
 
-        function lockOutwardTarget(targetKey) {
-            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
-
-            const target = TARGETS[targetKey];
-            isIdentifying = true;
-            identifiedLabel = "";
-            actionText.innerText = "//PASSIVE RADAR: RUNNING VECTOR LOCK ON SECTOR...";
-            
-            setTimeout(() => {
-                isIdentifying = false;
-                identifiedLabel = `TARGET LOCKED: ${target.name.toUpperCase()}`;
-                actionText.innerText = `//TARGET TRACKING ACTIVE: ${target.name.toUpperCase()}`;
-                currentHUDColor = target.color;
-
-                if (lastSpokenIdentity !== target.name) {
-                    speak(target.greeting);
-                    lastSpokenIdentity = target.name; 
-                }
-
-                // Auto-Clear Timeout simulation
-                clearHUDTimeout = setTimeout(() => {
-                    identifiedLabel = "";
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    currentHUDColor = "#00bfff"; 
-                    lastSpokenIdentity = ""; 
-                }, 5000);
-
-            }, 1000);
-        }
-
-        window.addEventListener('keydown', (event) => {
-            const key = event.key.toLowerCase();
-            if (TARGETS[key]) {
-                lockOutwardTarget(key);
-            }
-        });
-
-        async function initCamera() {
+        // PIXEL MATRIX SAMPLER
+        function getPixelSampleMatrix() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-            } catch (err) {
-                console.error(err);
-                actionText.innerText = "//CAMERA RUNTIME SECURITY LOCKOUT";
-            }
+                const hiddenCanvas = document.createElement('canvas');
+                hiddenCanvas.width = 640; hiddenCanvas.height = 480;
+                const ctx = hiddenCanvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                
+                const imgData = ctx.getImageData(220, 100, 200, 260).data;
+                let r = 0, g = 0, b = 0;
+                for (let i = 0; i < imgData.length; i += 4) {
+                    r += imgData[i];
+                    g += imgData[i+1];
+                    b += imgData[i+2];
+                }
+                const total = imgData.length / 4;
+                return { r: r / total, g: g / total, b: b / total };
+            } catch (e) { return { r: 120, g: 120, b: 120 }; }
         }
 
-        video.addEventListener('playing', () => {
-            actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-            speak("E.D.I.T.H. wearable systems fully synchronized.");
-            startClockEngine();
-            startGraphicsEngine();
-        });
+        // CONTINUOUS AUTONOMOUS DETECTION ENGINE
+        function startRadarTrackingEngine() {
+            setInterval(() => {
+                // Wait until BOTH memory positions have valid files before running hands-free
+                if (signatureSage === null || signatureGrandma === null || isIdentifying || video.readyState !== 4) return;
 
-        initCamera();
-    </script>
-</body>
-</html>
+                const sample = getPixelSampleMatrix();
+                
+                const diffBg = Math.abs(sample.r - baselineBackground.r) + Math.abs(sample.g - baselineBackground.g) + Math.abs(sample.b - baselineBackground.b);
+                const diffSage = Math.abs(sample.r - signatureSage.r) + Math.abs(sample.g - signatureSage.g) + Math.abs(sample.b - signatureSage.b);
+                const diffGrandma = Math.abs(sample.r - signatureGrandma.r) + Math.abs(sample.g - signatureGrandma.g) + Math.abs(sample.b - signatureGrandma.b);
+
+                isIdentifying = true;
+                actionText.innerText = "//PASSIVE RADAR: COMPILING TARGET VECTORS...";
+
+                setTimeout(() => {
+                    isIdentifying = false;
+
+                    // 1. Check if the frame box has emptied back out to the blank wall background
+                    if (diffBg  {
+            // Set empty room background baseline configuration automatically after 2 seconds
+            setTimeout(() => {
+                baselineBackground = getPixelSampleMatrix();
+                actionText.innerText = "//ENVIRONMENT STANDBY: ACTIVE";
+                startRadarTrackingEngine();
