@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Smart OS v26.0</title>
+    <title>E.D.I.T.H. Motion OS v27.0</title>
     <style>
         body {
             background-color: black;
@@ -66,9 +66,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. SMART OS v26.0</div>
+            <div class="hud-text">//E.D.I.T.H. MOTION SENSOR OS v27.0</div>
             <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//AWAITING MASTER COMMAND INITIALIZATION...</div>
+            <div id="action" class="hud-text">//AWAITING INITIALIZATION SYSTEM CHANNELS...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -83,9 +83,9 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[STEP 1]</span> Click the blue **Boot button** to initialize your hardware feed.<br>
-        <span style="color: #ffaa00;">[STEP 2]</span> Center face and press **[S]** once. E.D.I.T.H. will log your profile layout data.<br>
-        <span style="color: #00ff00;">// AUTO-CLEAR ACTIVE:</span> When you walk away, the HUD automatically resets to standby after 4 seconds!
+        <span style="color: #00bfff;">[STEP 1]</span> Click the blue **Boot button** to unblock your hardware.<br>
+        <span style="color: #ffaa00;">[STEP 2]</span> Sit down, align your face in the box, and press **[S] once** to lock the system onto your movement signature.<br>
+        <span style="color: #00ff00;">// MOTION PRESENCE LIVE:</span> Your name stays locked on screen while you are there, and clears *only* when you walk away!
     </div>
 
     <script>
@@ -105,7 +105,11 @@
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
         let systemActive = false;
-        let clearHUDTimeout = null;
+
+        // Motion Analytics Variables
+        let presenceConfirmed = false;
+        let previousLuma = 0;
+        let stillFrameCount = 0;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -152,7 +156,7 @@
                 ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
                 ctx.font = 'bold 13px Courier New';
                 
-                let msg = identifiedLabel || "BIOMETRIC RADAR: ENVIRONMENT SEARCH ACTIVE";
+                let msg = identifiedLabel || "BIOMETRIC RADAR: SEARCHING ENVIRONMENT...";
                 ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
                 ctx.restore();
             }, 30);
@@ -160,54 +164,84 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                speak("E.D.I.T.H. tactical systems fully responsive.");
+                speak("E.D.I.T.H. motion sensors active.");
             } catch (err) {
-                actionText.innerText = "//CAMERA REJECTED: RECHECK PERMISSIONS";
+                actionText.innerText = "//CAMERA ACCESS BLOCKED BY BROWSER SETTINGS";
             }
         }
 
-        function triggerBiometricLock(name, greeting, colorTheme) {
-            // Cancel any active reset countdown handles instantly
-            if (clearHUDTimeout) clearTimeout(clearHUDTimeout);
-
-            isIdentifying = true;
-            identifiedLabel = "";
-            actionText.innerText = "//PASSIVE RADAR: RUNNING VECTOR SIGNATURE MATCH...";
-            
-            setTimeout(() => {
-                isIdentifying = false;
-                identifiedLabel = `TARGET LOCKED: ${name.toUpperCase()}`;
-                actionText.innerText = `//TARGET TRACKING ACTIVE: ${name.toUpperCase()}`;
-                currentHUDColor = colorTheme;
-
-                if (lastSpokenIdentity !== name) {
-                    speak(greeting);
-                    lastSpokenIdentity = name; 
+        // GRABS LIGHT RATIO INSIDE BOX
+        function getBoxLumaAverage() {
+            try {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 640; tempCanvas.height = 480;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                const data = ctx.getImageData(220, 100, 200, 260).data;
+                let total = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    total += (data[i] * 0.299) + (data[i+1] * 0.587) + (data[i+2] * 0.114);
                 }
+                return total / (data.length / 4);
+            } catch (e) { return 0; }
+        }
 
-                // THE AUTONOMOUS FIELD RESET PROTOCOL
-                // Keeps your profile on screen for 4 seconds, then automatically clears the interface back to standby!
-                clearHUDTimeout = setTimeout(() => {
-                    identifiedLabel = "";
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    currentHUDColor = "#00bfff"; // Return wireframe layout to baseline blue
-                    lastSpokenIdentity = ""; // Clear voice memory lock
-                    speak("Target out of sector. Resuming passive standby radar.");
-                }, 4000);
+        // CONTINUOUS MOTION SCANNER LOOP (Fires every 1.5 seconds)
+        function runMotionPresenceScanner() {
+            setInterval(() => {
+                if (!presenceConfirmed || video.readyState !== 4 || isIdentifying) return;
 
-            }, 1000);
+                const currentLuma = getBoxLumaAverage();
+                const lumaDelta = Math.abs(currentLuma - previousLuma);
+                previousLuma = currentLuma;
+
+                // Threshold: If delta is tiny (< 0.2), it means the box is completely empty and still
+                if (lumaDelta < 0.2) {
+                    stillFrameCount++;
+                    // If the room stays silently empty for 3 consecutive check cycles (4.5 seconds), clear the HUD!
+                    if (stillFrameCount >= 3) {
+                        presenceConfirmed = false;
+                        identifiedLabel = "";
+                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                        currentHUDColor = "#00bfff";
+                        lastSpokenIdentity = "";
+                        speak("Target out of sector. Returning to standby field sweep.");
+                    }
+                } else {
+                    stillFrameCount = 0; // Target is confirmed still sitting there moving, breathing, or shifting!
+                }
+            }, 1500);
         }
 
         window.addEventListener('keydown', (event) => {
-            if (!systemActive) return;
+            if (!systemActive || video.readyState !== 4) return;
             const key = event.key.toLowerCase();
             
             if (key === 's') {
-                triggerBiometricLock(
-                    USER_NAME, 
-                    `Welcome back, ${USER_NAME}. Clearances approved. All tactical networks operational.`, 
-                    "#00bfff"
-                );
+                if (isIdentifying) return;
+                
+                isIdentifying = true;
+                identifiedLabel = "";
+                actionText.innerText = "//PASSIVE RADAR: SCALM MATRIX MATCH...";
+                
+                setTimeout(() => {
+                    isIdentifying = false;
+                    presenceConfirmed = true;
+                    stillFrameCount = 0;
+                    previousLuma = getBoxLumaAverage(); // Capture active baseline luma
+                    
+                    identifiedLabel = `TARGET LOCKED: ${USER_NAME.toUpperCase()}`;
+                    actionText.innerText = `//TARGET TRACKING ACTIVE: ${USER_NAME.toUpperCase()}`;
+                    currentHUDColor = "#00bfff";
+
+                    if (lastSpokenIdentity !== USER_NAME) {
+                        speak(`Welcome back, ${USER_NAME}. Clearances approved.`);
+                        lastSpokenIdentity = USER_NAME;
+                    }
+                    
+                    // Boot up the pixel motion tracking loop immediately
+                    runMotionPresenceScanner();
+                }, 1000);
             }
         });
     </script>
