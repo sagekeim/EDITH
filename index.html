@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Modular OS v37.1</title>
+    <title>E.D.I.T.H. Modular OS v37.2</title>
     <style>
         body {
             background-color: black;
@@ -36,20 +36,34 @@
             width: 640px;
             height: 480px;
         }
-        video, canvas {
+        .simulated-lens {
             position: absolute;
             top: 0;
             left: 0;
+            width: 640px;
+            height: 480px;
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirrors the stream to act like tactical lenses */
+            background: radial-gradient(circle, #001f3f 0%, black 100%);
+            z-index: 1;
+        }
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 640px;
+            height: 480px;
+            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
+            z-index: 2; /* Brings camera video feed above background lens box */
+            border-radius: 4px;
         }
         canvas {
-            z-index: 10;
-            background: transparent; /* Allows live webcam view to shine straight through */
-            border: none;
-            box-shadow: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10; /* Keeps scanlines floating on top of your video */
+            background: transparent;
         }
         .tactical-sidebar {
             width: 150px;
@@ -89,9 +103,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. MODULAR OPTICAL OS v37.1</div>
+            <div class="hud-text">//E.D.I.T.H. MODULAR OPTICAL OS v37.2</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//CLICK ON LENS TO ENGAGE HARDWARE CHANNELS...</div>
+            <div id="action" class="hud-text">//CLICK LENS ONCE TO ACTIVATE ALL LAYERS...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -101,6 +115,7 @@
 
     <div class="main-workspace">
         <div class="container" onclick="bootModularEngines()">
+            <div class="simulated-lens"></div>
             <video id="webcam" autoplay playsinline width="640" height="480"></video>
             <canvas id="overlay" width="640" height="480"></canvas>
         </div>
@@ -116,7 +131,7 @@
         <span style="color: #ff3333; font-weight: bold;">[CLEAR MEMORY]</span> Tap <b style="color: #fff;">[C]</b> to completely erase all data.
     </div>
 
-    <script {filename=index.html}>
+    <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
@@ -150,16 +165,16 @@
             if (isActivated) return;
             isActivated = true;
 
-            actionText.innerText = "//INITIALIZING OPTICAL INTERFACE OVERLAYS...";
-            speak("E.D.I.T.H. tracking systems active.");
+            actionText.innerText = "//INITIALIZING HARDWARE VECTORS...";
+            speak("System activation verified.");
 
-            // 1. Chronometer Clock Thread
+            // 1. Chronometer Clock
             setInterval(() => {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
             }, 1000);
 
-            // 2. Automated Battery Drain Engine
+            // 2. Battery Drainage
             setInterval(() => {
                 if (batteryCharge > 0) {
                     batteryCharge -= 1;
@@ -172,7 +187,7 @@
                 }
             }, 5000);
 
-            // 3. Side Radar Coordinate Streamer Box
+            // 3. Side Tracker Radar
             setInterval(() => {
                 let randomDist = (Math.random() * 50).toFixed(2);
                 let row = document.createElement('div');
@@ -182,20 +197,20 @@
                 sidebarStream.appendChild(row);
                 
                 if (sidebarStream.children.length > 22) {
-                    sidebarStream.removeChild(sidebarStream.children[1]); // Preserves header row
+                    sidebarStream.removeChild(sidebarStream.children[1]); 
                 }
             }, 400);
 
-            // 4. Clean Vector Scanning Laser Thread
+            // 4. Scan Lines
             setInterval(renderHUDScanLines, 30);
 
-            // 5. Connect Camera Link directly on user touch gesture
+            // 5. Fire Camera Link
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
                 actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
             } catch (err) {
-                actionText.innerText = "//HARDWARE TIMEOUT: RETRY HANDSHAKE LINK";
+                actionText.innerText = "//HARDWARE TIMEOUT: VERIFY CAMERA SWITCH IS ALLOWED";
             }
         }
 
@@ -227,13 +242,3 @@
 
                 actionText.innerText = "// DATABASE LOCKED ON: " + nameClean.toUpperCase();
                 speak("Target registered into permanent memory for " + nameClean);
-                lastSpokenIdentity = "";
-            }
-
-            if (key === 'l') {
-                if (identityArchive.length === 0) {
-                    speak("Identity database empty. Register a target first.");
-                    return;
-                }
-                isIdentifying = true;
-                identifiedLabel = "";
