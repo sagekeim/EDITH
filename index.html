@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Override OS v33.0</title>
+    <title>E.D.I.T.H. Master OS v34.0</title>
     <style>
         body {
             background-color: black;
@@ -54,34 +54,33 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. OVERRIDE OS v33.0</div>
-            <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
-            <div id="action" class="hud-text">//TACTICAL ENVIRONMENT SWEEP ENGAGED...</div>
+            <div class="hud-text">//E.D.I.T.H. MASTER PROTOCOL v34.0</div>
+            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
+            <div id="action" class="hud-text">//CLICK ONCE ANYWHERE ON SCREEN TO SYNC CLOCK...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: SYNCHRONIZING...</div>
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
 
-    <div class="container">
-        <!-- Simulated Smart Glasses Digital Lens Matrix -->
+    <div class="container" onclick="unlockSystemEngines()">
         <div class="simulated-lens"></div>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff; font-weight: bold;">[DATABASE TOOLS]</span> Tap <b style="color: #fff;">[T]</b> to type a name and save their face profile permanently.<br>
-        <span style="color: #ffaa00; font-weight: bold;">[HUD CONTROLS]</span> Tap <b style="color: #fff;">[L]</b> to simulate looking at a profile | Tap <b style="color: #fff;">[W]</b> to simulate walking away hands-free.<br>
-        <span style="color: #ff3333; font-weight: bold;">[CLEAR BANKS]</span> Tap <b style="color: #fff;">[C]</b> to completely erase all saved identities from memory.
+        <span style="color: #00bfff; font-weight: bold;">[DATABASE CORE]</span> Tap <b style="color: #fff;">[T]</b> to type a name and permanently register their face signatures.<br>
+        <span style="color: #ffaa00; font-weight: bold;">[LENS SECTORS]</span> Tap <b style="color: #fff;">[L]</b> to lock onto a profile | Tap <b style="color: #fff;">[W]</b> to walk away completely hands-free.<br>
+        <span style="color: #ff3333; font-weight: bold;">[CLEAR MEMORY]</span> Tap <b style="color: #fff;">[C]</b> to completely erase all data.
     </div>
 
     <script>
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
+        const batteryText = document.getElementById('battery');
 
-        // Universal Database Array
         let identityArchive = localStorage.getItem('edith_universal_archive') ? JSON.parse(localStorage.getItem('edith_universal_archive')) : [];
         let archiveIndex = 0;
 
@@ -91,6 +90,11 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
+        let isActivated = false;
+
+        // Dynamic Tactical Array Variables
+        let batteryCharge = 100;
+        let droneCoordinates = [];
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -101,17 +105,53 @@
             }
         }
 
-        // Live Synchronized Clock Loop
-        setInterval(() => {
-            const now = new Date();
-            clockText.innerText = "TIME: " + now.toLocaleTimeString();
-        }, 1000);
+        // Fired once on user mouse touch click gesture to bring all loops alive instantly
+        function unlockSystemEngines() {
+            if (isActivated) return;
+            isActivated = true;
 
-        // High-Speed Cyber HUD Graphics Renderer
-        setInterval(() => {
+            actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
+            speak("E.D.I.T.H. systems completely synchronized.");
+
+            // 1. Live Chronometer Loop
+            setInterval(() => {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }, 1000);
+
+            // 2. Automated Battery Drain Engine Matrix
+            setInterval(() => {
+                if (batteryCharge > 0) {
+                    batteryCharge -= 1;
+                    let bars = "|||||";
+                    if (batteryCharge < 80) bars = "|||| ";
+                    if (batteryCharge < 60) bars = "|||  ";
+                    if (batteryCharge < 40) bars = "||   ";
+                    if (batteryCharge < 20) bars = "|    ";
+                    batteryText.innerText = `BATT: ${batteryCharge}% [${bars}]`;
+                }
+            }, 8000); // Lowers 1 percent point every 8 seconds for simulation
+
+            // 3. Side Tactical Number Coordinates Generator
+            setInterval(() => {
+                droneCoordinates.push({
+                    text: "TRK: " + (Math.random() * 50).toFixed(2) + "m",
+                    x: 480,
+                    y: 40,
+                    opacity: 1.0
+                });
+                if (droneCoordinates.length > 8) droneCoordinates.shift();
+            }, 400);
+
+            // 4. Main HUD Vector Graphics Thread Loop
+            setInterval(renderHUD, 30);
+        }
+
+        function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Scanner Laser Vector Line
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -121,40 +161,9 @@
             
             scanY += (isIdentifying ? 15 : 4) * scanDirection;
             if (scanY > canvas.height - 15 || scanY  {
-                isIdentifying = false;
-                
-                // Pull active profile from database index position
-                const currentProfile = identityArchive[archiveIndex];
-                
-                identifiedLabel = `TARGET LOCK: ${currentProfile.toUpperCase()}`;
-                actionText.innerText = `//TARGET TRACKING ACTIVE: ${currentProfile.toUpperCase()}`;
-                
-                currentHUDColor = currentProfile.toLowerCase() === "sage keim" ? "#00bfff" : "#ffaa00";
-
-                if (lastSpokenIdentity !== currentProfile) {
-                    speak(`Identity matched: ${currentProfile}.`);
-                    lastSpokenIdentity = currentProfile;
-                }
-
-                // Cycle sequence pointer to next logged index slot
-                archiveIndex = (archiveIndex + 1) % identityArchive.length;
-            }, 800);
-        }
-
-        // Simulated Departure Handshake
-        function simulateWalkAway() {
-            isIdentifying = false;
-            identifiedLabel = "";
-            actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
-            currentHUDColor = "#00bfff";
-            lastSpokenIdentity = "";
-            speak("Target out of sector. Resuming passive field scan.");
-        }
-
-        window.addEventListener('keydown', (event) => {
+            if (!isActivated) return;
             const key = event.key.toLowerCase();
             
-            // T = Target Calibration
             if (key === 't') {
                 const targetName = prompt("ENTER TARGET PROFILE IDENTITY NAME:");
                 if (!targetName || targetName.trim() === "") return;
@@ -170,17 +179,39 @@
                 lastSpokenIdentity = "";
             }
 
-            // L = Look toward person
             if (key === 'l') {
-                simulateTargetLook();
+                if (identityArchive.length === 0) {
+                    speak("Identity database empty. Register a target first.");
+                    return;
+                }
+                isIdentifying = true;
+                identifiedLabel = "";
+                actionText.innerText = "//PASSIVE RADAR: COMPILING PROFILE DATA MATRICES...";
+
+                setTimeout(() => {
+                    isIdentifying = false;
+                    const currentProfile = identityArchive[archiveIndex];
+                    identifiedLabel = `TARGET LOCK: ${currentProfile.toUpperCase()}`;
+                    actionText.innerText = `//TARGET TRACKING ACTIVE: ${currentProfile.toUpperCase()}`;
+                    currentHUDColor = currentProfile.toLowerCase() === "sage keim" ? "#00bfff" : "#ffaa00";
+
+                    if (lastSpokenIdentity !== currentProfile) {
+                        speak(`Identity matched: ${currentProfile}.`);
+                        lastSpokenIdentity = currentProfile;
+                    }
+                    archiveIndex = (archiveIndex + 1) % identityArchive.length;
+                }, 800);
             }
 
-            // W = Walk away from person
             if (key === 'w') {
-                simulateWalkAway();
+                isIdentifying = false;
+                identifiedLabel = "";
+                actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
+                currentHUDColor = "#00bfff";
+                lastSpokenIdentity = "";
+                speak("Target out of sector. Resuming passive field scan.");
             }
 
-            // C = Clear memory arrays
             if (key === 'c') {
                 localStorage.removeItem('edith_universal_archive');
                 identityArchive = [];
@@ -188,12 +219,3 @@
                 identifiedLabel = "";
                 currentHUDColor = "#00bfff";
                 lastSpokenIdentity = "";
-                actionText.innerText = "// Master database folders wiped clean.";
-                speak("All target memory archives deleted from system.");
-            }
-        });
-
-        speak("E.D.I.T.H. override systems fully operational.");
-    </script>
-</body>
-</html>
