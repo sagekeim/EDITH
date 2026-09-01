@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v34.1</title>
+    <title>E.D.I.T.H. Master OS v35.0</title>
     <style>
         body {
             background-color: black;
@@ -54,7 +54,7 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. MASTER PROTOCOL v34.1</div>
+            <div class="hud-text">//E.D.I.T.H. MASTER PROTOCOL v35.0</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
             <div id="action" class="hud-text">//CLICK ONCE ON LENS TO INITIALIZE...</div>
         </div>
@@ -104,7 +104,6 @@
             }
         }
 
-        // Fired on user click to establish safe handshake connection
         function unlockSystemEngines() {
             if (isActivated) return;
             isActivated = true;
@@ -112,7 +111,7 @@
             actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
             speak("E.D.I.T.H. systems completely synchronized.");
 
-            // 1. Synchronized Chronometer Loop
+            // 1. Live Chronometer Loop
             setInterval(() => {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
@@ -127,7 +126,7 @@
                     if (batteryCharge < 60) bars = "|||  ";
                     if (batteryCharge < 40) bars = "||   ";
                     if (batteryCharge < 20) bars = "|    ";
-                    batteryText.innerText = `BATT: ${batteryCharge}% [${bars}]`;
+                    batteryText.innerText = "BATT: " + batteryCharge + "% [" + bars + "]";
                 }
             }, 8000);
 
@@ -167,8 +166,8 @@
                     localStorage.setItem('edith_universal_archive', JSON.stringify(identityArchive));
                 }
 
-                actionText.innerText = `// DATABASE LOCKED ON: ${nameClean.toUpperCase()}`;
-                speak(`Target registered into permanent memory for ${nameClean}.`);
+                actionText.innerText = "// DATABASE LOCKED ON: " + nameClean.toUpperCase();
+                speak("Target registered into permanent memory for " + nameClean);
                 lastSpokenIdentity = "";
             }
 
@@ -184,12 +183,12 @@
                 setTimeout(() => {
                     isIdentifying = false;
                     const currentProfile = identityArchive[archiveIndex];
-                    identifiedLabel = `TARGET LOCK: ${currentProfile.toUpperCase()}`;
-                    actionText.innerText = `//TARGET TRACKING ACTIVE: ${currentProfile.toUpperCase()}`;
+                    identifiedLabel = "TARGET LOCK: " + currentProfile.toUpperCase();
+                    actionText.innerText = "//TARGET TRACKING ACTIVE: " + currentProfile.toUpperCase();
                     currentHUDColor = currentProfile.toLowerCase() === "sage keim" ? "#00bfff" : "#ffaa00";
 
                     if (lastSpokenIdentity !== currentProfile) {
-                        speak(`Identity matched: ${currentProfile}.`);
+                        speak("Identity matched: " + currentProfile);
                         lastSpokenIdentity = currentProfile;
                     }
                     archiveIndex = (archiveIndex + 1) % identityArchive.length;
