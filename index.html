@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v35.0</title>
+    <title>E.D.I.T.H. Master OS v36.0</title>
     <style>
         body {
             background-color: black;
@@ -54,7 +54,7 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. MASTER PROTOCOL v35.0</div>
+            <div class="hud-text">//E.D.I.T.H. MASTER PROTOCOL v36.0</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
             <div id="action" class="hud-text">//CLICK ONCE ON LENS TO INITIALIZE...</div>
         </div>
@@ -117,7 +117,7 @@
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
             }, 1000);
 
-            // 2. Battery Drainage Engine
+            // 2. Streamlined Battery Drainage Engine
             setInterval(() => {
                 if (batteryCharge > 0) {
                     batteryCharge -= 1;
@@ -126,17 +126,22 @@
                     if (batteryCharge < 60) bars = "|||  ";
                     if (batteryCharge < 40) bars = "||   ";
                     if (batteryCharge < 20) bars = "|    ";
-                    batteryText.innerText = "BATT: " + batteryCharge + "% [" + bars + "]";
+                    batteryText.innerText = "BATT: " + String(batteryCharge) + "% [" + bars + "]";
                 }
-            }, 8000);
+            }, 5000); // Lowers 1 percent point every 5 seconds for clear simulation tracking
 
-            // 3. Side Tactical Vector Generator
+            // 3. Isolated Tactical Vector Generator
             setInterval(() => {
-                droneCoordinates.push("TRK: " + (Math.random() * 50).toFixed(2) + "m");
-                if (droneCoordinates.length > 8) droneCoordinates.shift();
-            }, 400);
+                let randomDist = (Math.random() * 50).toFixed(2);
+                let coordinateString = "TRK: " + String(randomDist) + "m";
+                droneCoordinates.push(coordinateString);
+                
+                if (droneCoordinates.length > 8) {
+                    droneCoordinates.shift();
+                }
+            }, 500);
 
-            // 4. Safe Graphics Render Core
+            // 4. Stable Graphics Render Core
             setInterval(renderHUD, 30);
         }
 
