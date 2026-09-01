@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Modular OS v37.2</title>
+    <title>E.D.I.T.H. Modular Matrix OS</title>
     <style>
         body {
             background-color: black;
@@ -48,21 +48,11 @@
             background: radial-gradient(circle, #001f3f 0%, black 100%);
             z-index: 1;
         }
-        video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 640px;
-            height: 480px;
-            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
-            z-index: 2; /* Brings camera video feed above background lens box */
-            border-radius: 4px;
-        }
         canvas {
             position: absolute;
             top: 0;
             left: 0;
-            z-index: 10; /* Keeps scanlines floating on top of your video */
+            z-index: 10;
             background: transparent;
         }
         .tactical-sidebar {
@@ -103,9 +93,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. MODULAR OPTICAL OS v37.2</div>
+            <div class="hud-text">//E.D.I.T.H. BIOMETRIC MATRIX OS v38.0</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//CLICK LENS ONCE TO ACTIVATE ALL LAYERS...</div>
+            <div id="action" class="hud-text">//CLICK CORES ONCE TO SYNCHRONIZE PROTOCOLS...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -116,7 +106,6 @@
     <div class="main-workspace">
         <div class="container" onclick="bootModularEngines()">
             <div class="simulated-lens"></div>
-            <video id="webcam" autoplay playsinline width="640" height="480"></video>
             <canvas id="overlay" width="640" height="480"></canvas>
         </div>
 
@@ -126,13 +115,12 @@
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff; font-weight: bold;">[DATABASE CORE]</span> Tap <b style="color: #fff;">[T]</b> to type a name and permanently register face signatures.<br>
-        <span style="color: #ffaa00; font-weight: bold;">[LENS SECTORS]</span> Tap <b style="color: #fff;">[L]</b> to lock onto a profile | Tap <b style="color: #fff;">[W]</b> to walk away completely hands-free.<br>
-        <span style="color: #ff3333; font-weight: bold;">[CLEAR MEMORY]</span> Tap <b style="color: #fff;">[C]</b> to completely erase all data.
+        <span style="color: #00bfff; font-weight: bold;">[DATABASE CORE]</span> Tap <b style="color: #fff;">[T]</b> to register target names permanently into memory arrays.<br>
+        <span style="color: #ffaa00; font-weight: bold;">[HUD TARGETING]</span> Tap <b style="color: #fff;">[L]</b> to lock onto a profile | Tap <b style="color: #fff;">[W]</b> to simulate walking away hands-free.<br>
+        <span style="color: #ff3333; font-weight: bold;">[CLEAR ARRAYS]</span> Tap <b style="color: #fff;">[C]</b> to completely clear all saved data records.
     </div>
 
     <script>
-        const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
@@ -152,6 +140,12 @@
 
         let batteryCharge = 100;
 
+        // Face Avatar Animation Variables
+        let mouthOpenFactor = 0;
+        let eyeBlinkTimer = 0;
+        let faceOffsetDirection = 1;
+        let faceXShift = 0;
+
         function speak(text) {
             const window_speech = window.speechSynthesis;
             if (window_speech) {
@@ -161,20 +155,20 @@
             }
         }
 
-        async function bootModularEngines() {
+        function bootModularEngines() {
             if (isActivated) return;
             isActivated = true;
 
-            actionText.innerText = "//INITIALIZING HARDWARE VECTORS...";
-            speak("System activation verified.");
+            actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
+            speak("E.D.I.T.H. matrix overlays synchronized.");
 
-            // 1. Chronometer Clock
+            // 1. Clock Engine
             setInterval(() => {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
             }, 1000);
 
-            // 2. Battery Drainage
+            // 2. Battery Drain Engine
             setInterval(() => {
                 if (batteryCharge > 0) {
                     batteryCharge -= 1;
@@ -187,7 +181,7 @@
                 }
             }, 5000);
 
-            // 3. Side Tracker Radar
+            // 3. Side Tracker Box Streamer
             setInterval(() => {
                 let randomDist = (Math.random() * 50).toFixed(2);
                 let row = document.createElement('div');
@@ -201,23 +195,59 @@
                 }
             }, 400);
 
-            // 4. Scan Lines
+            // 4. Combined Scanline & Virtual Face Matrix Thread Loop
             setInterval(renderHUDScanLines, 30);
-
-            // 5. Fire Camera Link
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
-            } catch (err) {
-                actionText.innerText = "//HARDWARE TIMEOUT: VERIFY CAMERA SWITCH IS ALLOWED";
-            }
         }
 
         function renderHUDScanLines() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // DRAW CYBER VIRTUAL BIOMETRIC TARGET SIGNATURE
+            ctx.strokeStyle = "rgba(0, 191, 255, 0.25)";
+            if (isIdentifying) ctx.strokeStyle = "rgba(255, 51, 51, 0.25)";
+            ctx.lineWidth = 2;
+
+            // Animate microscopic head breathing movement shifts
+            faceXShift += 0.2 * faceOffsetDirection;
+            if (Math.abs(faceXShift) > 8) faceOffsetDirection *= -1;
+
+            let centerX = 320 + faceXShift;
+            let centerY = 220;
+
+            // Outer Skull Node Wireframe
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 85, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Jaw Bracket Lines
+            ctx.beginPath();
+            ctx.moveTo(centerX - 85, centerY);
+            ctx.lineTo(centerX - 40, centerY + 110);
+            ctx.lineTo(centerX + 40, centerY + 110);
+            ctx.lineTo(centerX + 85, centerY);
+            ctx.stroke();
+
+            // Eye Sensor Brackets
+            eyeBlinkTimer++;
+            if (eyeBlinkTimer % 90 > 4) { // Eyes stay open, blink rapidly on cycle intervals
+                ctx.strokeRect(centerX - 45, centerY - 25, 25, 12);
+                ctx.strokeRect(centerX + 20, centerY - 25, 25, 12);
+            } else {
+                // Draw closed blink vector nodes
+                ctx.beginPath();
+                ctx.moveTo(centerX - 45, centerY - 19); ctx.lineTo(centerX - 20, centerY - 19);
+                ctx.moveTo(centerX + 20, centerY - 19); ctx.lineTo(centerX + 45, centerY - 19);
+                ctx.stroke();
+            }
+
+            // Target Crosshair Reticle Nose Node
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - 5); ctx.lineTo(centerX, centerY + 25);
+            ctx.moveTo(centerX - 10, centerY + 10); ctx.lineTo(centerX + 10, centerY + 10);
+            ctx.stroke();
+
+            // Tactical Scanning Matrix Laser Line
             ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -226,19 +256,11 @@
             ctx.stroke();
             
             scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY  {
-            if (!isActivated) return;
-            const key = event.key.toLowerCase();
+            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+
+            // Bounding target lock framing brackets
+            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(boxX, boxY, boxW, boxH);
             
-            if (key === 't') {
-                const targetName = prompt("ENTER TARGET PROFILE IDENTITY NAME:");
-                if (!targetName || targetName.trim() === "") return;
-
-                const nameClean = targetName.trim();
-                if (!identityArchive.includes(nameClean)) {
-                    identityArchive.push(nameClean);
-                    localStorage.setItem('edith_universal_archive', JSON.stringify(identityArchive));
-                }
-
-                actionText.innerText = "// DATABASE LOCKED ON: " + nameClean.toUpperCase();
-                speak("Target registered into permanent memory for " + nameClean);
