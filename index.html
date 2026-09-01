@@ -3,33 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Diagnostic v31.0</title>
+    <title>E.D.I.T.H. Master OS v32.0</title>
     <style>
-        body { background-color: black; color: #00bfff; font-family: monospace; margin: 20px; }
-        video { border: 2px solid #00bfff; border-radius: 4px; transform: scaleX(-1); }
-        .boot-btn { background-color: #00bfff; color: black; border: none; padding: 15px 25px; font-weight: bold; cursor: pointer; margin-bottom: 10px; display: block; }
+        body {
+            background-color: black;
+            color: #00bfff;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 20px;
+            overflow: hidden;
+        }
+        .hud-text {
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 8px #00bfff;
+        }
+        .hud-grid {
+            display: flex;
+            justify-content: space-between;
+            width: 640px;
+        }
+        .container {
+            position: relative;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        video, canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border: 2px solid #00bfff;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
+            transform: scaleX(-1);
+        }
+        .instructions {
+            margin-top: 500px;
+            color: #888;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .boot-btn {
+            position: absolute;
+            top: 200px;
+            left: 170px;
+            z-index: 100;
+            background-color: #00bfff;
+            color: black;
+            border: none;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 20px #00bfff;
+        }
     </style>
 </head>
 <body>
-    <div style="margin-bottom: 10px;" id="status">//STATUS: READY TO BOOT</div>
-    <button class="boot-btn" onclick="bootCamera()">[ CLICK HERE TO START CAMERA ]</button>
-    <video id="webcam" autoplay playsinline width="640" height="480"></video>
+
+    <div class="hud-grid">
+        <div>
+            <div class="hud-text">//E.D.I.T.H. UNIVERSAL OS v32.0</div>
+            <div id="status" class="hud-text">//STATUS: STANDBY</div>
+            <div id="action" class="hud-text">//AWAITING HARDWARE BOOT...</div>
+        </div>
+        <div style="text-align: right;">
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <button id="bootBtn" class="boot-btn" onclick="startSystemOS()">[ BOOT CAMERA STREAM ]</button>
+        <video id="webcam" autoplay playsinline width="640" height="480"></video>
+        <canvas id="overlay" width="640" height="480"></canvas>
+    </div>
+
+    <div class="instructions">
+        <span style="color: #00bfff;">[STEP 1]</span> Click the blue **Boot button** to activate your live feed safely.<br>
+        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[STEP 2] Center ANY person in the box and press [T] to type their name and lock their face signature into permanent memory!</span><br>
+        <span style="color: #ff3333; font-weight: bold;">[WIPE ARRAY]</span> Press the **[C] key** once to completely clear all saved identities from memory.
+    </div>
 
     <script>
-        async function bootCamera() {
-            const status = document.getElementById('status');
-            const video = document.getElementById('webcam');
-            status.innerText = "//STATUS: REQUESTING HARDWARE...";
-            
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
-                status.innerText = "//STATUS: CAMERA ONLINE SUCCESSFULLY";
-            } catch (err) {
-                status.innerText = "//STATUS ERROR: " + err.message;
-                alert("Camera error: " + err.message);
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('overlay');
+        const actionText = document.getElementById('action');
+        const statusText = document.getElementById('status');
+        const clockText = document.getElementById('clock');
+        const bootBtn = document.getElementById('bootBtn');
+        const setupPrompt = document.getElementById('setupPrompt');
+
+        // Retrieve universal archive map data packet array smoothly
+        let identityArchive = localStorage.getItem('edith_universal_archive') ? JSON.parse(localStorage.getItem('edith_universal_archive')) : [];
+        let baselineBackground = null;
+
+        let isIdentifying = false;
+        let identifiedLabel = "";
+        let scanY = 120;
+        let scanDirection = 1;
+        let currentHUDColor = "#00bfff";
+        let lastSpokenIdentity = "";
+        let systemActive = false;
+
+        function speak(text) {
+            const window_speech = window.speechSynthesis;
+            if (window_speech) {
+                window_speech.cancel(); 
+                const utterance = new SpeechSynthesisUtterance(text);
+                window_speech.speak(utterance);
             }
         }
-    </script>
-</body>
-</html>
+
+        // Safe Startup Handler Sequence
+        async function startSystemOS() {
+            if (systemActive) return;
+            systemActive = true;
+            bootBtn.style.display = "none";
+            statusText.innerText = "//STATUS: ONLINE";
+            actionText.innerText = "//CONNECTING CAMERA CORE VECTORS...";
+
+            // Start up clocks and layout rendering graphics immediately
+            setInterval(() => {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }, 1000);
+
+            setInterval(() => {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(10, scanY);
+                ctx.lineTo(canvas.width - 10, scanY);
+                ctx.stroke();
+                
+                scanY += (isIdentifying ? 15 : 4) * scanDirection;
+                if (scanY > canvas.height - 15 || scanY  {
+                if (video.readyState !== 4 || identityArchive.length === 0 || isIdentifying) return;
+
+                const liveSample = getPixelSampleMatrix();
+                const diffBg = Math.abs(liveSample.r - baselineBackground.r) + Math.abs(liveSample.g - baselineBackground.g) + Math.abs(liveSample.b - baselineBackground.b);
+
+                let closestMatch = null;
+                let lowestDistance = 99999;
+
+                for (let i = 0; i  {
+                    isIdentifying = false;
+
+                    if (diffBg < lowestDistance && diffBg < 8) {
+                        identifiedLabel = "";
+                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                        currentHUDColor = "#00bfff";
+                        lastSpokenIdentity = ""; 
+                        return;
+                    }
+
+                    if (closestMatch && lowestDistance < 15) {
+                        identifiedLabel = `TARGET LOCK: ${closestMatch.name.toUpperCase()}`;
+                        actionText.innerText = `//TARGET TRACKING ACTIVE: ${closestMatch.name.toUpperCase()}`;
+                        currentHUDColor = closestMatch.name.toLowerCase() === "sage keim" ? "#00bfff" : "#ffaa00";
+
+                        if (lastSpokenIdentity !== closestMatch.name) {
+                            speak(`Welcome back, ${closestMatch.name}.`);
+                            lastSpokenIdentity = closestMatch.name; 
+                        }
+                    } else {
+                        identifiedLabel = "UNKNOWN IDENTITY PRE-MATRIX SIGNATURE";
+                        actionText.innerText = "//TARGET ENCOUNTERED: UNREGISTERED TARGET";
+                        currentHUDColor = "#ff3333"; // Alert Threat Level Red
+                    }
+                }, 1000);
+            }, 3500);
+        }
+
+        // Activates database tasks ONLY after video playing handshake is confirmed steady
