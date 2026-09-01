@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Master OS v32.0</title>
+    <title>E.D.I.T.H. Override OS v33.0</title>
     <style>
         body {
             background-color: black;
@@ -29,14 +29,18 @@
             display: inline-block;
             margin-top: 10px;
         }
-        video, canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .simulated-lens {
+            width: 640px;
+            height: 480px;
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1);
+            background: radial-gradient(circle, #001f3f 0%, black 100%);
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         .instructions {
             margin-top: 500px;
@@ -44,62 +48,42 @@
             font-size: 13px;
             line-height: 1.6;
         }
-        .boot-btn {
-            position: absolute;
-            top: 200px;
-            left: 170px;
-            z-index: 100;
-            background-color: #00bfff;
-            color: black;
-            border: none;
-            padding: 15px 25px;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 0 20px #00bfff;
-        }
     </style>
 </head>
 <body>
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. UNIVERSAL OS v32.0</div>
-            <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//AWAITING HARDWARE BOOT...</div>
+            <div class="hud-text">//E.D.I.T.H. OVERRIDE OS v33.0</div>
+            <div id="status" class="hud-text">//STATUS: SYSTEMS ACTIVE</div>
+            <div id="action" class="hud-text">//TACTICAL ENVIRONMENT SWEEP ENGAGED...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: SYNCHRONIZING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
 
     <div class="container">
-        <button id="bootBtn" class="boot-btn" onclick="startSystemOS()">[ BOOT CAMERA STREAM ]</button>
-        <video id="webcam" autoplay playsinline width="640" height="480"></video>
+        <!-- Simulated Smart Glasses Digital Lens Matrix -->
+        <div class="simulated-lens"></div>
         <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff;">[STEP 1]</span> Click the blue **Boot button** to activate your live feed safely.<br>
-        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[STEP 2] Center ANY person in the box and press [T] to type their name and lock their face signature into permanent memory!</span><br>
-        <span style="color: #ff3333; font-weight: bold;">[WIPE ARRAY]</span> Press the **[C] key** once to completely clear all saved identities from memory.
+        <span style="color: #00bfff; font-weight: bold;">[DATABASE TOOLS]</span> Tap <b style="color: #fff;">[T]</b> to type a name and save their face profile permanently.<br>
+        <span style="color: #ffaa00; font-weight: bold;">[HUD CONTROLS]</span> Tap <b style="color: #fff;">[L]</b> to simulate looking at a profile | Tap <b style="color: #fff;">[W]</b> to simulate walking away hands-free.<br>
+        <span style="color: #ff3333; font-weight: bold;">[CLEAR BANKS]</span> Tap <b style="color: #fff;">[C]</b> to completely erase all saved identities from memory.
     </div>
 
     <script>
-        const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
-        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
-        const bootBtn = document.getElementById('bootBtn');
-        const setupPrompt = document.getElementById('setupPrompt');
 
-        // Retrieve universal archive map data packet array smoothly
+        // Universal Database Array
         let identityArchive = localStorage.getItem('edith_universal_archive') ? JSON.parse(localStorage.getItem('edith_universal_archive')) : [];
-        let baselineBackground = null;
+        let archiveIndex = 0;
 
         let isIdentifying = false;
         let identifiedLabel = "";
@@ -107,7 +91,6 @@
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
-        let systemActive = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -118,68 +101,99 @@
             }
         }
 
-        // Safe Startup Handler Sequence
-        async function startSystemOS() {
-            if (systemActive) return;
-            systemActive = true;
-            bootBtn.style.display = "none";
-            statusText.innerText = "//STATUS: ONLINE";
-            actionText.innerText = "//CONNECTING CAMERA CORE VECTORS...";
+        // Live Synchronized Clock Loop
+        setInterval(() => {
+            const now = new Date();
+            clockText.innerText = "TIME: " + now.toLocaleTimeString();
+        }, 1000);
 
-            // Start up clocks and layout rendering graphics immediately
-            setInterval(() => {
-                const now = new Date();
-                clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            }, 1000);
-
-            setInterval(() => {
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // High-Speed Cyber HUD Graphics Renderer
+        setInterval(() => {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(10, scanY);
+            ctx.lineTo(canvas.width - 10, scanY);
+            ctx.stroke();
+            
+            scanY += (isIdentifying ? 15 : 4) * scanDirection;
+            if (scanY > canvas.height - 15 || scanY  {
+                isIdentifying = false;
                 
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(10, scanY);
-                ctx.lineTo(canvas.width - 10, scanY);
-                ctx.stroke();
+                // Pull active profile from database index position
+                const currentProfile = identityArchive[archiveIndex];
                 
-                scanY += (isIdentifying ? 15 : 4) * scanDirection;
-                if (scanY > canvas.height - 15 || scanY  {
-                if (video.readyState !== 4 || identityArchive.length === 0 || isIdentifying) return;
+                identifiedLabel = `TARGET LOCK: ${currentProfile.toUpperCase()}`;
+                actionText.innerText = `//TARGET TRACKING ACTIVE: ${currentProfile.toUpperCase()}`;
+                
+                currentHUDColor = currentProfile.toLowerCase() === "sage keim" ? "#00bfff" : "#ffaa00";
 
-                const liveSample = getPixelSampleMatrix();
-                const diffBg = Math.abs(liveSample.r - baselineBackground.r) + Math.abs(liveSample.g - baselineBackground.g) + Math.abs(liveSample.b - baselineBackground.b);
+                if (lastSpokenIdentity !== currentProfile) {
+                    speak(`Identity matched: ${currentProfile}.`);
+                    lastSpokenIdentity = currentProfile;
+                }
 
-                let closestMatch = null;
-                let lowestDistance = 99999;
-
-                for (let i = 0; i  {
-                    isIdentifying = false;
-
-                    if (diffBg < lowestDistance && diffBg < 8) {
-                        identifiedLabel = "";
-                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                        currentHUDColor = "#00bfff";
-                        lastSpokenIdentity = ""; 
-                        return;
-                    }
-
-                    if (closestMatch && lowestDistance < 15) {
-                        identifiedLabel = `TARGET LOCK: ${closestMatch.name.toUpperCase()}`;
-                        actionText.innerText = `//TARGET TRACKING ACTIVE: ${closestMatch.name.toUpperCase()}`;
-                        currentHUDColor = closestMatch.name.toLowerCase() === "sage keim" ? "#00bfff" : "#ffaa00";
-
-                        if (lastSpokenIdentity !== closestMatch.name) {
-                            speak(`Welcome back, ${closestMatch.name}.`);
-                            lastSpokenIdentity = closestMatch.name; 
-                        }
-                    } else {
-                        identifiedLabel = "UNKNOWN IDENTITY PRE-MATRIX SIGNATURE";
-                        actionText.innerText = "//TARGET ENCOUNTERED: UNREGISTERED TARGET";
-                        currentHUDColor = "#ff3333"; // Alert Threat Level Red
-                    }
-                }, 1000);
-            }, 3500);
+                // Cycle sequence pointer to next logged index slot
+                archiveIndex = (archiveIndex + 1) % identityArchive.length;
+            }, 800);
         }
 
-        // Activates database tasks ONLY after video playing handshake is confirmed steady
+        // Simulated Departure Handshake
+        function simulateWalkAway() {
+            isIdentifying = false;
+            identifiedLabel = "";
+            actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
+            currentHUDColor = "#00bfff";
+            lastSpokenIdentity = "";
+            speak("Target out of sector. Resuming passive field scan.");
+        }
+
+        window.addEventListener('keydown', (event) => {
+            const key = event.key.toLowerCase();
+            
+            // T = Target Calibration
+            if (key === 't') {
+                const targetName = prompt("ENTER TARGET PROFILE IDENTITY NAME:");
+                if (!targetName || targetName.trim() === "") return;
+
+                const nameClean = targetName.trim();
+                if (!identityArchive.includes(nameClean)) {
+                    identityArchive.push(nameClean);
+                    localStorage.setItem('edith_universal_archive', JSON.stringify(identityArchive));
+                }
+
+                actionText.innerText = `// DATABASE LOCKED ON: ${nameClean.toUpperCase()}`;
+                speak(`Target registered into permanent memory for ${nameClean}.`);
+                lastSpokenIdentity = "";
+            }
+
+            // L = Look toward person
+            if (key === 'l') {
+                simulateTargetLook();
+            }
+
+            // W = Walk away from person
+            if (key === 'w') {
+                simulateWalkAway();
+            }
+
+            // C = Clear memory arrays
+            if (key === 'c') {
+                localStorage.removeItem('edith_universal_archive');
+                identityArchive = [];
+                archiveIndex = 0;
+                identifiedLabel = "";
+                currentHUDColor = "#00bfff";
+                lastSpokenIdentity = "";
+                actionText.innerText = "// Master database folders wiped clean.";
+                speak("All target memory archives deleted from system.");
+            }
+        });
+
+        speak("E.D.I.T.H. override systems fully operational.");
+    </script>
+</body>
+</html>
