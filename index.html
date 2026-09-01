@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Sensor OS v28.0</title>
+    <title>E.D.I.T.H. Archive OS v30.0</title>
     <style>
         body {
             background-color: black;
@@ -66,9 +66,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. SENSOR HANDSHAKE OS v28.0</div>
+            <div class="hud-text">//E.D.I.T.H. UNIVERSAL IDENTITY ARCHIVE v30.0</div>
             <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//AWAITING INITIALIZATION SYSTEM CODES...</div>
+            <div id="action" class="hud-text">//AWAITING MASTER HANDSHAKE CODES...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -84,8 +84,8 @@
 
     <div class="instructions">
         <span style="color: #00bfff;">[STEP 1]</span> Click the blue **Boot button** to unblock your hardware feed.<br>
-        <span style="color: #ffaa00;">[STEP 2]</span> Click the camera screen once to focus.<br>
-        <span style="color: #00ff00;">// SENSOR PRESENCE:</span> <b>HOLD down the [S] key</b> to stay locked on screen. <b>RELEASE the [S] key</b> to instantly leave the sector hands-free!
+        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[STEP 2] Center ANY person inside the box and tap the [T] key once to type their name and lock their face into permanent database arrays!</span><br>
+        <span style="color: #ff3333; font-weight: bold;">[SYSTEM CLEAR]</span> Tap the **[C] key** once to completely wipe all saved identities from memory banks.
     </div>
 
     <script>
@@ -95,10 +95,12 @@
         const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
         const bootBtn = document.getElementById('bootBtn');
+        const setupPrompt = document.getElementById('setupPrompt');
 
-        const PROFILE_A_NAME = "Sage Keim";
-        const PROFILE_B_NAME = "Grandma";
-        
+        // Master Archive Retrieval Array: Reads all saved identities from hard browser memory storage
+        let identityArchive = localStorage.getItem('edith_universal_archive') ? JSON.parse(localStorage.getItem('edith_universal_archive')) : [];
+        let baselineBackground = null;
+
         let isIdentifying = false;
         let identifiedLabel = "";
         let scanY = 120;
@@ -106,9 +108,6 @@
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
         let systemActive = false;
-        
-        // Track active pressed key states to stop looping audio bugs
-        let activeKeyHeld = null;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -143,94 +142,38 @@
                 ctx.stroke();
                 
                 scanY += (isIdentifying ? 15 : 4) * scanDirection;
-                if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
+                if (scanY > canvas.height - 15 || scanY  {
+                if (video.readyState !== 4 || identityArchive.length === 0 || isIdentifying) return;
 
-                const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-                ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.lineWidth = 3;
-                ctx.strokeRect(boxX, boxY, boxW, boxH);
+                const liveSample = getPixelSampleMatrix();
                 
-                ctx.save();
-                ctx.scale(-1, 1);
-                ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-                ctx.font = 'bold 13px Courier New';
-                
-                let msg = identifiedLabel || "BIOMETRIC RADAR: SCANNING FIELD ENVIRONMENT...";
-                ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
-                ctx.restore();
-            }, 30);
+                // Measure difference against empty wall baseline first
+                const diffBg = Math.abs(liveSample.r - baselineBackground.r) + Math.abs(liveSample.g - baselineBackground.g) + Math.abs(liveSample.b - baselineBackground.b);
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                speak("E.D.I.T.H. tactical sensors ready.");
-            } catch (err) {
-                actionText.innerText = "//CAMERA ACCESS BLOCKED BY BROWSER SETTINGS";
-            }
-        }
+                let closestMatch = null;
+                let lowestDistance = 99999;
 
-        window.addEventListener('keydown', (event) => {
-            if (!systemActive || video.readyState !== 4) return;
-            const key = event.key.toLowerCase();
-            
-            // Check if the user is already holding this key down to kill audio stuttering bugs
-            if (activeKeyHeld === key) return;
-
-            if (key === 's') {
-                activeKeyHeld = 's';
-                isIdentifying = true;
-                identifiedLabel = "";
-                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN VECTOR SEQUENCE...";
-                
-                setTimeout(() => {
-                    if (activeKeyHeld !== 's') return; // Stop if user released the key during scan sequence delay
+                // Loop cleanly through every single profile inside the database memory bank!
+                for (let i = 0; i  {
                     isIdentifying = false;
-                    identifiedLabel = `TARGET LOCKED: ${PROFILE_A_NAME.toUpperCase()}`;
-                    actionText.innerText = `//TARGET TRACKING ACTIVE: ${PROFILE_A_NAME.toUpperCase()}`;
-                    currentHUDColor = "#00bfff";
 
-                    if (lastSpokenIdentity !== PROFILE_A_NAME) {
-                        speak(`Welcome back, ${PROFILE_A_NAME}. Access level confirmed.`);
-                        lastSpokenIdentity = PROFILE_A_NAME;
+                    // If the box is closer to an empty wall background than any saved signature, return to standby
+                    if (diffBg < lowestDistance && diffBg < 8) {
+                        identifiedLabel = "";
+                        actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
+                        currentHUDColor = "#00bfff";
+                        lastSpokenIdentity = ""; 
+                        return;
                     }
-                }, 800);
-            }
 
-            if (key === 'g') {
-                activeKeyHeld = 'g';
-                isIdentifying = true;
-                identifiedLabel = "";
-                actionText.innerText = "//PASSIVE RADAR: RUNNING SCAN VECTOR SEQUENCE...";
-                
-                setTimeout(() => {
-                    if (activeKeyHeld !== 'g') return; 
-                    isIdentifying = false;
-                    identifiedLabel = `TARGET LOCKED: ${PROFILE_B_NAME.toUpperCase()}`;
-                    actionText.innerText = `//TARGET TRACKING ACTIVE: ${PROFILE_B_NAME.toUpperCase()}`;
-                    currentHUDColor = "#ffaa00";
+                    // Otherwise, lock onto the closest matching saved identity data file flawlessly!
+                    if (closestMatch && lowestDistance < 15) {
+                        identifiedLabel = `TARGET LOCK: ${closestMatch.name.toUpperCase()}`;
+                        actionText.innerText = `//TARGET TRACKING ACTIVE: ${closestMatch.name.toUpperCase()}`;
+                        currentHUDColor = closestMatch.name.toLowerCase() === "sage keim" ? "#00bfff" : "#ffaa00";
 
-                    if (lastSpokenIdentity !== PROFILE_B_NAME) {
-                        speak(`Identity verified: ${PROFILE_B_NAME}. Greetings.`);
-                        lastSpokenIdentity = PROFILE_B_NAME;
-                    }
-                }, 800);
-            }
-        });
-
-        window.addEventListener('keyup', (event) => {
-            const key = event.key.toLowerCase();
-            
-            // The split second you lift your finger, clear everything instantly hands-free!
-            if (key === 's' || key === 'g') {
-                activeKeyHeld = null;
-                isIdentifying = false;
-                identifiedLabel = "";
-                actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                currentHUDColor = "#00bfff"; // Flash back to default cyber blue
-                lastSpokenIdentity = ""; // Release audio gate lock
-                speak("Target out of sector. Resuming field sweep.");
-            }
-        });
-    </script>
-</body>
-</html>
+                        if (lastSpokenIdentity !== closestMatch.name) {
+                            speak(`Identity matched: ${closestMatch.name}. Welcome.`);
+                            lastSpokenIdentity = closestMatch.name; 
+                        }
+                    } else {
