@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Live Cam Protocol</title>
+    <title>E.D.I.T.H. Core Lens v47.0</title>
     <style>
         body {
             background-color: black;
@@ -25,16 +25,11 @@
             justify-content: space-between;
             width: 640px;
         }
-        .main-workspace {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-            width: 860px;
-        }
         .container {
             position: relative;
             width: 640px;
             height: 480px;
+            margin-top: 10px;
         }
         video, canvas {
             position: absolute;
@@ -50,35 +45,22 @@
         canvas {
             z-index: 10;
             background: transparent;
+        }
+        .boot-btn {
+            position: absolute;
+            top: 215px;
+            left: 175px;
+            z-index: 100;
+            background-color: #00bfff;
+            color: black;
             border: none;
-            box-shadow: none;
-        }
-        .tactical-sidebar {
-            width: 190px;
-            height: 480px;
-            border: 2px dashed rgba(0, 191, 255, 0.4);
-            border-radius: 4px;
-            padding: 10px;
-            box-sizing: border-box;
-            background-color: rgba(0, 10, 30, 0.6);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .tracker-row {
-            font-size: 11px;
+            padding: 15px 25px;
+            font-family: 'Courier New', monospace;
             font-weight: bold;
-            color: rgba(0, 191, 255, 0.85);
-            text-shadow: 0 0 4px #00bfff;
-            white-space: nowrap;
-        }
-        .instructions {
-            margin-top: 20px;
-            color: #888;
-            font-size: 13px;
-            line-height: 1.6;
-            width: 640px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 20px #00bfff;
         }
     </style>
 </head>
@@ -86,50 +68,34 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. LIVE INTEGRATION OS v46.0</div>
-            <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//CLICK ON THE VIDEO LENS ONCE TO START STREAM...</div>
+            <div class="hud-text">//E.D.I.T.H. OPTICAL FRAMEWAY v47.0</div>
+            <div id="status" class="hud-text">//STATUS: STANDBY</div>
+            <div id="action" class="hud-text">//AWAITING HARDWARE INITIALIZATION...</div>
         </div>
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="clock" class="hud-text">TIME: CONNECTING...</div>
             <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
     </div>
 
-    <div class="main-workspace">
-        <div class="container" onclick="bootIntegratedCamera()">
-            <video id="webcam" autoplay playsinline width="640" height="480"></video>
-            <canvas id="overlay" width="640" height="480"></canvas>
-        </div>
-
-        <div class="tactical-sidebar" id="sidebarStream">
-            <div id="sideHeader" style="font-size: 9px; color: #888; text-align: center; border-bottom: 1px solid rgba(0,191,255,0.3); padding-bottom: 4px; margin-bottom: 4px;">// RADAR MATRIX //</div>
-        </div>
-    </div>
-
-    <div class="instructions">
-        <span style="color: #00bfff; font-weight: bold;">[LIVE CAMERA SENSOR INTERFACES]</span> Tap keys to place targeting trackers over your room view:<br>
-        Press <b style="color: #fff;"> key:</b> Target Booklet Scan | Press <b style="color: #fff;"> key:</b> Target Face Expression Vibe | Press <b style="color: #fff;"> key:</b> Target Pop Quiz Prediction<br>
-        Press <b style="color: #ff3333;">[W] key:</b> Wipe target trackers from screen layout and return to default scanning.
+    <div class="container">
+        <!-- Unblockable native video trigger button -->
+        <button id="bootBtn" class="boot-btn" onclick="engageOpticalHardware()">[ 🚀 INITIALIZE CAMERA LINK ]</button>
+        <video id="webcam" autoplay playsinline width="640" height="480"></video>
+        <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
     <script>
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
+        const statusText = document.getElementById('status');
         const clockText = document.getElementById('clock');
-        const batteryText = document.getElementById('battery');
-        const sidebarStream = document.getElementById('sidebarStream');
+        const bootBtn = document.getElementById('bootBtn');
 
-        let isScanning = false;
-        let identifiedThreat = "";
         let scanY = 120;
         let scanDirection = 1;
-        let currentHUDColor = "#00bfff";
-        let lastSpokenIdentity = "";
-        let isActivated = false;
-        
-        let displayTargetLayer = 0; // 0=Standby, 1=Booklet, 2=Vibe, 3=Quiz
+        let systemActive = false;
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -140,118 +106,65 @@
             }
         }
 
-        async function bootIntegratedCamera() {
-            if (isActivated) return;
-            isActivated = true;
+        async function engageOpticalHardware() {
+            if (systemActive) return;
+            systemActive = true;
+            
+            bootBtn.style.display = "none";
+            statusText.innerText = "//STATUS: ACTIVE";
+            actionText.innerText = "//CONNECTING LIVE VIDEO VECTORS...";
 
-            actionText.innerText = "//COUPLING HARDWARE OPTICAL CHANNELS...";
-            speak("Lenses online.");
-
+            // Launch safe UI updates instantly on click
             setInterval(() => {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
             }, 1000);
 
-            setInterval(renderHUD, 30);
+            setInterval(renderHUDScanlines, 30);
 
-            // Turn on camera directly as a visual background layer with zero pixel scraping to stay open permanently
+            // Request pure camera stream with NO background data manipulation loops
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
                 video.srcObject = stream;
-                actionText.innerText = "//TACTICAL WEBCAM SCANNING ENGAGED...";
             } catch (err) {
-                actionText.innerText = "//CAMERA BLOCKED. CLICK LOCK ICON TO ALLOW CAMERA.";
+                actionText.innerText = "//HARDWARE ERROR: CAMERA BLOCKED BY SYSTEM";
             }
         }
 
-        function clearSidebar() {
-            while (sidebarStream.children.length > 1) {
-                sidebarStream.removeChild(sidebarStream.lastChild);
-            }
-        }
-
-        function addSidebarRow(text) {
-            let row = document.createElement('div');
-            row.className = 'tracker-row';
-            row.innerText = text;
-            row.style.color = currentHUDColor;
-            sidebarStream.appendChild(row);
-        }
-
-        function triggerTargetTracker(type, title, actionLabel, speechText, color, dataRows) {
-            if (isScanning) return;
-            isScanning = true;
-            displayTargetLayer = 0;
-            identifiedThreat = "";
-            currentHUDColor = color;
-            actionText.innerText = "//CALCULATING GRID SHIFT COEFFECIENTS...";
-            clearSidebar();
-
-            setTimeout(() => {
-                isScanning = false;
-                displayTargetLayer = type;
-                identifiedThreat = title;
-                actionText.innerText = actionLabel;
-                
-                dataRows.forEach(row => addSidebarRow(row));
-                speak(speechText);
-            }, 900);
-        }
-
-        function renderHUD() {
+        function renderHUDScanlines() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Sliding Laser Line
-            ctx.strokeStyle = isScanning ? '#ffffff' : currentHUDColor;
+            // Scanner Laser Vector Line
+            ctx.strokeStyle = "#00bfff";
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(10, scanY);
             ctx.lineTo(canvas.width - 10, scanY);
             ctx.stroke();
             
-            scanY += (isScanning ? 15 : 4) * scanDirection;
+            scanY += 4 * scanDirection;
             if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            // Target Box Frame
+            // Target Bounding Box
             const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isScanning ? '#ffffff' : currentHUDColor;
+            ctx.strokeStyle = "#00bfff";
             ctx.lineWidth = 3;
             ctx.strokeRect(boxX, boxY, boxW, boxH);
             
-            let cx = boxX + boxW/2;
-            let cy = boxY + boxH/2;
-
-            if (displayTargetLayer === 1) {
-                // EXAM CAPTURE BRACKET OVERLAY
-                ctx.strokeStyle = currentHUDColor;
-                ctx.strokeRect(cx - 60, cy - 80, 120, 160);
-                ctx.beginPath();
-                ctx.moveTo(cx - 40, cy - 40); ctx.lineTo(cx + 40, cy - 40);
-                ctx.moveTo(cx - 40, cy); ctx.lineTo(cx + 20, cy);
-                ctx.moveTo(cx - 40, cy + 40); ctx.lineTo(cx + 30, cy + 40);
-                ctx.stroke();
-            } else if (displayTargetLayer === 2) {
-                // FACIAL VIBE NODES LANDMARK OVERLAY (Floats straight over your face!)
-                ctx.strokeStyle = currentHUDColor;
-                ctx.fillStyle = currentHUDColor;
-                ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.moveTo(cx - 50, cy - 35); ctx.lineTo(cx - 15, cy - 25); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(cx + 15, cy - 25); ctx.lineTo(cx + 50, cy - 35); ctx.stroke();
-                ctx.beginPath(); ctx.arc(cx - 30, cy - 10, 4, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(cx + 30, cy - 10, 4, 0, Math.PI*2); ctx.fill();
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(cx, cy + 30, 30, 0, Math.PI); ctx.stroke();
-            } else if (displayTargetLayer === 3) {
-                // QUIZ RISK TREND GRID OVERLAY
-                ctx.strokeStyle = currentHUDColor;
-                ctx.strokeRect(cx - 70, cy - 70, 140, 140);
-                ctx.beginPath(); ctx.moveTo(cx - 70, cy - 20); ctx.lineTo(cx + 50, cy + 40); ctx.stroke();
-                ctx.fillStyle = currentHUDColor;
-                ctx.beginPath(); ctx.arc(cx + 50, cy + 40, 5, 0, Math.PI*2); ctx.fill();
-            }
-
             ctx.save();
             ctx.scale(-1, 1);
-            ctx.fillStyle = isScanning ? '#ffffff' : currentHUDColor;
+            ctx.fillStyle = "#00bfff";
             ctx.font = 'bold 13px Courier New';
+            ctx.fillText("TACTICAL OPTICAL FEED: LIVE", -(boxX + boxW) + 5, boxY - 10);
+            ctx.restore();
+        }
+
+        // Play stable activation voice audio on initial frame playback handler
+        video.addEventListener('playing', () => {
+            actionText.innerText = "//TACTICAL FEED SECURED. STREAMING LIVE.";
+            speak("E.D.I.T.H. systems online.");
+        });
+    </script>
+</body>
+</html>
