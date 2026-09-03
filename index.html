@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Declarative OS v41.0</title>
+    <title>E.D.I.T.H. Oho Glass Firmware</title>
     <style>
         body {
             background-color: black;
@@ -29,7 +29,7 @@
             display: flex;
             gap: 15px;
             margin-top: 10px;
-            width: 820px;
+            width: 860px;
         }
         .container {
             position: relative;
@@ -48,16 +48,6 @@
             background: radial-gradient(circle, #001f3f 0%, black 100%);
             z-index: 1;
         }
-        video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 640px;
-            height: 480px;
-            transform: scaleX(-1); /* Mirrors the screen to act like tactical glasses */
-            z-index: 2;
-            border-radius: 4px;
-        }
         canvas {
             position: absolute;
             top: 0;
@@ -66,7 +56,7 @@
             background: transparent;
         }
         .tactical-sidebar {
-            width: 150px;
+            width: 190px;
             height: 480px;
             border: 2px dashed rgba(0, 191, 255, 0.4);
             border-radius: 4px;
@@ -84,11 +74,6 @@
             color: rgba(0, 191, 255, 0.85);
             text-shadow: 0 0 4px #00bfff;
             white-space: nowrap;
-            animation: slideInCoord 0.3s ease-out forwards;
-        }
-        @keyframes slideInCoord {
-            from { transform: translateX(20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
         }
         .instructions {
             margin-top: 20px;
@@ -103,9 +88,9 @@
 
     <div class="hud-grid">
         <div>
-            <div class="hud-text">//E.D.I.T.H. DECLARATIVE GRID OS v41.0</div>
+            <div class="hud-text">//E.D.I.T.H. OHO WEARABLE HARDWARE v45.0</div>
             <div id="status" class="hud-text">//STATUS: ACTIVE</div>
-            <div id="action" class="hud-text">//CLICK ON LENS ONCE TO EXECUTE LINK HANDSHAKE...</div>
+            <div id="action" class="hud-text">//CLICK CORES ONCE TO MAP WEARABLE SYSTEM REGS...</div>
         </div>
         <div style="text-align: right;">
             <div id="clock" class="hud-text">TIME: STANDBY</div>
@@ -114,41 +99,38 @@
     </div>
 
     <div class="main-workspace">
-        <div class="container" onclick="bootDeclarativeOS()">
+        <div class="container" onclick="initializeOHOFirmware()">
             <div class="simulated-lens"></div>
-            <!-- Declarative Inline video streaming element wrapper -->
-            <video id="webcam" autoplay playsinline width="640" height="480"></video>
             <canvas id="overlay" width="640" height="480"></canvas>
         </div>
 
         <div class="tactical-sidebar" id="sidebarStream">
-            <div style="font-size: 9px; color: #888; text-align: center; border-bottom: 1px solid rgba(0,191,255,0.3); padding-bottom: 4px; margin-bottom: 4px;">// RADAR TARGETS //</div>
+            <div id="sideHeader" style="font-size: 9px; color: #888; text-align: center; border-bottom: 1px solid rgba(0,191,255,0.3); padding-bottom: 4px; margin-bottom: 4px;">// COGNITIVE LOG //</div>
         </div>
     </div>
 
     <div class="instructions">
-        <span style="color: #00bfff; font-weight: bold;">[LOG FACE PROFILES]</span> Center target face inside the box frame and tap a slot key:<br>
-        Press <b style="color: #fff;">[A] key:</b> Lock/Unlock Profile Alpha (You) | Press <b style="color: #fff;">[B] key:</b> Lock/Unlock Profile Bravo (Granny)<br>
-        <span style="color: #00ff00;">// MCAFEE BYPASS ENGINE ACTIVE:</span> Hardware initialization is called natively by Edge's UI layer!
+        <span style="color: #00bfff; font-weight: bold;">[OHO GLASS KEYBOARD CHANNELS]</span> Tap keys to cycle pattern sensors:<br>
+        Press <b style="color: #fff;">[1] key:</b> Sense Test Booklet Pattern | Press <b style="color: #fff;">[2] key:</b> Sense Macro Expression Vibe | Press <b style="color: #fff;">[3] key:</b> Forecast Pop Quiz Trends<br>
+        Press <b style="color: #ff3333;">[W] key:</b> Flush lens display data and return to baseline environmental field sweep.
     </div>
 
     <script>
-        const video = document.getElementById('webcam');
         const canvas = document.getElementById('overlay');
         const actionText = document.getElementById('action');
         const clockText = document.getElementById('clock');
         const batteryText = document.getElementById('battery');
         const sidebarStream = document.getElementById('sidebarStream');
 
-        let isIdentifying = false;
-        let identifiedLabel = "";
+        let isScanning = false;
+        let identifiedThreat = "";
         let scanY = 120;
         let scanDirection = 1;
         let currentHUDColor = "#00bfff";
         let lastSpokenIdentity = "";
         let isActivated = false;
-        let batteryCharge = 100;
-        let activeLock = null;
+        
+        let behavioralMatrixMode = 0; // 0=Standby, 1=Exam, 2=Vibe, 3=Predict
 
         function speak(text) {
             const window_speech = window.speechSynthesis;
@@ -159,106 +141,119 @@
             }
         }
 
-        async function bootDeclarativeOS() {
+        function initializeOHOFirmware() {
             if (isActivated) return;
             isActivated = true;
 
-            actionText.innerText = "//DECLARING SECURE OPTICAL PATH CHANNELS...";
-            speak("E.D.I.T.H. tactical systems initialized.");
+            actionText.innerText = "//OHO HARDWARE COUPLING SUCCESSFUL...";
+            speak("Oho wearable firmware completely integrated.");
 
-            // 1. Live Chronometer Ticker
             setInterval(() => {
                 const now = new Date();
                 clockText.innerText = "TIME: " + now.toLocaleTimeString();
             }, 1000);
 
-            // 2. Battery Percentage Counter Engine Loop
-            setInterval(() => {
-                if (batteryCharge > 0) {
-                    batteryCharge -= 1;
-                    let bars = "|||||";
-                    if (batteryCharge < 80) bars = "|||| ";
-                    if (batteryCharge < 60) bars = "|||  ";
-                    if (batteryCharge < 40) bars = "||   ";
-                    if (batteryCharge < 20) bars = "|    ";
-                    batteryText.innerText = "BATT: " + batteryCharge + "% [" + bars + "]";
-                }
-            }, 5000);
+            setInterval(renderHUD, 30);
+        }
 
-            // 3. Side Column Target Tracker Coordinate Streamer Box
-            setInterval(() => {
-                let randomDist = (Math.random() * 50).toFixed(2);
-                let row = document.createElement('div');
-                row.className = 'tracker-row';
-                row.innerText = "TRK_IDX > " + randomDist + "m";
-                sidebarStream.appendChild(row);
-                if (sidebarStream.children.length > 22) {
-                    sidebarStream.removeChild(sidebarStream.children[1]); 
-                }
-            }, 400);
-
-            // 4. Vector HUD Laser Lines Thread
-            setInterval(renderHUDScanLines, 30);
-
-            // 5. Fire Camera Link natively (Safe declaration bypass)
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-                actionText.innerText = "//TACTICAL ENVIRONMENT SWEEP ENGAGED...";
-            } catch (err) {
-                actionText.innerText = "//HARDWARE TIMEOUT: VERIFY CAMERA SLIDER OPEN";
+        function clearSidebar() {
+            while (sidebarStream.children.length > 1) {
+                sidebarStream.removeChild(sidebarStream.lastChild);
             }
         }
 
-        function renderHUDScanLines() {
+        function addSidebarRow(text) {
+            let row = document.createElement('div');
+            row.className = 'tracker-row';
+            row.innerText = text;
+            row.style.color = currentHUDColor;
+            row.style.textShadow = "0 0 4px " + currentHUDColor;
+            sidebarStream.appendChild(row);
+        }
+
+        function runOhoSensorScan(type, title, actionLabel, speechText, color, dataRows) {
+            if (isScanning) return;
+            isScanning = true;
+            behavioralMatrixMode = 0;
+            identifiedThreat = "";
+            currentHUDColor = color;
+            actionText.innerText = "//COMPILING COGNITIVE PIXEL RATIOS...";
+            clearSidebar();
+
+            setTimeout(() => {
+                isScanning = false;
+                behavioralMatrixMode = type;
+                identifiedThreat = title;
+                actionText.innerText = actionLabel;
+                
+                dataRows.forEach(row => addSidebarRow(row));
+                speak(speechText);
+            }, 900);
+        }
+
+        function renderHUD() {
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            // Scanner Laser Vector Line
+            ctx.strokeStyle = isScanning ? '#ffffff' : currentHUDColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(10, scanY);
             ctx.lineTo(canvas.width - 10, scanY);
             ctx.stroke();
             
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
+            scanY += (isScanning ? 15 : 4) * scanDirection;
             if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
+            // Bounding Target Bracket Brackets
             const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ff3333' : currentHUDColor;
+            ctx.strokeStyle = isScanning ? '#ffffff' : currentHUDColor;
             ctx.lineWidth = 3;
             ctx.strokeRect(boxX, boxY, boxW, boxH);
             
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ff3333' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let msg = identifiedLabel || "BIOMETRIC RADAR: STANDBY MONITOR ACTIVE";
-            ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
-            ctx.restore();
-        }
+            let cx = boxX + boxW/2;
+            let cy = boxY + boxH/2;
 
-        window.addEventListener('keydown', (event) => {
-            if (!isActivated) return;
-            const key = event.key.toLowerCase();
-            
-            if (key === 'a') {
-                if (activeLock === 'a') {
-                    activeLock = null;
-                    identifiedLabel = "";
-                    currentHUDColor = "#00bfff";
-                    actionText.innerText = "//ENVIRONMENT SCANNING: ACTIVE";
-                    speak("Target out of sector. Resuming passive sweep.");
-                } else {
-                    activeLock = 'a';
-                    identifiedLabel = "TARGET LOCKED: PROFILE ALPHA (MASTER)";
-                    actionText.innerText = "//TARGET TRACKING ACTIVE: PROFILE ALPHA";
-                    currentHUDColor = "#00bfff"; // Cyber Blue Theme
-                    speak("Welcome back, Profile Alpha. Data cache synced.");
-                }
+            if (behavioralMatrixMode === 1) {
+                // REAL-TIME EXAM CODES: Draw Page Document Box Brackets and routing crosshairs
+                ctx.strokeStyle = currentHUDColor;
+                ctx.strokeRect(cx - 60, cy - 80, 120, 160);
+                ctx.beginPath();
+                ctx.moveTo(cx - 40, cy - 40); ctx.lineTo(cx + 40, cy - 40);
+                ctx.moveTo(cx - 40, cy); ctx.lineTo(cx + 20, cy);
+                ctx.moveTo(cx - 40, cy + 40); ctx.lineTo(cx + 30, cy + 40);
+                ctx.stroke();
+            } else if (behavioralMatrixMode === 2) {
+                // MACROSCOPIC VIBE READING: Draw Landmark Facial Tracking Points (Lowered Eyebrows, Angled Eyes, Mouth)
+                ctx.strokeStyle = currentHUDColor;
+                ctx.fillStyle = currentHUDColor;
+                ctx.lineWidth = 3;
+                // Lowered eyebrows
+                ctx.beginPath(); ctx.moveTo(cx - 50, cy - 35); ctx.lineTo(cx - 15, cy - 25); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx + 15, cy - 25); ctx.lineTo(cx + 50, cy - 35); ctx.stroke();
+                // Narrowed Eye landmarks
+                ctx.beginPath(); ctx.arc(cx - 30, cy - 10, 4, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(cx + 30, cy - 10, 4, 0, Math.PI*2); ctx.fill();
+                // Mouth curve structure
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy + 30, 30, 0, Math.PI);
+                ctx.stroke();
+            } else if (behavioralMatrixMode === 3) {
+                // FORECAST CHRONO GRAPH: Draw Trend Grid Analysis forecasting lines
+                ctx.strokeStyle = currentHUDColor;
+                ctx.strokeRect(cx - 70, cy - 70, 140, 140);
+                ctx.beginPath();
+                ctx.moveTo(cx - 70, cy - 20); ctx.lineTo(cx + 50, cy + 40); 
+                ctx.stroke();
+                ctx.fillStyle = currentHUDColor;
+                ctx.beginPath(); ctx.arc(cx + 50, cy + 40, 5, 0, Math.PI*2); ctx.fill();
             }
 
-            if (key === 'b') {
-                if (activeLock === 'b') {
-                    activeLock = null;
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.fillStyle = isScanning ? '#ffffff' : currentHUDColor;
+            ctx.font = 'bold 13px Courier New';
+            
+            let msg = identifiedThreat || "BIOMETRIC TERMINAL: SCOUTING FIELD FOR ENVIRONMENT PATTERNS...";
