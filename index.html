@@ -3,263 +3,1211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E.D.I.T.H. Autonomous Matrix v52.0</title>
+
+    <title>E.D.I.T.H. Autonomous Matrix v53.0</title>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: black;
+            margin: 0;
+            padding: 20px;
+            background: #000;
             color: #00bfff;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 20px;
+            font-family: "Courier New", monospace;
             overflow: hidden;
-            user-select: none;
         }
-        .hud-text {
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-            text-shadow: 0 0 8px #00bfff;
-        }
-        .hud-grid {
+
+        /* =========================
+           TOP HUD
+        ========================= */
+
+        .top-hud {
             display: flex;
             justify-content: space-between;
-            width: 640px;
+            width: 100%;
+            max-width: 1250px;
+            margin-bottom: 15px;
         }
-        .main-workspace {
+
+        .hud-text {
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 7px;
+            text-shadow: 0 0 8px #00bfff;
+        }
+
+        #status {
+            color: #ffaa00;
+        }
+
+        #action {
+            color: #00bfff;
+        }
+
+        .right-hud {
+            text-align: right;
+        }
+
+        /* =========================
+           MAIN AREA
+        ========================= */
+
+        .workspace {
             display: flex;
-            gap: 15px;
-            margin-top: 10px;
-            width: 860px;
+            gap: 18px;
         }
-        .container {
+
+        /* =========================
+           CAMERA
+        ========================= */
+
+        .camera-container {
             position: relative;
-            width: 640px;
-            height: 480px;
-        }
-        video, canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 640px;
-            height: 480px;
+            width: 800px;
+            height: 600px;
             border: 2px solid #00bfff;
-            border-radius: 4px;
-            box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1);
-        }
-        canvas {
-            z-index: 10;
-            background: transparent;
-            border: none;
-            box-shadow: none;
-        }
-        .tactical-sidebar {
-            width: 195px;
-            height: 480px;
-            border: 2px dashed rgba(0, 191, 255, 0.4);
-            border-radius: 4px;
-            padding: 10px;
-            box-sizing: border-box;
-            background-color: rgba(0, 10, 30, 0.6);
+            border-radius: 5px;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+            box-shadow:
+                0 0 15px rgba(0,191,255,.5),
+                inset 0 0 20px rgba(0,191,255,.15);
+
+            background: #000;
         }
-        .tracker-row {
-            font-size: 11px;
-            font-weight: bold;
-            color: rgba(0, 191, 255, 0.85);
-            text-shadow: 0 0 4px #00bfff;
-            white-space: nowrap;
-        }
-        .instructions {
-            margin-top: 20px;
-            color: #888;
-            font-size: 13px;
-            line-height: 1.6;
-            width: 640px;
-        }
-        .boot-btn {
+
+        #webcam {
             position: absolute;
-            top: 215px;
-            left: 175px;
-            z-index: 100;
-            background-color: #00bfff;
-            color: black;
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+
+            /* Mirror the camera like a pair of glasses */
+            transform: scaleX(-1);
+
+            display: none;
+        }
+
+        #overlay {
+            position: absolute;
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            pointer-events: none;
+        }
+
+        /* =========================
+           CAMERA BUTTON
+        ========================= */
+
+        #bootBtn {
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            z-index: 20;
+
+            padding: 18px 30px;
+
+            background: #00bfff;
+            color: #000;
+
             border: none;
-            padding: 15px 25px;
-            font-family: 'Courier New', monospace;
+            border-radius: 5px;
+
+            font-family: "Courier New", monospace;
+            font-size: 15px;
             font-weight: bold;
-            font-size: 14px;
+
             cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 0 20px #00bfff;
+
+            box-shadow:
+                0 0 10px #00bfff,
+                0 0 30px #00bfff;
+
+            transition: .2s;
+        }
+
+        #bootBtn:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow:
+                0 0 20px #00bfff,
+                0 0 50px #00bfff;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            width: 250px;
+            height: 600px;
+
+            border: 2px dashed rgba(0,191,255,.45);
+            border-radius: 5px;
+
+            padding: 12px;
+
+            background: rgba(0,10,30,.7);
+
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            text-align: center;
+
+            color: #888;
+
+            font-size: 11px;
+
+            padding-bottom: 8px;
+
+            border-bottom: 1px solid rgba(0,191,255,.3);
+
+            margin-bottom: 10px;
+        }
+
+        .tracker-row {
+            font-size: 12px;
+
+            margin-bottom: 10px;
+
+            color: #00bfff;
+
+            text-shadow: 0 0 5px #00bfff;
+        }
+
+        /* =========================
+           BOTTOM INFO
+        ========================= */
+
+        .instructions {
+            margin-top: 15px;
+
+            color: #777;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+        }
+
+        .green {
+            color: #00ff55;
+        }
+
+        .orange {
+            color: #ffaa00;
+        }
+
+        .white {
+            color: white;
+        }
+
+        /* =========================
+           CAMERA ERROR
+        ========================= */
+
+        #errorBox {
+            display: none;
+
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            width: 80%;
+
+            padding: 20px;
+
+            background: rgba(0,0,0,.9);
+
+            border: 2px solid #ff3333;
+
+            color: #ff5555;
+
+            text-align: center;
+
+            z-index: 30;
+
+            box-shadow: 0 0 25px rgba(255,0,0,.4);
         }
     </style>
 </head>
+
 <body>
 
-    <div class="hud-grid">
+    <!-- =========================
+         TOP HUD
+    ========================= -->
+
+    <div class="top-hud">
+
         <div>
-            <div class="hud-text">//E.D.I.T.H. AUTONOMOUS ARCHIVE OS v52.0</div>
-            <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//AWAITING MASTER OPTICAL COUPLING LINK...</div>
-        </div>
-        <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
-            <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
-        </div>
-    </div>
+            <div class="hud-text">
+                // E.D.I.T.H. AUTONOMOUS ARCHIVE OS v53.0
+            </div>
 
-    <div class="main-workspace">
-        <div class="container">
-            <button id="bootBtn" class="boot-btn" onclick="bootOpticalMatrix()">[ 🚀 UNMUTE CAMERA PROTOCOLS ]</button>
-            <video id="webcam" autoplay playsinline width="640" height="480"></video>
-            <canvas id="overlay" width="640" height="480"></canvas>
+            <div id="status" class="hud-text">
+                // STATUS: STANDBY
+            </div>
+
+            <div id="action" class="hud-text">
+                // AWAITING OPTICAL LINK...
+            </div>
         </div>
 
-        <div class="tactical-sidebar" id="sidebarStream">
-            <div id="sideHeader" style="font-size: 9px; color: #888; text-align: center; border-bottom: 1px solid rgba(0,191,255,0.3); padding-bottom: 4px; margin-bottom: 4px;">// IDENTITY ARCHIVE //</div>
+        <div class="right-hud">
+
+            <div id="clock" class="hud-text">
+                TIME: STANDBY
+            </div>
+
+            <div id="battery" class="hud-text">
+                BATT: 100% [|||||]
+            </div>
+
         </div>
+
     </div>
+
+
+    <!-- =========================
+         MAIN WORKSPACE
+    ========================= -->
+
+    <div class="workspace">
+
+        <!-- CAMERA -->
+
+        <div class="camera-container" id="cameraContainer">
+
+            <video
+                id="webcam"
+                autoplay
+                playsinline
+                muted>
+            </video>
+
+            <canvas
+                id="overlay">
+            </canvas>
+
+
+            <!-- CAMERA START BUTTON -->
+
+            <button
+                id="bootBtn">
+                [ 🚀 ACTIVATE CAMERA ]
+            </button>
+
+
+            <!-- ERROR -->
+
+            <div id="errorBox"></div>
+
+        </div>
+
+
+        <!-- SIDEBAR -->
+
+        <div class="sidebar">
+
+            <div class="sidebar-title">
+                // IDENTITY ARCHIVE //
+            </div>
+
+            <div id="sidebarStream"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         INSTRUCTIONS
+    ========================= -->
 
     <div class="instructions">
-        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[AUTONOMOUS TRAINING MATRIX]</span> Click the lens frame once to focus:<br>
-        Tap <b style="color: #fff;">[T] key:</b> Type a custom name to sample and permanently log a new face profile.<br>
-        <span style="color: #00ff00;">// 100% HANDS-FREE AUTOMATION ACTIVE:</span> Once saved, names automatically arrive and leave when walking in or out!
+
+        <span class="orange">
+            [AUTONOMOUS TRAINING MATRIX]
+        </span>
+
+        Camera activation requires browser permission.
+
+        <br>
+
+        <span class="white">
+            Camera:
+        </span>
+
+        Click
+        <b class="white">
+            [ACTIVATE CAMERA]
+        </b>
+
+        to establish the optical link.
+
+        <br>
+
+        <span class="green">
+            // LIVE OPTICAL FEED ACTIVE
+        </span>
+
+        — HUD tracking system online.
+
     </div>
 
+
     <script>
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('overlay');
-        const actionText = document.getElementById('action');
-        const statusText = document.getElementById('status');
-        const clockText = document.getElementById('clock');
-        const batteryText = document.getElementById('battery');
-        const sidebarStream = document.getElementById('sidebarStream');
-        const bootBtn = document.getElementById('bootBtn');
-        const setupPrompt = document.getElementById('setupPrompt');
 
-        // Dynamic Database Retrieval
-        let identityArchive = localStorage.getItem('edith_infinite_archive') ? JSON.parse(localStorage.getItem('edith_infinite_archive')) : [];
-        let baselineBackground = null;
+        /* =====================================================
+           E.D.I.T.H. v53.0
+           CAMERA ENGINE
+        ===================================================== */
 
-        let isIdentifying = false;
-        let identifiedLabel = "";
-        let scanY = 120;
+        const video =
+            document.getElementById("webcam");
+
+        const canvas =
+            document.getElementById("overlay");
+
+        const ctx =
+            canvas.getContext("2d");
+
+        const bootBtn =
+            document.getElementById("bootBtn");
+
+        const cameraContainer =
+            document.getElementById("cameraContainer");
+
+        const statusText =
+            document.getElementById("status");
+
+        const actionText =
+            document.getElementById("action");
+
+        const clockText =
+            document.getElementById("clock");
+
+        const batteryText =
+            document.getElementById("battery");
+
+        const sidebarStream =
+            document.getElementById("sidebarStream");
+
+        const errorBox =
+            document.getElementById("errorBox");
+
+
+        /* =====================================================
+           VARIABLES
+        ===================================================== */
+
+        let cameraStream = null;
+
+        let cameraActive = false;
+
+        let scanY = 50;
+
         let scanDirection = 1;
-        let currentHUDColor = "#00bfff";
-        let lastSpokenIdentity = "";
-        
-        let isActivated = false;
-        let batteryCharge = 100;
 
-        function speak(text) {
-            const window_speech = window.speechSynthesis;
-            if (window_speech) {
-                window_speech.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                window_speech.speak(utterance);
+        let battery = 100;
+
+        let identityArchive = [];
+
+
+        /* =====================================================
+           LOAD SAVED ARCHIVE
+        ===================================================== */
+
+        try {
+
+            const saved =
+                localStorage.getItem("edith_identity_archive");
+
+            if (saved) {
+
+                identityArchive =
+                    JSON.parse(saved);
+
             }
+
+        } catch (error) {
+
+            identityArchive = [];
+
         }
 
-        async function bootOpticalMatrix() {
-            if (isActivated) return;
-            isActivated = true;
-            bootBtn.style.display = "none";
-            statusText.innerText = "//STATUS: SEARCHING";
-            actionText.innerText = "//COUPLING HARDWARE OPTICAL CHANNELS...";
 
-            setInterval(() => {
-                const now = new Date();
-                clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            }, 1000);
+        /* =====================================================
+           SET CANVAS SIZE
+        ===================================================== */
 
-            setInterval(() => {
-                if (batteryCharge > 0) {
-                    batteryCharge -= 1;
-                    let bars = "|||||";
-                    if (batteryCharge < 80) bars = "|||| ";
-                    if (batteryCharge < 60) bars = "|||  ";
-                    if (batteryCharge < 40) bars = "||   ";
-                    if (batteryCharge < 20) bars = "|    ";
-                    batteryText.innerText = "BATT: " + batteryCharge + "% [" + bars + "]";
-                }
-            }, 6000);
+        function resizeCanvas() {
 
-            setInterval(renderHUDScanlines, 30);
+            canvas.width =
+                cameraContainer.clientWidth;
+
+            canvas.height =
+                cameraContainer.clientHeight;
+
+        }
+
+        resizeCanvas();
+
+        window.addEventListener(
+            "resize",
+            resizeCanvas
+        );
+
+
+        /* =====================================================
+           CAMERA ACTIVATION
+        ===================================================== */
+
+        async function activateCamera() {
+
+            if (cameraActive) {
+                return;
+            }
+
+
+            /* Make sure the browser supports cameras */
+
+            if (!navigator.mediaDevices ||
+                !navigator.mediaDevices.getUserMedia) {
+
+                showCameraError(
+                    "CAMERA API NOT AVAILABLE.<br><br>" +
+                    "Open E.D.I.T.H. through HTTPS or localhost."
+                );
+
+                return;
+            }
+
+
+            statusText.innerText =
+                "// STATUS: REQUESTING CAMERA";
+
+            statusText.style.color =
+                "#ffaa00";
+
+            actionText.innerText =
+                "// REQUESTING OPTICAL SENSOR PERMISSION...";
+
+            bootBtn.disabled = true;
+
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
-            } catch (err) {
-                actionText.innerText = "//CAMERA REJECTED LINK CONNECTION";
+
+                /*
+                 * REQUEST CAMERA
+                 *
+                 * This is the important part.
+                 */
+
+                cameraStream =
+                    await navigator.mediaDevices.getUserMedia({
+
+                        video: {
+                            width: {
+                                ideal: 1280
+                            },
+
+                            height: {
+                                ideal: 720
+                            },
+
+                            facingMode: "user"
+                        },
+
+                        audio: false
+
+                    });
+
+
+                /*
+                 * SEND CAMERA STREAM TO VIDEO
+                 */
+
+                video.srcObject =
+                    cameraStream;
+
+
+                /*
+                 * WAIT UNTIL VIDEO CAN PLAY
+                 */
+
+                await video.play();
+
+
+                /*
+                 * CAMERA SUCCESS
+                 */
+
+                cameraActive = true;
+
+                video.style.display =
+                    "block";
+
+                bootBtn.style.display =
+                    "none";
+
+                errorBox.style.display =
+                    "none";
+
+
+                statusText.innerText =
+                    "// STATUS: OPTICAL LINK ONLINE";
+
+                statusText.style.color =
+                    "#00ff55";
+
+
+                actionText.innerText =
+                    "// LIVE CAMERA FEED ESTABLISHED";
+
+
+                addSidebarRow(
+                    "[SYSTEM] CAMERA ONLINE"
+                );
+
+
+                addSidebarRow(
+                    "[SYSTEM] OPTICAL SENSOR ACTIVE"
+                );
+
+
+                addSidebarRow(
+                    "[SYSTEM] HUD OVERLAY ONLINE"
+                );
+
+
+                /*
+                 * Start HUD
+                 */
+
+                requestAnimationFrame(
+                    drawHUD
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Camera error:",
+                    error
+                );
+
+                cameraActive = false;
+
+                bootBtn.disabled = false;
+
+                statusText.innerText =
+                    "// STATUS: CAMERA ERROR";
+
+                statusText.style.color =
+                    "#ff3333";
+
+
+                actionText.innerText =
+                    "// OPTICAL LINK FAILED";
+
+
+                let message =
+                    "CAMERA ACCESS FAILED.<br><br>";
+
+
+                if (error.name === "NotAllowedError") {
+
+                    message +=
+                        "Camera permission was denied.<br>" +
+                        "Allow camera access in your browser.";
+
+                }
+
+                else if (error.name === "NotFoundError") {
+
+                    message +=
+                        "No camera was detected.";
+
+                }
+
+                else if (error.name === "NotReadableError") {
+
+                    message +=
+                        "The camera may already be in use " +
+                        "by another application.";
+
+                }
+
+                else if (error.name === "SecurityError") {
+
+                    message +=
+                        "The browser blocked camera access.";
+
+                }
+
+                else {
+
+                    message +=
+                        "Browser error: " +
+                        error.name;
+
+                }
+
+
+                showCameraError(message);
+
             }
+
         }
 
-        function clearSidebar() {
-            while (sidebarStream.children.length > 1) {
-                sidebarStream.removeChild(sidebarStream.lastChild);
-            }
+
+        /* =====================================================
+           CAMERA ERROR DISPLAY
+        ===================================================== */
+
+        function showCameraError(message) {
+
+            errorBox.innerHTML =
+                "<strong>// E.D.I.T.H. CAMERA ERROR //</strong>" +
+                "<br><br>" +
+                message +
+                "<br><br>" +
+                "<button onclick='hideCameraError()'>" +
+                "CLOSE" +
+                "</button>";
+
+            errorBox.style.display =
+                "block";
+
         }
+
+
+        function hideCameraError() {
+
+            errorBox.style.display =
+                "none";
+
+        }
+
+
+        /* =====================================================
+           BUTTON
+        ===================================================== */
+
+        bootBtn.addEventListener(
+            "click",
+            activateCamera
+        );
+
+
+        /* =====================================================
+           CLOCK
+        ===================================================== */
+
+        function updateClock() {
+
+            const now =
+                new Date();
+
+            clockText.innerText =
+                "TIME: " +
+                now.toLocaleTimeString();
+
+        }
+
+        setInterval(
+            updateClock,
+            1000
+        );
+
+
+        /* =====================================================
+           BATTERY SIMULATION
+        ===================================================== */
+
+        function updateBattery() {
+
+            if (!cameraActive) {
+                return;
+            }
+
+            /*
+             * This is only a UI simulation.
+             * It does NOT read your computer's real battery.
+             */
+
+            if (battery > 1) {
+
+                battery -= 1;
+
+            }
+
+
+            let bars = "|||||";
+
+            if (battery < 80)
+                bars = "|||| ";
+
+            if (battery < 60)
+                bars = "|||  ";
+
+            if (battery < 40)
+                bars = "||   ";
+
+            if (battery < 20)
+                bars = "|    ";
+
+
+            batteryText.innerText =
+                "BATT: " +
+                battery +
+                "% [" +
+                bars +
+                "]";
+
+        }
+
+        setInterval(
+            updateBattery,
+            10000
+        );
+
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
 
         function addSidebarRow(text) {
-            let row = document.createElement('div');
-            row.className = 'tracker-row';
-            row.innerText = text;
-            row.style.color = currentHUDColor;
-            row.style.textShadow = "0 0 4px " + currentHUDColor;
-            sidebarStream.appendChild(row);
+
+            const row =
+                document.createElement("div");
+
+            row.className =
+                "tracker-row";
+
+            row.innerText =
+                text;
+
+            sidebarStream.appendChild(
+                row
+            );
+
         }
 
-        function renderHUDScanlines() {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = isIdentifying ? '#ffffff' : currentHUDColor;
+
+        /* =====================================================
+           HUD DRAWING
+        ===================================================== */
+
+        function drawHUD() {
+
+            ctx.clearRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            if (!cameraActive) {
+
+                requestAnimationFrame(
+                    drawHUD
+                );
+
+                return;
+
+            }
+
+
+            const width =
+                canvas.width;
+
+            const height =
+                canvas.height;
+
+
+            /* =========================
+               SCAN LINE
+            ========================= */
+
+            ctx.strokeStyle =
+                "rgba(0,191,255,.9)";
+
             ctx.lineWidth = 2;
+
             ctx.beginPath();
-            ctx.moveTo(10, scanY);
-            ctx.lineTo(canvas.width - 10, scanY);
+
+            ctx.moveTo(
+                20,
+                scanY
+            );
+
+            ctx.lineTo(
+                width - 20,
+                scanY
+            );
+
             ctx.stroke();
-            
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ffffff' : currentHUDColor;
+
+            scanY +=
+                3 * scanDirection;
+
+
+            if (scanY > height - 20) {
+
+                scanDirection =
+                    -1;
+
+            }
+
+            if (scanY < 20) {
+
+                scanDirection =
+                    1;
+
+            }
+
+
+            /* =========================
+               CENTER TARGET
+            ========================= */
+
+            const boxWidth =
+                Math.min(
+                    300,
+                    width * .42
+                );
+
+            const boxHeight =
+                Math.min(
+                    360,
+                    height * .60
+                );
+
+
+            const boxX =
+                (width - boxWidth) / 2;
+
+            const boxY =
+                (height - boxHeight) / 2;
+
+
+            ctx.strokeStyle =
+                "rgba(0,191,255,.9)";
+
             ctx.lineWidth = 3;
-            ctx.strokeRect(boxX, boxY, boxW, boxH);
-            
+
+            ctx.strokeRect(
+                boxX,
+                boxY,
+                boxWidth,
+                boxHeight
+            );
+
+
+            /* =========================
+               CORNER BRACKETS
+            ========================= */
+
+            const corner = 25;
+
+
+            ctx.lineWidth = 4;
+
+
+            /* Top left */
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                boxX,
+                boxY + corner
+            );
+
+            ctx.lineTo(
+                boxX,
+                boxY
+            );
+
+            ctx.lineTo(
+                boxX + corner,
+                boxY
+            );
+
+            ctx.stroke();
+
+
+            /* Top right */
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                boxX + boxWidth - corner,
+                boxY
+            );
+
+            ctx.lineTo(
+                boxX + boxWidth,
+                boxY
+            );
+
+            ctx.lineTo(
+                boxX + boxWidth,
+                boxY + corner
+            );
+
+            ctx.stroke();
+
+
+            /* Bottom left */
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                boxX,
+                boxY + boxHeight - corner
+            );
+
+            ctx.lineTo(
+                boxX,
+                boxY + boxHeight
+            );
+
+            ctx.lineTo(
+                boxX + corner,
+                boxY + boxHeight
+            );
+
+            ctx.stroke();
+
+
+            /* Bottom right */
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                boxX + boxWidth - corner,
+                boxY + boxHeight
+            );
+
+            ctx.lineTo(
+                boxX + boxWidth,
+                boxY + boxHeight
+            );
+
+            ctx.lineTo(
+                boxX + boxWidth,
+                boxY + boxHeight - corner
+            );
+
+            ctx.stroke();
+
+
+            /* =========================
+               HUD TEXT
+            ========================= */
+
             ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ffffff' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let msg = identifiedLabel || "BIOMETRIC MONITOR: RADAR FIELD SWEEP ENGAGED...";
-            ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
+
+            /*
+             * Because the video is mirrored,
+             * mirror the HUD text too.
+             */
+
+            ctx.translate(
+                width,
+                0
+            );
+
+            ctx.scale(
+                -1,
+                1
+            );
+
+
+            ctx.fillStyle =
+                "#00bfff";
+
+            ctx.font =
+                "bold 13px Courier New";
+
+
+            ctx.fillText(
+                "OPTICAL LINK: ACTIVE",
+                20,
+                25
+            );
+
+
+            ctx.fillText(
+                "BIOMETRIC MONITOR: ONLINE",
+                20,
+                height - 25
+            );
+
+
+            ctx.fillText(
+                "E.D.I.T.H.",
+                width - 100,
+                25
+            );
+
+
             ctx.restore();
+
+
+            /* =========================
+               CROSSHAIR
+            ========================= */
+
+            const centerX =
+                width / 2;
+
+            const centerY =
+                height / 2;
+
+
+            ctx.strokeStyle =
+                "rgba(0,191,255,.7)";
+
+            ctx.lineWidth = 1;
+
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                centerX - 35,
+                centerY
+            );
+
+            ctx.lineTo(
+                centerX - 10,
+                centerY
+            );
+
+            ctx.moveTo(
+                centerX + 10,
+                centerY
+            );
+
+            ctx.lineTo(
+                centerX + 35,
+                centerY
+            );
+
+            ctx.moveTo(
+                centerX,
+                centerY - 35
+            );
+
+            ctx.lineTo(
+                centerX,
+                centerY - 10
+            );
+
+            ctx.moveTo(
+                centerX,
+                centerY + 10
+            );
+
+            ctx.lineTo(
+                centerX,
+                centerY + 35
+            );
+
+            ctx.stroke();
+
+
+            requestAnimationFrame(
+                drawHUD
+            );
+
         }
 
-        // DYNAMIC COLOR PROFILE SAMPLER (Safe pass-through pixel measurement)
-        function getPixelSampleMatrix() {
-            try {
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = 640; tempCanvas.height = 480;
-                const ctx = tempCanvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, 640, 480);
-                const data = ctx.getImageData(220, 100, 200, 260).data;
-                let r = 0, g = 0, b = 0;
-                for (let i = 0; i < data.length; i += 4) {
-                    r += data[i]; g += data[i+1]; b += data[i+2];
-                }
-                const total = data.length / 4;
-                return { r: r / total, g: g / total, b: b / total };
-            } catch (e) { return { r: 120, g: 120, b: 120 }; }
+
+        /* =====================================================
+           CLEAN CAMERA SHUTDOWN
+        ===================================================== */
+
+        function stopCamera() {
+
+            if (!cameraStream) {
+                return;
+            }
+
+
+            cameraStream
+                .getTracks()
+                .forEach(
+                    track => track.stop()
+                );
+
+
+            cameraStream =
+                null;
+
+            video.srcObject =
+                null;
+
+            video.style.display =
+                "none";
+
+            cameraActive =
+                false;
+
+
+            statusText.innerText =
+                "// STATUS: STANDBY";
+
+            actionText.innerText =
+                "// OPTICAL LINK DISCONNECTED";
+
+
+            bootBtn.style.display =
+                "block";
+
         }
 
-        // CONTINUOUS AUTONOMOUS RADAR ENGINE (Fires every 3 seconds hands-free!)
-        function startRadarTrackingEngine() {
-            setInterval(() => {
-                if (video.readyState !== 4 || identityArchive.length === 0 || isIdentifying) return;
+
+        /* =====================================================
+           PAGE CLOSE / RELOAD
+        ===================================================== */
+
+        window.addEventListener(
+            "beforeunload",
+            stopCamera
+        );
+
+
+        /* =====================================================
+           START HUD LOOP
+        ===================================================== */
+
+        resizeCanvas();
+
+        requestAnimationFrame(
+            drawHUD
+        );
+
+    </script>
+
+</body>
+</html>
