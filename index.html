@@ -3,23 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>E.D.I.T.H. Infinite Matrix v51.0</title>
-
+    <title>E.D.I.T.H. Autonomous Matrix v52.0</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             background-color: black;
             color: #00bfff;
-            font-family: "Courier New", Courier, monospace;
+            font-family: 'Courier New', Courier, monospace;
             margin: 20px;
             overflow: hidden;
             user-select: none;
         }
-
         .hud-text {
             font-weight: bold;
             text-transform: uppercase;
@@ -27,1133 +20,246 @@
             margin-bottom: 5px;
             text-shadow: 0 0 8px #00bfff;
         }
-
         .hud-grid {
             display: flex;
             justify-content: space-between;
-            width: 860px;
+            width: 640px;
         }
-
         .main-workspace {
             display: flex;
             gap: 15px;
             margin-top: 10px;
             width: 860px;
         }
-
         .container {
             position: relative;
             width: 640px;
             height: 480px;
         }
-
-        video {
+        video, canvas {
             position: absolute;
             top: 0;
             left: 0;
-
             width: 640px;
             height: 480px;
-
-            object-fit: cover;
-
             border: 2px solid #00bfff;
             border-radius: 4px;
-
-            box-shadow:
-                0 0 15px rgba(0, 191, 255, 0.4);
-
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
             transform: scaleX(-1);
-
-            background: black;
         }
-
         canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-
-            width: 640px;
-            height: 480px;
-
             z-index: 10;
-
             background: transparent;
-
-            pointer-events: none;
+            border: none;
+            box-shadow: none;
         }
-
         .tactical-sidebar {
             width: 195px;
             height: 480px;
-
             border: 2px dashed rgba(0, 191, 255, 0.4);
             border-radius: 4px;
-
             padding: 10px;
-
+            box-sizing: border-box;
             background-color: rgba(0, 10, 30, 0.6);
-
             overflow: hidden;
-
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-
         .tracker-row {
             font-size: 11px;
             font-weight: bold;
-
-            color: #00bfff;
-
+            color: rgba(0, 191, 255, 0.85);
             text-shadow: 0 0 4px #00bfff;
-
             white-space: nowrap;
         }
-
         .instructions {
             margin-top: 20px;
-
             color: #888;
-
             font-size: 13px;
             line-height: 1.6;
-
-            width: 860px;
+            width: 640px;
         }
-
         .boot-btn {
             position: absolute;
-
             top: 215px;
             left: 175px;
-
             z-index: 100;
-
             background-color: #00bfff;
             color: black;
-
             border: none;
-
             padding: 15px 25px;
-
-            font-family: "Courier New", monospace;
+            font-family: 'Courier New', monospace;
             font-weight: bold;
             font-size: 14px;
-
             cursor: pointer;
-
             border-radius: 4px;
-
             box-shadow: 0 0 20px #00bfff;
-
-            transition: 0.2s;
-        }
-
-        .boot-btn:hover {
-            transform: scale(1.03);
-
-            box-shadow:
-                0 0 30px #00bfff;
-        }
-
-        .boot-btn:active {
-            transform: scale(0.98);
-        }
-
-        #errorBox {
-            position: absolute;
-
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-
-            z-index: 200;
-
-            color: #ff4444;
-
-            font-size: 12px;
-            font-weight: bold;
-
-            text-align: center;
-
-            text-shadow: 0 0 5px red;
-
-            pointer-events: none;
         }
     </style>
 </head>
-
 <body>
 
-    <!-- ============================= -->
-    <!-- E.D.I.T.H. HEADER -->
-    <!-- ============================= -->
-
     <div class="hud-grid">
-
         <div>
-
-            <div class="hud-text">
-                // E.D.I.T.H. INFINITE ARCHIVE OS v51.0
-            </div>
-
-            <div id="status" class="hud-text">
-                // STATUS: STANDBY
-            </div>
-
-            <div id="action" class="hud-text">
-                // AWAITING HARDWARE INITIALIZATION HANDSHAKE...
-            </div>
-
+            <div class="hud-text">//E.D.I.T.H. AUTONOMOUS ARCHIVE OS v52.0</div>
+            <div id="status" class="hud-text">//STATUS: STANDBY</div>
+            <div id="action" class="hud-text">//AWAITING MASTER OPTICAL COUPLING LINK...</div>
         </div>
-
-        <div style="text-align:right;">
-
-            <div id="clock" class="hud-text">
-                TIME: STANDBY
-            </div>
-
-            <div id="battery" class="hud-text">
-                BATT: 100% [|||||]
-            </div>
-
+        <div style="text-align: right;">
+            <div id="clock" class="hud-text">TIME: STANDBY</div>
+            <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
         </div>
-
     </div>
-
-
-    <!-- ============================= -->
-    <!-- MAIN WORKSPACE -->
-    <!-- ============================= -->
 
     <div class="main-workspace">
-
         <div class="container">
-
-            <button
-                id="bootBtn"
-                class="boot-btn"
-                onclick="bootOpticalMatrix()"
-            >
-                [ 🚀 INITIALIZE CAMERA ]
-            </button>
-
-            <video
-                id="webcam"
-                autoplay
-                muted
-                playsinline
-                width="640"
-                height="480"
-            ></video>
-
-            <canvas
-                id="overlay"
-                width="640"
-                height="480"
-            ></canvas>
-
-            <div id="errorBox"></div>
-
+            <button id="bootBtn" class="boot-btn" onclick="bootOpticalMatrix()">[ 🚀 UNMUTE CAMERA PROTOCOLS ]</button>
+            <video id="webcam" autoplay playsinline width="640" height="480"></video>
+            <canvas id="overlay" width="640" height="480"></canvas>
         </div>
 
-
-        <!-- ============================= -->
-        <!-- SIDEBAR -->
-        <!-- ============================= -->
-
-        <div
-            class="tactical-sidebar"
-            id="sidebarStream"
-        >
-
-            <div
-                id="sideHeader"
-                style="
-                    font-size: 9px;
-                    color: #888;
-                    text-align: center;
-                    border-bottom: 1px solid rgba(0,191,255,0.3);
-                    padding-bottom: 4px;
-                    margin-bottom: 4px;
-                "
-            >
-                // IDENTITY ARCHIVE //
-            </div>
-
+        <div class="tactical-sidebar" id="sidebarStream">
+            <div id="sideHeader" style="font-size: 9px; color: #888; text-align: center; border-bottom: 1px solid rgba(0,191,255,0.3); padding-bottom: 4px; margin-bottom: 4px;">// IDENTITY ARCHIVE //</div>
         </div>
-
     </div>
-
-
-    <!-- ============================= -->
-    <!-- INSTRUCTIONS -->
-    <!-- ============================= -->
 
     <div class="instructions">
-
-        <span
-            id="setupPrompt"
-            style="color:#ffaa00;font-weight:bold;"
-        >
-            [INFINITE DATABASE REGISTRY]
-        </span>
-
-        Click background lens once to focus:
-
-        <br>
-
-        Tap
-        <b style="color:white;">[T]</b>
-        key:
-        Type a custom name to create a profile.
-
-        <br>
-
-        Tap
-        <b style="color:white;">[L]</b>
-        key:
-        Cycle through saved profiles.
-
-        <br>
-
-        Tap
-        <b style="color:white;">[W]</b>
-        key:
-        Step away hands-free.
-
-        <br>
-
-        Tap
-        <b style="color:#ff3333;">[C]</b>
-        key:
-        Completely purge saved profiles.
-
+        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[AUTONOMOUS TRAINING MATRIX]</span> Click the lens frame once to focus:<br>
+        Tap <b style="color: #fff;">[T] key:</b> Type a custom name to sample and permanently log a new face profile.<br>
+        <span style="color: #00ff00;">// 100% HANDS-FREE AUTOMATION ACTIVE:</span> Once saved, names automatically arrive and leave when walking in or out!
     </div>
 
-
-    <!-- ============================= -->
-    <!-- JAVASCRIPT -->
-    <!-- ============================= -->
-
     <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('overlay');
+        const actionText = document.getElementById('action');
+        const statusText = document.getElementById('status');
+        const clockText = document.getElementById('clock');
+        const batteryText = document.getElementById('battery');
+        const sidebarStream = document.getElementById('sidebarStream');
+        const bootBtn = document.getElementById('bootBtn');
+        const setupPrompt = document.getElementById('setupPrompt');
 
-        // =========================================
-        // ELEMENT REFERENCES
-        // =========================================
-
-        const video = document.getElementById("webcam");
-        const canvas = document.getElementById("overlay");
-
-        const actionText = document.getElementById("action");
-        const statusText = document.getElementById("status");
-
-        const clockText = document.getElementById("clock");
-        const batteryText = document.getElementById("battery");
-
-        const sidebarStream =
-            document.getElementById("sidebarStream");
-
-        const bootBtn =
-            document.getElementById("bootBtn");
-
-        const setupPrompt =
-            document.getElementById("setupPrompt");
-
-        const errorBox =
-            document.getElementById("errorBox");
-
-
-        // =========================================
-        // DATABASE
-        // =========================================
-
-        let identityArchive = [];
-
-        try {
-
-            const saved =
-                localStorage.getItem("edith_infinite_archive");
-
-            if (saved) {
-                identityArchive = JSON.parse(saved);
-            }
-
-            if (!Array.isArray(identityArchive)) {
-                identityArchive = [];
-            }
-
-        } catch (error) {
-
-            console.warn(
-                "Archive could not be loaded:",
-                error
-            );
-
-            identityArchive = [];
-        }
-
-
-        let archiveIndex = 0;
-
-
-        // =========================================
-        // SYSTEM VARIABLES
-        // =========================================
+        // Dynamic Database Retrieval
+        let identityArchive = localStorage.getItem('edith_infinite_archive') ? JSON.parse(localStorage.getItem('edith_infinite_archive')) : [];
+        let baselineBackground = null;
 
         let isIdentifying = false;
-
         let identifiedLabel = "";
-
         let scanY = 120;
-
         let scanDirection = 1;
-
         let currentHUDColor = "#00bfff";
-
+        let lastSpokenIdentity = "";
+        
         let isActivated = false;
-
         let batteryCharge = 100;
 
-        let activeLockName = null;
-
-        let cameraStream = null;
-
-
-        // =========================================
-        // TEXT TO SPEECH
-        // =========================================
-
         function speak(text) {
-
-            if (!window.speechSynthesis) {
-                return;
+            const window_speech = window.speechSynthesis;
+            if (window_speech) {
+                window_speech.cancel(); 
+                const utterance = new SpeechSynthesisUtterance(text);
+                window_speech.speak(utterance);
             }
-
-            window.speechSynthesis.cancel();
-
-            const utterance =
-                new SpeechSynthesisUtterance(text);
-
-            utterance.rate = 1;
-            utterance.pitch = 1;
-
-            window.speechSynthesis.speak(utterance);
         }
 
-
-        // =========================================
-        // CAMERA INITIALIZATION
-        // =========================================
-
         async function bootOpticalMatrix() {
-
-            if (isActivated) {
-                return;
-            }
-
+            if (isActivated) return;
             isActivated = true;
-
             bootBtn.style.display = "none";
+            statusText.innerText = "//STATUS: SEARCHING";
+            actionText.innerText = "//COUPLING HARDWARE OPTICAL CHANNELS...";
 
-            errorBox.innerText = "";
+            setInterval(() => {
+                const now = new Date();
+                clockText.innerText = "TIME: " + now.toLocaleTimeString();
+            }, 1000);
 
-            statusText.innerText =
-                "// STATUS: SEARCHING";
-
-            actionText.innerText =
-                "// COUPLING CAMERA DATA PATHS...";
-
-
-            // -----------------------------------------
-            // CHECK BROWSER SUPPORT
-            // -----------------------------------------
-
-            if (!navigator.mediaDevices ||
-                !navigator.mediaDevices.getUserMedia) {
-
-                statusText.innerText =
-                    "// STATUS: CAMERA UNAVAILABLE";
-
-                actionText.innerText =
-                    "// ERROR: BROWSER DOES NOT SUPPORT CAMERA ACCESS";
-
-                errorBox.innerText =
-                    "Camera access requires HTTPS or localhost.";
-
-                isActivated = false;
-
-                bootBtn.style.display = "block";
-
-                return;
-            }
-
-
-            // -----------------------------------------
-            // START CLOCK
-            // -----------------------------------------
-
-            updateClock();
-
-            setInterval(updateClock, 1000);
-
-
-            // -----------------------------------------
-            // START BATTERY
-            // -----------------------------------------
-
-            setInterval(updateBattery, 6000);
-
-
-            // -----------------------------------------
-            // START HUD
-            // -----------------------------------------
+            setInterval(() => {
+                if (batteryCharge > 0) {
+                    batteryCharge -= 1;
+                    let bars = "|||||";
+                    if (batteryCharge < 80) bars = "|||| ";
+                    if (batteryCharge < 60) bars = "|||  ";
+                    if (batteryCharge < 40) bars = "||   ";
+                    if (batteryCharge < 20) bars = "|    ";
+                    batteryText.innerText = "BATT: " + batteryCharge + "% [" + bars + "]";
+                }
+            }, 6000);
 
             setInterval(renderHUDScanlines, 30);
 
-
-            // -----------------------------------------
-            // CAMERA REQUEST
-            // -----------------------------------------
-
             try {
-
-                actionText.innerText =
-                    "// REQUESTING OPTICAL SENSOR PERMISSION...";
-
-
-                cameraStream =
-                    await navigator.mediaDevices.getUserMedia({
-
-                        video: {
-                            width: {
-                                ideal: 640
-                            },
-
-                            height: {
-                                ideal: 480
-                            },
-
-                            facingMode: "user"
-                        },
-
-                        audio: false
-                    });
-
-
-                // -------------------------------------
-                // CONNECT CAMERA TO VIDEO ELEMENT
-                // -------------------------------------
-
-                video.srcObject = cameraStream;
-
-
-                // Make absolutely sure playback begins.
-
-                await video.play();
-
-
-                statusText.innerText =
-                    "// STATUS: OPTICAL MATRIX ONLINE";
-
-                actionText.innerText =
-                    "// CAMERA HANDSHAKE COMPLETE";
-
-                setupPrompt.innerText =
-                    "[INFINITE DATABASE ONLINE]";
-
-                setupPrompt.style.color =
-                    "#00ff88";
-
-
-                speak("Optical matrix online.");
-
-
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
             } catch (err) {
-
-                console.error(
-                    "Camera error:",
-                    err
-                );
-
-
-                statusText.innerText =
-                    "// STATUS: CAMERA ERROR";
-
-
-                // -------------------------------------
-                // FRIENDLY ERROR MESSAGES
-                // -------------------------------------
-
-                if (err.name === "NotAllowedError") {
-
-                    actionText.innerText =
-                        "// CAMERA PERMISSION DENIED";
-
-                    errorBox.innerText =
-                        "Allow camera access in your browser, then reload the page.";
-
-                }
-
-                else if (err.name === "NotFoundError") {
-
-                    actionText.innerText =
-                        "// NO CAMERA DETECTED";
-
-                    errorBox.innerText =
-                        "No camera was found on this device.";
-
-                }
-
-                else if (err.name === "NotReadableError") {
-
-                    actionText.innerText =
-                        "// CAMERA IS ALREADY IN USE";
-
-                    errorBox.innerText =
-                        "Another application may already be using the camera.";
-
-                }
-
-                else {
-
-                    actionText.innerText =
-                        "// CAMERA INITIALIZATION FAILED";
-
-                    errorBox.innerText =
-                        "Camera error: " + err.name;
-                }
-
-
-                bootBtn.innerText =
-                    "[ 🔄 RETRY CAMERA ]";
-
-                bootBtn.style.display = "block";
-
-                isActivated = false;
+                actionText.innerText = "//CAMERA REJECTED LINK CONNECTION";
             }
         }
-
-
-        // =========================================
-        // CLOCK
-        // =========================================
-
-        function updateClock() {
-
-            const now = new Date();
-
-            clockText.innerText =
-                "TIME: " +
-                now.toLocaleTimeString();
-        }
-
-
-        // =========================================
-        // BATTERY
-        // =========================================
-
-        function updateBattery() {
-
-            if (batteryCharge > 0) {
-
-                batteryCharge--;
-
-                let bars = "|||||";
-
-                if (batteryCharge < 80)
-                    bars = "|||| ";
-
-                if (batteryCharge < 60)
-                    bars = "|||  ";
-
-                if (batteryCharge < 40)
-                    bars = "||   ";
-
-                if (batteryCharge < 20)
-                    bars = "|    ";
-
-                batteryText.innerText =
-                    "BATT: " +
-                    batteryCharge +
-                    "% [" +
-                    bars +
-                    "]";
-            }
-        }
-
-
-        // =========================================
-        // SIDEBAR
-        // =========================================
 
         function clearSidebar() {
-
-            while (
-                sidebarStream.children.length > 1
-            ) {
-
-                sidebarStream.removeChild(
-                    sidebarStream.lastChild
-                );
+            while (sidebarStream.children.length > 1) {
+                sidebarStream.removeChild(sidebarStream.lastChild);
             }
         }
 
-
         function addSidebarRow(text) {
-
-            const row =
-                document.createElement("div");
-
-            row.className =
-                "tracker-row";
-
-            row.innerText =
-                text;
-
-            row.style.color =
-                currentHUDColor;
-
-            row.style.textShadow =
-                "0 0 4px " +
-                currentHUDColor;
-
+            let row = document.createElement('div');
+            row.className = 'tracker-row';
+            row.innerText = text;
+            row.style.color = currentHUDColor;
+            row.style.textShadow = "0 0 4px " + currentHUDColor;
             sidebarStream.appendChild(row);
         }
 
-
-        // =========================================
-        // HUD SCANLINES
-        // =========================================
-
         function renderHUDScanlines() {
-
-            const ctx =
-                canvas.getContext("2d");
-
-            ctx.clearRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-
-            // -----------------------------------------
-            // SCANNING LINE
-            // -----------------------------------------
-
-            ctx.strokeStyle =
-                isIdentifying
-                    ? "#ffffff"
-                    : currentHUDColor;
-
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = isIdentifying ? '#ffffff' : currentHUDColor;
             ctx.lineWidth = 2;
-
             ctx.beginPath();
-
-            ctx.moveTo(
-                10,
-                scanY
-            );
-
-            ctx.lineTo(
-                canvas.width - 10,
-                scanY
-            );
-
+            ctx.moveTo(10, scanY);
+            ctx.lineTo(canvas.width - 10, scanY);
             ctx.stroke();
+            
+            scanY += (isIdentifying ? 15 : 4) * scanDirection;
+            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-
-            scanY +=
-                (isIdentifying ? 15 : 4)
-                * scanDirection;
-
-
-            if (
-                scanY >
-                canvas.height - 15
-                ||
-                scanY < 15
-            ) {
-
-                scanDirection *= -1;
-            }
-
-
-            // -----------------------------------------
-            // TARGET BOX
-            // -----------------------------------------
-
-            const boxX = 220;
-            const boxY = 100;
-            const boxW = 200;
-            const boxH = 260;
-
-
-            ctx.strokeStyle =
-                isIdentifying
-                    ? "#ffffff"
-                    : currentHUDColor;
-
+            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
+            ctx.strokeStyle = isIdentifying ? '#ffffff' : currentHUDColor;
             ctx.lineWidth = 3;
-
-            ctx.strokeRect(
-                boxX,
-                boxY,
-                boxW,
-                boxH
-            );
-
-
-            // -----------------------------------------
-            // TARGET TEXT
-            // -----------------------------------------
-
+            ctx.strokeRect(boxX, boxY, boxW, boxH);
+            
             ctx.save();
-
             ctx.scale(-1, 1);
-
-            ctx.fillStyle =
-                isIdentifying
-                    ? "#ffffff"
-                    : currentHUDColor;
-
-            ctx.font =
-                "bold 13px Courier New";
-
-
-            const msg =
-                identifiedLabel ||
-                "BIOMETRIC MONITOR: RADAR FIELD SWEEP ENGAGED...";
-
-
-            ctx.fillText(
-                msg,
-                -(boxX + boxW) + 5,
-                boxY - 10
-            );
-
+            ctx.fillStyle = isIdentifying ? '#ffffff' : currentHUDColor;
+            ctx.font = 'bold 13px Courier New';
+            
+            let msg = identifiedLabel || "BIOMETRIC MONITOR: RADAR FIELD SWEEP ENGAGED...";
+            ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
             ctx.restore();
         }
 
-
-        // =========================================
-        // PROFILE LOCK
-        // =========================================
-
-        function runProfileDossierLock(name) {
-
-            if (!name) {
-                return;
-            }
-
-            isIdentifying = true;
-
-            identifiedLabel = "";
-
-            activeLockName = name;
-
-
-            actionText.innerText =
-                "// PASSIVE RADAR: COMPILING BIOMETRIC BLUEPRINTS...";
-
-
-            clearSidebar();
-
-
-            setTimeout(function () {
-
-                isIdentifying = false;
-
-                identifiedLabel =
-                    "TARGET LOCKED: " +
-                    name.toUpperCase();
-
-
-                actionText.innerText =
-                    "// TARGET TRACKING ACTIVE: " +
-                    name.toUpperCase();
-
-
-                // -------------------------------------
-                // HUD COLOR
-                // -------------------------------------
-
-                if (
-                    name.toLowerCase() ===
-                    "sage keim"
-                ) {
-
-                    currentHUDColor =
-                        "#00bfff";
-
-                } else {
-
-                    currentHUDColor =
-                        "#ffaa00";
-                }
-
-
-                // -------------------------------------
-                // SIDEBAR DATA
-                // -------------------------------------
-
-                addSidebarRow(
-                    "TARGET: " +
-                    name.toUpperCase()
-                );
-
-                addSidebarRow(
-                    "REGISTRY: PERMANENT"
-                );
-
-                addSidebarRow(
-                    "STATUS: TRACKED"
-                );
-
-                addSidebarRow(
-                    "CORE_LINK: ENGAGED"
-                );
-
-                addSidebarRow(
-                    "CLEARANCE: GRANTED"
-                );
-
-
-                speak(
-                    "Target locked. " +
-                    name
-                );
-
-            }, 1800);
-        }
-
-
-        // =========================================
-        // SAVE DATABASE
-        // =========================================
-
-        function saveArchive() {
-
+        // DYNAMIC COLOR PROFILE SAMPLER (Safe pass-through pixel measurement)
+        function getPixelSampleMatrix() {
             try {
-
-                localStorage.setItem(
-                    "edith_infinite_archive",
-                    JSON.stringify(identityArchive)
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Could not save archive:",
-                    error
-                );
-            }
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = 640; tempCanvas.height = 480;
+                const ctx = tempCanvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, 640, 480);
+                const data = ctx.getImageData(220, 100, 200, 260).data;
+                let r = 0, g = 0, b = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i]; g += data[i+1]; b += data[i+2];
+                }
+                const total = data.length / 4;
+                return { r: r / total, g: g / total, b: b / total };
+            } catch (e) { return { r: 120, g: 120, b: 120 }; }
         }
 
-
-        // =========================================
-        // T KEY — CREATE PROFILE
-        // =========================================
-
-        document.addEventListener(
-            "keydown",
-            function(event) {
-
-                const key =
-                    event.key.toLowerCase();
-
-
-                // -------------------------------------
-                // T = NEW PROFILE
-                // -------------------------------------
-
-                if (key === "t") {
-
-                    const name =
-                        prompt(
-                            "E.D.I.T.H. PROFILE REGISTRY\n\nEnter profile name:"
-                        );
-
-
-                    if (
-                        name &&
-                        name.trim() !== ""
-                    ) {
-
-                        const cleanName =
-                            name.trim();
-
-
-                        identityArchive.push(
-                            cleanName
-                        );
-
-
-                        saveArchive();
-
-
-                        actionText.innerText =
-                            "// PROFILE REGISTERED: " +
-                            cleanName.toUpperCase();
-
-
-                        speak(
-                            "Profile registered."
-                        );
-
-
-                        runProfileDossierLock(
-                            cleanName
-                        );
-                    }
-                }
-
-
-                // -------------------------------------
-                // L = LOAD NEXT PROFILE
-                // -------------------------------------
-
-                if (key === "l") {
-
-                    if (
-                        identityArchive.length === 0
-                    ) {
-
-                        actionText.innerText =
-                            "// ARCHIVE EMPTY";
-
-                        speak(
-                            "No profiles available."
-                        );
-
-                        return;
-                    }
-
-
-                    if (
-                        archiveIndex >=
-                        identityArchive.length
-                    ) {
-
-                        archiveIndex = 0;
-                    }
-
-
-                    const name =
-                        identityArchive[
-                            archiveIndex
-                        ];
-
-
-                    archiveIndex++;
-
-
-                    runProfileDossierLock(
-                        name
-                    );
-                }
-
-
-                // -------------------------------------
-                // W = STEP AWAY
-                // -------------------------------------
-
-                if (key === "w") {
-
-                    identifiedLabel =
-                        "AWAY MODE";
-
-                    actionText.innerText =
-                        "// HANDS-FREE AWAY MODE ACTIVE";
-
-                    clearSidebar();
-
-                    addSidebarRow(
-                        "SYSTEM: HANDS-FREE"
-                    );
-
-                    addSidebarRow(
-                        "RADAR: ACTIVE"
-                    );
-
-                    addSidebarRow(
-                        "ARCHIVE: ONLINE"
-                    );
-
-                    speak(
-                        "Hands-free mode active."
-                    );
-                }
-
-
-                // -------------------------------------
-                // C = CLEAR DATABASE
-                // -------------------------------------
-
-                if (key === "c") {
-
-                    const confirmClear =
-                        confirm(
-                            "PURGE ALL SAVED E.D.I.T.H. PROFILES?"
-                        );
-
-
-                    if (confirmClear) {
-
-                        identityArchive = [];
-
-                        archiveIndex = 0;
-
-                        activeLockName = null;
-
-                        localStorage.removeItem(
-                            "edith_infinite_archive"
-                        );
-
-
-                        identifiedLabel =
-                            "ARCHIVE PURGED";
-
-
-                        actionText.innerText =
-                            "// ALL SAVED PROFILES PURGED";
-
-
-                        clearSidebar();
-
-                        addSidebarRow(
-                            "ARCHIVE: EMPTY"
-                        );
-
-
-                        speak(
-                            "Archive purged."
-                        );
-                    }
-                }
-
-            }
-        );
-
-
-        // =========================================
-        // START HUD CLOCK DISPLAY
-        // =========================================
-
-        updateClock();
-
-
-        // =========================================
-        // INITIAL HUD DRAW
-        // =========================================
-
-        renderHUDScanlines();
-
-    </script>
-
-</body>
-</html>
+        // CONTINUOUS AUTONOMOUS RADAR ENGINE (Fires every 3 seconds hands-free!)
+        function startRadarTrackingEngine() {
+            setInterval(() => {
+                if (video.readyState !== 4 || identityArchive.length === 0 || isIdentifying) return;
