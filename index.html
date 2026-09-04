@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E.D.I.T.H. Biometric Matrix v50.0</title>
+
     <style>
         body {
             background-color: black;
@@ -13,6 +14,7 @@
             overflow: hidden;
             user-select: none;
         }
+
         .hud-text {
             font-weight: bold;
             text-transform: uppercase;
@@ -20,42 +22,51 @@
             margin-bottom: 5px;
             text-shadow: 0 0 8px #00bfff;
         }
+
         .hud-grid {
             display: flex;
             justify-content: space-between;
-            width: 640px;
+            width: 880px;
         }
+
         .main-workspace {
             display: flex;
             gap: 15px;
             margin-top: 10px;
-            width: 860px;
+            width: 1170px;
         }
+
         .container {
             position: relative;
-            width: 640px;
-            height: 480px;
+            width: 880px;
+            height: 660px;
         }
-        video, canvas {
+
+        video,
+        canvas {
             position: absolute;
             top: 0;
             left: 0;
-            width: 640px;
-            height: 480px;
+            width: 880px;
+            height: 660px;
             border: 2px solid #00bfff;
             border-radius: 4px;
             box-shadow: 0 0 15px rgba(0, 191, 255, 0.4);
-            transform: scaleX(-1); /* Mirrors the stream to act like tactical lenses */
+            transform: scaleX(-1);
+            object-fit: cover;
         }
+
         canvas {
             z-index: 10;
             background: transparent;
             border: none;
             box-shadow: none;
+            pointer-events: none;
         }
+
         .tactical-sidebar {
-            width: 195px;
-            height: 480px;
+            width: 270px;
+            height: 660px;
             border: 2px dashed rgba(0, 191, 255, 0.4);
             border-radius: 4px;
             padding: 10px;
@@ -66,198 +77,1041 @@
             flex-direction: column;
             gap: 8px;
         }
+
         .tracker-row {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
             color: rgba(0, 191, 255, 0.85);
             text-shadow: 0 0 4px #00bfff;
             white-space: nowrap;
         }
+
         .instructions {
             margin-top: 20px;
             color: #888;
             font-size: 13px;
             line-height: 1.6;
-            width: 640px;
+            width: 880px;
         }
+
         .boot-btn {
             position: absolute;
-            top: 215px;
-            left: 175px;
+            top: 295px;
+            left: 240px;
             z-index: 100;
             background-color: #00bfff;
             color: black;
             border: none;
-            padding: 15px 25px;
+            padding: 18px 30px;
             font-family: 'Courier New', monospace;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
             border-radius: 4px;
             box-shadow: 0 0 20px #00bfff;
         }
+
+        .boot-btn:hover {
+            box-shadow: 0 0 35px #00bfff;
+        }
     </style>
 </head>
+
 <body>
 
+    <!-- ===================================================== -->
+    <!-- HEADER -->
+    <!-- ===================================================== -->
+
     <div class="hud-grid">
+
         <div>
-            <div class="hud-text">//E.D.I.T.H. BIOMETRIC OS PROFILE MATRIX v50.0</div>
-            <div id="status" class="hud-text">//STATUS: STANDBY</div>
-            <div id="action" class="hud-text">//AWAITING MASTER HANDSHAKE CONNECTION...</div>
+            <div class="hud-text">
+                //E.D.I.T.H. BIOMETRIC OS PROFILE MATRIX v50.0
+            </div>
+
+            <div id="status" class="hud-text">
+                //STATUS: STANDBY
+            </div>
+
+            <div id="action" class="hud-text">
+                //AWAITING MASTER HANDSHAKE CONNECTION...
+            </div>
         </div>
+
         <div style="text-align: right;">
-            <div id="clock" class="hud-text">TIME: STANDBY</div>
-            <div id="battery" class="hud-text">BATT: 100% [|||||]</div>
+
+            <div id="clock" class="hud-text">
+                TIME: STANDBY
+            </div>
+
+            <div id="battery" class="hud-text">
+                BATT: 100% [|||||]
+            </div>
+
         </div>
+
     </div>
+
+
+    <!-- ===================================================== -->
+    <!-- CAMERA WORKSPACE -->
+    <!-- ===================================================== -->
 
     <div class="main-workspace">
+
         <div class="container">
-            <!-- Unblockable safe camera initialization switch -->
-            <button id="bootBtn" class="boot-btn" onclick="bootOpticalMatrix()">[ 🚀 UNMUTE CAMERA PROTOCOLS ]</button>
-            <video id="webcam" autoplay playsinline width="640" height="480"></video>
-            <canvas id="overlay" width="640" height="480"></canvas>
+
+            <button
+                id="bootBtn"
+                class="boot-btn"
+                onclick="bootOpticalMatrix()">
+
+                [ 🚀 UNMUTE CAMERA PROTOCOLS ]
+
+            </button>
+
+            <video
+                id="webcam"
+                autoplay
+                playsinline
+                muted
+                width="880"
+                height="660">
+            </video>
+
+            <canvas
+                id="overlay"
+                width="880"
+                height="660">
+            </canvas>
+
         </div>
 
-        <div class="tactical-sidebar" id="sidebarStream">
-            <div id="sideHeader" style="font-size: 9px; color: #888; text-align: center; border-bottom: 1px solid rgba(0,191,255,0.3); padding-bottom: 4px; margin-bottom: 4px;">// MEMORY REGISTRY //</div>
+
+        <!-- ================================================= -->
+        <!-- MEMORY REGISTRY -->
+        <!-- ================================================= -->
+
+        <div
+            class="tactical-sidebar"
+            id="sidebarStream">
+
+            <div
+                id="sideHeader"
+                style="
+                    font-size: 10px;
+                    color: #888;
+                    text-align: center;
+                    border-bottom: 1px solid rgba(0,191,255,0.3);
+                    padding-bottom: 6px;
+                    margin-bottom: 4px;
+                ">
+
+                // MEMORY REGISTRY //
+
+            </div>
+
         </div>
+
     </div>
+
+
+    <!-- ===================================================== -->
+    <!-- INSTRUCTIONS -->
+    <!-- ===================================================== -->
 
     <div class="instructions">
-        <span id="setupPrompt" style="color: #ffaa00; font-weight: bold;">[PERMANENT TRAINING MATRIX]</span> Center target inside box and map their registry values:<br>
-        Tap <b style="color: #fff;">[S] key</b> to Toggle In/Out your Master Profile | Tap <b style="color: #fff;">[G] key</b> to Toggle In/Out Grandma's Guest Profile.<br>
-        <span style="color: #ff3333; font-weight: bold;">[WIPE INDEX]</span> Tap **[C] key** once to completely erase all saved face fingerprints from memory files.
+
+        <span
+            id="setupPrompt"
+            style="color: #ffaa00; font-weight: bold;">
+
+            [PERMANENT TRAINING MATRIX]
+
+        </span>
+
+        Center target inside box and map their registry values:<br>
+
+        Tap
+        <b style="color: #fff;">[S] key</b>
+        to Toggle In/Out your Master Profile |
+
+        Tap
+        <b style="color: #fff;">[G] key</b>
+        to Toggle In/Out Grandma's Guest Profile.<br>
+
+        <span
+            style="color: #ff3333; font-weight: bold;">
+
+            [WIPE INDEX]
+
+        </span>
+
+        Tap
+        <b style="color: #fff;">[C] key</b>
+        once to completely erase all saved profile fingerprints.
+
     </div>
 
+
+    <!-- ===================================================== -->
+    <!-- JAVASCRIPT -->
+    <!-- ===================================================== -->
+
     <script>
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('overlay');
-        const actionText = document.getElementById('action');
-        const statusText = document.getElementById('status');
-        const clockText = document.getElementById('clock');
-        const batteryText = document.getElementById('battery');
-        const sidebarStream = document.getElementById('sidebarStream');
-        const bootBtn = document.getElementById('bootBtn');
-        const setupPrompt = document.getElementById('setupPrompt');
+
+        // =====================================================
+        // DOM REFERENCES
+        // =====================================================
+
+        const video =
+            document.getElementById("webcam");
+
+        const canvas =
+            document.getElementById("overlay");
+
+        const actionText =
+            document.getElementById("action");
+
+        const statusText =
+            document.getElementById("status");
+
+        const clockText =
+            document.getElementById("clock");
+
+        const batteryText =
+            document.getElementById("battery");
+
+        const sidebarStream =
+            document.getElementById("sidebarStream");
+
+        const bootBtn =
+            document.getElementById("bootBtn");
+
+        const setupPrompt =
+            document.getElementById("setupPrompt");
+
+
+        // =====================================================
+        // PROFILE SETTINGS
+        // =====================================================
 
         const PROFILE_A_NAME = "Sage Keim";
         const PROFILE_B_NAME = "Grandma";
 
-        // Retrieve background stored registry locks straight from computer hard drive registry
-        let hasSavedSage = localStorage.getItem('edith_has_sage') === 'true';
-        let hasSavedGrandma = localStorage.getItem('edith_has_grandma') === 'true';
+
+        // =====================================================
+        // LOCAL MEMORY
+        // =====================================================
+
+        let hasSavedSage =
+            localStorage.getItem("edith_has_sage") === "true";
+
+        let hasSavedGrandma =
+            localStorage.getItem("edith_has_grandma") === "true";
+
+
+        // =====================================================
+        // SYSTEM STATE
+        // =====================================================
+
+        let isActivated = false;
 
         let isIdentifying = false;
+
         let identifiedLabel = "";
+
         let scanY = 120;
+
         let scanDirection = 1;
+
         let currentHUDColor = "#00bfff";
+
         let lastSpokenIdentity = "";
-        
-        let isActivated = false;
+
         let batteryCharge = 100;
-        let currentActiveLock = null; // Track who is stepping into field frame arrays
+
+        let currentActiveLock = null;
+
+        let cameraStream = null;
+
+
+        // =====================================================
+        // SPEECH
+        // =====================================================
 
         function speak(text) {
-            const window_speech = window.speechSynthesis;
-            if (window_speech) {
-                window_speech.cancel(); 
-                const utterance = new SpeechSynthesisUtterance(text);
-                window_speech.speak(utterance);
-            }
+
+            const speech =
+                window.speechSynthesis;
+
+            if (!speech) return;
+
+            speech.cancel();
+
+            const utterance =
+                new SpeechSynthesisUtterance(text);
+
+            speech.speak(utterance);
         }
+
+
+        // =====================================================
+        // CAMERA BOOT
+        // =====================================================
 
         async function bootOpticalMatrix() {
+
             if (isActivated) return;
-            isActivated = true;
-            bootBtn.style.display = "none";
-            statusText.innerText = "//STATUS: INITIALIZING VECTORS";
-            actionText.innerText = "//COUPLING HARDWARE LINK CHANNELS...";
 
-            // Load real-world time ticking loop
-            setInterval(() => {
-                const now = new Date();
-                clockText.innerText = "TIME: " + now.toLocaleTimeString();
-            }, 1000);
 
-            // Active Battery Drain Loop
-            setInterval(() => {
-                if (batteryCharge > 0) {
-                    batteryCharge -= 1;
-                    let bars = "|||||";
-                    if (batteryCharge < 80) bars = "|||| ";
-                    if (batteryCharge < 60) bars = "|||  ";
-                    if (batteryCharge < 40) bars = "||   ";
-                    if (batteryCharge < 20) bars = "|    ";
-                    batteryText.innerText = "BATT: " + batteryCharge + "% [" + bars + "]";
-                }
-            }, 6000);
+            statusText.innerText =
+                "//STATUS: REQUESTING CAMERA";
 
-            setInterval(renderHUDScanlines, 30);
+            actionText.innerText =
+                "//COUPLING HARDWARE LINK CHANNELS...";
+
 
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-                video.srcObject = stream;
+
+                if (
+                    !navigator.mediaDevices ||
+                    !navigator.mediaDevices.getUserMedia
+                ) {
+
+                    throw new Error(
+                        "Camera API unavailable."
+                    );
+
+                }
+
+
+                // Ask browser for camera permission
+
+                cameraStream =
+                    await navigator.mediaDevices.getUserMedia({
+
+                        video: {
+                            width: {
+                                ideal: 880
+                            },
+
+                            height: {
+                                ideal: 660
+                            },
+
+                            facingMode: "user"
+                        },
+
+                        audio: false
+
+                    });
+
+
+                // Attach camera
+
+                video.srcObject =
+                    cameraStream;
+
+
+                // Start playback
+
+                await video.play();
+
+
+                // ONLY mark activated after success
+
+                isActivated = true;
+
+                bootBtn.style.display =
+                    "none";
+
+
+                statusText.innerText =
+                    "//STATUS: ONLINE";
+
+                actionText.innerText =
+                    "//OPTICAL CHANNELS ONLINE";
+
+
+                updateClock();
+
+                initializeRegistry();
+
+                speak(
+                    "Optical matrix online."
+                );
+
+
             } catch (err) {
-                actionText.innerText = "//CAMERA PERMISSION BLOCKED. RE-CHECK TOP LOCK ICON.";
+
+                console.error(
+                    "Camera error:",
+                    err
+                );
+
+
+                isActivated = false;
+
+                bootBtn.style.display =
+                    "block";
+
+
+                statusText.innerText =
+                    "//STATUS: CAMERA ERROR";
+
+                actionText.innerText =
+                    "//CAMERA ACCESS DENIED OR UNAVAILABLE";
+
             }
+
         }
+
+
+        // =====================================================
+        // CLOCK
+        // =====================================================
+
+        function updateClock() {
+
+            const now =
+                new Date();
+
+            clockText.innerText =
+                "TIME: " +
+                now.toLocaleTimeString();
+
+        }
+
+
+        setInterval(
+            updateClock,
+            1000
+        );
+
+
+        // =====================================================
+        // BATTERY
+        // =====================================================
+
+        function updateBattery() {
+
+            let bars = "|||||";
+
+            if (batteryCharge < 80)
+                bars = "|||| ";
+
+            if (batteryCharge < 60)
+                bars = "|||  ";
+
+            if (batteryCharge < 40)
+                bars = "||   ";
+
+            if (batteryCharge < 20)
+                bars = "|    ";
+
+            if (batteryCharge <= 0)
+                bars = "     ";
+
+
+            batteryText.innerText =
+                "BATT: " +
+                batteryCharge +
+                "% [" +
+                bars +
+                "]";
+
+        }
+
+
+        setInterval(() => {
+
+            if (
+                isActivated &&
+                batteryCharge > 0
+            ) {
+
+                batteryCharge -= 1;
+
+                updateBattery();
+
+            }
+
+        }, 6000);
+
+
+        // =====================================================
+        // SIDEBAR
+        // =====================================================
 
         function clearSidebar() {
-            while (sidebarStream.children.length > 1) {
-                sidebarStream.removeChild(sidebarStream.lastChild);
+
+            while (
+                sidebarStream.children.length > 1
+            ) {
+
+                sidebarStream.removeChild(
+                    sidebarStream.lastChild
+                );
+
             }
+
         }
+
 
         function addSidebarRow(text) {
-            let row = document.createElement('div');
-            row.className = 'tracker-row';
-            row.innerText = text;
-            row.style.color = currentHUDColor;
-            row.style.textShadow = "0 0 4px " + currentHUDColor;
+
+            const row =
+                document.createElement("div");
+
+            row.className =
+                "tracker-row";
+
+            row.innerText =
+                text;
+
+            row.style.color =
+                currentHUDColor;
+
+            row.style.textShadow =
+                "0 0 4px " +
+                currentHUDColor;
+
             sidebarStream.appendChild(row);
+
         }
 
-        function renderHUDScanlines() {
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Vector Laser Scanner Line
-            ctx.strokeStyle = isIdentifying ? '#ffffff' : currentHUDColor;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(10, scanY);
-            ctx.lineTo(canvas.width - 10, scanY);
-            ctx.stroke();
-            
-            scanY += (isIdentifying ? 15 : 4) * scanDirection;
-            if (scanY > canvas.height - 15 || scanY < 15) scanDirection *= -1;
 
-            // Target Bounding Box frame
-            const boxX = 220; const boxY = 100; const boxW = 200; const boxH = 260;
-            ctx.strokeStyle = isIdentifying ? '#ffffff' : currentHUDColor;
-            ctx.lineWidth = 3;
-            ctx.strokeRect(boxX, boxY, boxW, boxH);
-            
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.fillStyle = isIdentifying ? '#ffffff' : currentHUDColor;
-            ctx.font = 'bold 13px Courier New';
-            
-            let msg = identifiedLabel || "BIOMETRIC MONITOR: RADAR FIELD SWEEP ENGAGED...";
-            ctx.fillText(msg, -(boxX + boxW) + 5, boxY - 10);
-            ctx.restore();
-        }
+        // =====================================================
+        // REGISTRY DISPLAY
+        // =====================================================
 
-        function runProfileDossierLock(name, actionLabel, speechGreeting, themeColor, registryData) {
-            isIdentifying = true;
-            identifiedLabel = "";
-            actionText.innerText = "//PASSIVE RADAR: COMPILING BIOMETRIC BLUEPRINTS...";
+        function initializeRegistry() {
+
             clearSidebar();
 
+            addSidebarRow(
+                "SYSTEM: MEMORY ONLINE"
+            );
+
+            addSidebarRow(
+                "--------------------"
+            );
+
+            addSidebarRow(
+                hasSavedSage
+                    ? "MASTER: REGISTERED"
+                    : "MASTER: UNREGISTERED"
+            );
+
+            addSidebarRow(
+                hasSavedGrandma
+                    ? "GUEST: REGISTERED"
+                    : "GUEST: UNREGISTERED"
+            );
+
+            addSidebarRow(
+                "--------------------"
+            );
+
+            addSidebarRow(
+                "BIOMETRIC RADAR: READY"
+            );
+
+        }
+
+
+        // =====================================================
+        // PROFILE LOCK
+        // =====================================================
+
+        function runProfileDossierLock(
+            name,
+            actionLabel,
+            speechGreeting,
+            themeColor,
+            registryData
+        ) {
+
+            isIdentifying = true;
+
+            identifiedLabel = "";
+
+            currentHUDColor =
+                themeColor;
+
+            currentActiveLock =
+                name;
+
+            actionText.innerText =
+                "//PASSIVE RADAR: COMPILING BIOMETRIC BLUEPRINTS...";
+
+            clearSidebar();
+
+
             setTimeout(() => {
+
                 isIdentifying = false;
-                identifiedLabel = "TARGET LOCKED: " + name.toUpperCase();
-                actionText.innerText = actionLabel;
+
+                identifiedLabel =
+                    "TARGET LOCKED: " +
+                    name.toUpperCase();
+
+                actionText.innerText =
+                    actionLabel;
+
+
+                registryData.forEach(
+                    item => addSidebarRow(item)
+                );
+
+
+                if (
+                    lastSpokenIdentity !== name
+                ) {
+
+                    speak(
+                        speechGreeting
+                    );
+
+                    lastSpokenIdentity =
+                        name;
+
+                }
+
+            }, 900);
+
+        }
+
+
+        // =====================================================
+        // MASTER PROFILE
+        // =====================================================
+
+        function toggleSageProfile() {
+
+            if (!isActivated) return;
+
+
+            if (!hasSavedSage) {
+
+                hasSavedSage = true;
+
+                localStorage.setItem(
+                    "edith_has_sage",
+                    "true"
+                );
+
+
+                runProfileDossierLock(
+
+                    PROFILE_A_NAME,
+
+                    "//MASTER PROFILE REGISTERED",
+
+                    "Master profile registered.",
+
+                    "#00ff00",
+
+                    [
+                        "PROFILE: MASTER",
+                        "REGISTRY: CREATED",
+                        "STATUS: PERMANENT",
+                        "BIOMETRIC INDEX: STORED",
+                        "ACCESS: AUTHORIZED"
+                    ]
+
+                );
+
+            }
+
+            else {
+
+                runProfileDossierLock(
+
+                    PROFILE_A_NAME,
+
+                    "//MASTER PROFILE RECOGNIZED",
+
+                    "Master profile recognized.",
+
+                    "#00ff00",
+
+                    [
+                        "PROFILE: MASTER",
+                        "REGISTRY: MATCH",
+                        "STATUS: VERIFIED",
+                        "BIOMETRIC INDEX: ACTIVE",
+                        "ACCESS: AUTHORIZED"
+                    ]
+
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // GRANDMA PROFILE
+        // =====================================================
+
+        function toggleGrandmaProfile() {
+
+            if (!isActivated) return;
+
+
+            if (!hasSavedGrandma) {
+
+                hasSavedGrandma = true;
+
+                localStorage.setItem(
+                    "edith_has_grandma",
+                    "true"
+                );
+
+
+                runProfileDossierLock(
+
+                    PROFILE_B_NAME,
+
+                    "//GUEST PROFILE REGISTERED",
+
+                    "Guest profile registered.",
+
+                    "#ffaa00",
+
+                    [
+                        "PROFILE: GRANDMA",
+                        "REGISTRY: CREATED",
+                        "STATUS: PERMANENT",
+                        "BIOMETRIC INDEX: STORED",
+                        "ACCESS: GUEST"
+                    ]
+
+                );
+
+            }
+
+            else {
+
+                runProfileDossierLock(
+
+                    PROFILE_B_NAME,
+
+                    "//GUEST PROFILE RECOGNIZED",
+
+                    "Grandma profile recognized.",
+
+                    "#ffaa00",
+
+                    [
+                        "PROFILE: GRANDMA",
+                        "REGISTRY: MATCH",
+                        "STATUS: VERIFIED",
+                        "BIOMETRIC INDEX: ACTIVE",
+                        "ACCESS: GUEST"
+                    ]
+
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
+        // WIPE MEMORY
+        // =====================================================
+
+        function wipeMemory() {
+
+            if (!isActivated) return;
+
+
+            const confirmed =
+                confirm(
+                    "WIPE INDEX?\n\n" +
+                    "This will erase the saved " +
+                    "EDITH demo profiles from this browser."
+                );
+
+
+            if (!confirmed) return;
+
+
+            localStorage.removeItem(
+                "edith_has_sage"
+            );
+
+            localStorage.removeItem(
+                "edith_has_grandma"
+            );
+
+
+            hasSavedSage = false;
+
+            hasSavedGrandma = false;
+
+            currentActiveLock = null;
+
+            identifiedLabel = "";
+
+            lastSpokenIdentity = "";
+
+            currentHUDColor =
+                "#00bfff";
+
+
+            statusText.innerText =
+                "//STATUS: MEMORY WIPE COMPLETE";
+
+            actionText.innerText =
+                "//BIOMETRIC REGISTRY CLEARED";
+
+
+            clearSidebar();
+
+
+            addSidebarRow(
+                "MEMORY: WIPED"
+            );
+
+            addSidebarRow(
+                "MASTER: UNREGISTERED"
+            );
+
+            addSidebarRow(
+                "GUEST: UNREGISTERED"
+            );
+
+
+            speak(
+                "Biometric registry cleared."
+            );
+
+        }
+
+
+        // =====================================================
+        // HUD SCANNER
+        // =====================================================
+
+        function renderHUDScanlines() {
+
+            const ctx =
+                canvas.getContext("2d");
+
+
+            ctx.clearRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            // Scanner line
+
+            ctx.strokeStyle =
+                isIdentifying
+                    ? "#ffffff"
+                    : currentHUDColor;
+
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                10,
+                scanY
+            );
+
+            ctx.lineTo(
+                canvas.width - 10,
+                scanY
+            );
+
+            ctx.stroke();
+
+
+            // Scanner movement
+
+            scanY +=
+                (isIdentifying ? 15 : 4)
+                * scanDirection;
+
+
+            if (
+                scanY >
+                    canvas.height - 15
+                ||
+                scanY < 15
+            ) {
+
+                scanDirection *= -1;
+
+            }
+
+
+            // Target box
+
+            const boxW = 260;
+
+            const boxH = 360;
+
+            const boxX =
+                (canvas.width - boxW) / 2;
+
+            const boxY =
+                (canvas.height - boxH) / 2;
+
+
+            ctx.strokeStyle =
+                isIdentifying
+                    ? "#ffffff"
+                    : currentHUDColor;
+
+            ctx.lineWidth = 3;
+
+            ctx.strokeRect(
+                boxX,
+                boxY,
+                boxW,
+                boxH
+            );
+
+
+            // HUD text
+
+            ctx.save();
+
+            ctx.scale(-1, 1);
+
+            ctx.fillStyle =
+                isIdentifying
+                    ? "#ffffff"
+                    : currentHUDColor;
+
+            ctx.font =
+                "bold 15px Courier New";
+
+
+            const msg =
+                identifiedLabel ||
+                "BIOMETRIC MONITOR: RADAR FIELD SWEEP ENGAGED...";
+
+
+            ctx.fillText(
+
+                msg,
+
+                -(
+                    boxX +
+                    boxW
+                ) + 5,
+
+                boxY - 12
+
+            );
+
+
+            ctx.restore();
+
+        }
+
+
+        // Run HUD animation
+
+        setInterval(
+            renderHUDScanlines,
+            30
+        );
+
+
+        // =====================================================
+        // KEYBOARD CONTROLS
+        // =====================================================
+
+        document.addEventListener(
+            "keydown",
+            event => {
+
+                if (!isActivated)
+                    return;
+
+
+                const key =
+                    event.key.toLowerCase();
+
+
+                // S = Sage
+
+                if (key === "s") {
+
+                    toggleSageProfile();
+
+                }
+
+
+                // G = Grandma
+
+                else if (key === "g") {
+
+                    toggleGrandmaProfile();
+
+                }
+
+
+                // C = Clear
+
+                else if (key === "c") {
+
+                    wipeMemory();
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // VIDEO READY
+        // =====================================================
+
+        video.addEventListener(
+            "playing",
+            () => {
+
+                if (!isActivated)
+                    return;
+
+                statusText.innerText =
+                    "//STATUS: ONLINE";
+
+                actionText.innerText =
+                    "//OPTICAL CHANNELS ONLINE";
+
+                updateClock();
+
+            }
+        );
+
+
+        // =====================================================
+        // INITIAL STATE
+        // =====================================================
+
+        updateBattery();
+
+        statusText.innerText =
+            "//STATUS: STANDBY";
+
+        actionText.innerText =
+            "//AWAITING MASTER HANDSHAKE CONNECTION...";
+
+    </script>
+
+</body>
+</html>
