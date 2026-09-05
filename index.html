@@ -1,169 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>E.D.I.T.H. Autonomous Matrix v54.0</title>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>E.D.I.T.H. Autonomous Matrix v55.0</title>
+
 
 <style>
+
+/* =========================================================
+   CORE
+========================================================= */
+
 * {
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
+
     margin: 0;
     padding: 0;
-    background: #000;
-    color: #00bfff;
-    font-family: "Courier New", monospace;
-    overflow: hidden;
-}
 
-body {
-    padding: 18px;
+    background: #000;
+
+    color: #00bfff;
+
+    font-family:
+        "Courier New",
+        Courier,
+        monospace;
+
+    overflow: hidden;
+
     user-select: none;
 }
 
-.hud-grid {
-    width: 1260px;
-    display: flex;
-    justify-content: space-between;
+
+body {
+
+    padding: 18px;
+
+    transition:
+        color .2s ease,
+        background .2s ease;
+
 }
+
+
+/* =========================================================
+   HUD
+========================================================= */
+
+.hud-grid {
+
+    width: 1260px;
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+}
+
 
 .hud-text {
+
     font-weight: bold;
+
     letter-spacing: 2px;
+
     margin-bottom: 6px;
-    text-shadow: 0 0 8px currentColor;
+
+    text-shadow:
+        0 0 8px currentColor;
+
 }
+
 
 #status {
+
     color: #00bfff;
+
 }
+
 
 #action {
+
     color: #00bfff;
+
     max-width: 850px;
+
 }
+
+
+/* =========================================================
+   MAIN CAMERA AREA
+========================================================= */
 
 .main-workspace {
+
     display: flex;
+
     gap: 15px;
+
     margin-top: 14px;
+
 }
+
 
 .camera-container {
+
     position: relative;
+
     width: 960px;
+
     height: 540px;
-    border: 2px solid #00bfff;
+
+    border:
+        2px solid #00bfff;
+
     border-radius: 5px;
-    box-shadow: 0 0 20px rgba(0,191,255,.45);
+
     overflow: hidden;
+
     background: #000;
+
+    box-shadow:
+        0 0 20px
+        rgba(0,191,255,.45);
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+
 }
 
-#webcam,
-#overlay {
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+#webcam {
+
     position: absolute;
+
     inset: 0;
 
     width: 100%;
+
     height: 100%;
 
     object-fit: cover;
+
+    transform:
+        scaleX(-1);
+
+    background: #000;
+
 }
 
-#webcam {
-    transform: scaleX(-1);
-    background: #000;
-}
 
 #overlay {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+
+    height: 100%;
+
     z-index: 5;
+
     pointer-events: none;
+
 }
 
+
+/* =========================================================
+   BOOT BUTTON
+========================================================= */
+
 .boot-btn {
+
     position: absolute;
 
     left: 50%;
     top: 50%;
 
-    transform: translate(-50%, -50%);
+    transform:
+        translate(-50%, -50%);
 
     z-index: 20;
 
-    padding: 18px 30px;
+    padding:
+        18px 30px;
 
     border: none;
+
     border-radius: 5px;
 
     background: #00bfff;
+
     color: #000;
 
-    font-family: "Courier New", monospace;
+    font-family:
+        "Courier New",
+        monospace;
+
     font-weight: bold;
+
     font-size: 16px;
 
     cursor: pointer;
 
     box-shadow:
         0 0 15px #00bfff,
-        0 0 40px rgba(0,191,255,.5);
+        0 0 40px
+        rgba(0,191,255,.5);
+
 }
+
 
 .boot-btn:hover {
+
     background: #fff;
+
 }
+
 
 .boot-btn.hidden {
+
     display: none;
+
 }
 
+
+/* =========================================================
+   CAMERA ERROR
+========================================================= */
+
+#cameraError {
+
+    position: absolute;
+
+    z-index: 30;
+
+    left: 50%;
+    top: 70%;
+
+    transform:
+        translateX(-50%);
+
+    width: 80%;
+
+    text-align: center;
+
+    color: #ff3030;
+
+    font-weight: bold;
+
+    display: none;
+
+    text-shadow:
+        0 0 8px red;
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
 .tactical-sidebar {
+
     width: 285px;
+
     height: 540px;
 
-    border: 2px dashed rgba(0,191,255,.5);
+    border:
+        2px dashed
+        rgba(0,191,255,.5);
+
     border-radius: 5px;
 
     padding: 12px;
 
-    background: rgba(0,10,30,.7);
+    background:
+        rgba(0,10,30,.7);
 
     overflow: hidden;
+
+    transition:
+        border-color .2s ease;
+
 }
 
+
 .side-header {
+
     text-align: center;
+
     color: #888;
 
     font-size: 12px;
 
     border-bottom:
-        1px solid rgba(0,191,255,.35);
+        1px solid
+        rgba(0,191,255,.35);
 
     padding-bottom: 8px;
 
     margin-bottom: 10px;
+
 }
 
+
 .tracker-row {
+
     font-size: 12px;
+
     font-weight: bold;
 
     margin-bottom: 9px;
 
     color: #00bfff;
 
-    text-shadow: 0 0 5px currentColor;
+    text-shadow:
+        0 0 5px currentColor;
 
     white-space: nowrap;
+
 }
 
+
+/* =========================================================
+   INSTRUCTIONS
+========================================================= */
+
 .instructions {
+
     margin-top: 15px;
 
     width: 960px;
@@ -173,142 +357,217 @@ body {
     font-size: 13px;
 
     line-height: 1.65;
+
 }
+
 
 .instructions b {
+
     color: #fff;
+
 }
+
 
 .green {
+
     color: #00ff66;
+
 }
+
 
 .yellow {
+
     color: #ffaa00;
+
 }
 
-.red {
-    color: #ff3030;
-}
 
-body.threat {
-    color: #ff3030;
-}
-
-body.threat .camera-container {
-    border-color: #ff3030;
-
-    box-shadow:
-        0 0 20px rgba(255,0,0,.6),
-        inset 0 0 30px rgba(255,0,0,.15);
-}
-
-body.threat .tactical-sidebar {
-    border-color: rgba(255,0,0,.65);
-}
-
-body.threat #status,
-body.threat #action {
-    color: #ff3030;
-}
+/* =========================================================
+   ARCHIVE
+========================================================= */
 
 .archive-count {
+
     margin-top: 14px;
+
     color: #888;
+
     font-size: 11px;
+
 }
+
 
 .clear-btn {
+
     margin-top: 12px;
 
-    background: transparent;
+    background:
+        transparent;
+
     color: #ff4444;
 
-    border: 1px solid #ff4444;
+    border:
+        1px solid #ff4444;
 
-    padding: 7px 10px;
+    padding:
+        7px 10px;
 
-    font-family: "Courier New", monospace;
+    font-family:
+        "Courier New",
+        monospace;
 
     cursor: pointer;
+
 }
+
 
 .clear-btn:hover {
+
     background: #ff4444;
-    color: black;
+
+    color: #000;
+
 }
 
-#cameraError {
-    position: absolute;
 
-    z-index: 30;
+/* =========================================================
+   THREAT MODE
+========================================================= */
 
-    left: 50%;
-    top: 70%;
+body.threat {
 
-    transform: translateX(-50%);
+    color: #ff3030;
 
-    width: 80%;
-
-    text-align: center;
-
-    color: #ff4444;
-
-    font-weight: bold;
-
-    display: none;
-
-    text-shadow: 0 0 8px red;
 }
 
-.pulse {
-    animation: pulse 0.5s infinite alternate;
+
+body.threat
+.camera-container {
+
+    border-color:
+        #ff3030;
+
+    box-shadow:
+        0 0 25px
+        rgba(255,0,0,.65),
+
+        inset 0 0 30px
+        rgba(255,0,0,.15);
+
 }
 
-@keyframes pulse {
-    from {
-        opacity: .35;
-    }
 
-    to {
-        opacity: 1;
-    }
+body.threat
+.tactical-sidebar {
+
+    border-color:
+        rgba(255,0,0,.7);
+
 }
+
+
+body.threat
+#status,
+
+body.threat
+#action {
+
+    color: #ff3030;
+
+}
+
+
+body.threat
+.side-header {
+
+    color: #ff5555;
+
+}
+
+
+/* =========================================================
+   CALIBRATION MODE
+========================================================= */
+
+body.calibrating
+.camera-container {
+
+    border-color:
+        #ffaa00;
+
+    box-shadow:
+        0 0 25px
+        rgba(255,170,0,.45);
+
+}
+
 </style>
+
 </head>
+
 
 <body>
 
-<!-- =========================================================
-     E.D.I.T.H. HEADER
-========================================================= -->
+
+<!-- =======================================================
+     HEADER
+======================================================= -->
 
 <div class="hud-grid">
 
     <div>
 
         <div class="hud-text">
-            // E.D.I.T.H. AUTONOMOUS MATRIX v54.0
+
+            // E.D.I.T.H.
+            AUTONOMOUS MATRIX v55.0
+
         </div>
 
-        <div id="status" class="hud-text">
+
+        <div
+            id="status"
+            class="hud-text"
+        >
+
             // STATUS: STANDBY
+
         </div>
 
-        <div id="action" class="hud-text">
+
+        <div
+            id="action"
+            class="hud-text"
+        >
+
             // CAMERA SYSTEM OFFLINE
+
         </div>
 
     </div>
 
-    <div style="text-align:right">
 
-        <div id="clock" class="hud-text">
+    <div
+        style="text-align:right"
+    >
+
+        <div
+            id="clock"
+            class="hud-text"
+        >
+
             TIME: STANDBY
+
         </div>
 
-        <div id="battery" class="hud-text">
+
+        <div
+            id="battery"
+            class="hud-text"
+        >
+
             BATT: 100% [|||||]
+
         </div>
 
     </div>
@@ -316,117 +575,159 @@ body.threat #action {
 </div>
 
 
-<!-- =========================================================
-     MAIN WORKSPACE
-========================================================= -->
+
+<!-- =======================================================
+     WORKSPACE
+======================================================= -->
 
 <div class="main-workspace">
 
-    <div class="camera-container">
+
+    <!-- CAMERA -->
+
+    <div
+        class="camera-container"
+    >
 
         <video
             id="webcam"
             autoplay
             muted
-            playsinline>
-        </video>
+            playsinline
+        ></video>
+
 
         <canvas
-            id="overlay">
-        </canvas>
+            id="overlay"
+        ></canvas>
+
 
         <button
             id="bootBtn"
-            class="boot-btn">
+            class="boot-btn"
+        >
+
             [ 🚀 INITIALIZE OPTICAL MATRIX ]
+
         </button>
 
-        <div id="cameraError"></div>
+
+        <div
+            id="cameraError"
+        ></div>
 
     </div>
 
 
-    <!-- =====================================================
-         SIDEBAR
-    ====================================================== -->
+
+    <!-- SIDEBAR -->
 
     <div
         class="tactical-sidebar"
-        id="sidebar">
-
-        <div class="side-header">
-            // IDENTITY ARCHIVE //
-        </div>
+    >
 
         <div
-            id="sideContent">
+            class="side-header"
+        >
+
+            // IDENTITY ARCHIVE //
+
         </div>
+
+
+        <div
+            id="sidebar"
+        ></div>
 
     </div>
 
 </div>
 
 
-<!-- =========================================================
+
+<!-- =======================================================
      INSTRUCTIONS
-========================================================= -->
+======================================================= -->
 
 <div class="instructions">
 
     <span class="yellow">
+
         [ OPTICAL CONTROL PROTOCOL ]
+
     </span>
 
     <br>
+
 
     <b>[T]</b>
-    Register the person currently inside the center scan box.
+
+    Register the person currently inside
+    the center scan sector.
 
     <br>
+
 
     <b>[ESC]</b>
-    Cancel registration.
+
+    Cancel the current command.
 
     <br>
 
-    <span class="green">
-        // ARCHIVE:
-    </span>
-
-    Profiles are stored locally in this browser using localStorage.
-
-    <br>
 
     <span class="green">
+
         // RADAR:
+
     </span>
 
-    E.D.I.T.H. continuously checks the center scan sector.
+    Autonomous target scanning is active
+    every 2.5 seconds.
 
     <br>
+
+
+    <span class="green">
+
+        // LOCK:
+
+    </span>
+
+    Existing locks can be replaced when
+    another target enters the sector.
+
+    <br>
+
 
     <button
         id="clearArchive"
-        class="clear-btn">
+        class="clear-btn"
+    >
+
         CLEAR LOCAL ARCHIVE
+
     </button>
+
 
     <div
         id="archiveCount"
-        class="archive-count">
+        class="archive-count"
+    >
+
         ARCHIVE: 0 PROFILES
+
     </div>
 
 </div>
+
 
 
 <script>
 
 /* =========================================================
-   E.D.I.T.H. v54 CORE
+   E.D.I.T.H. v55
+   TARGET SWITCH + EXIT DETECTION ENGINE
 ========================================================= */
-
-"use strict";
 
 
 /* =========================================================
@@ -434,40 +735,64 @@ body.threat #action {
 ========================================================= */
 
 const video =
-    document.getElementById("webcam");
+    document.getElementById(
+        "webcam"
+    );
 
 const canvas =
-    document.getElementById("overlay");
+    document.getElementById(
+        "overlay"
+    );
 
 const ctx =
-    canvas.getContext("2d");
+    canvas.getContext(
+        "2d"
+    );
 
 const bootBtn =
-    document.getElementById("bootBtn");
+    document.getElementById(
+        "bootBtn"
+    );
 
 const statusText =
-    document.getElementById("status");
+    document.getElementById(
+        "status"
+    );
 
 const actionText =
-    document.getElementById("action");
+    document.getElementById(
+        "action"
+    );
 
 const clockText =
-    document.getElementById("clock");
+    document.getElementById(
+        "clock"
+    );
 
 const batteryText =
-    document.getElementById("battery");
+    document.getElementById(
+        "battery"
+    );
 
 const sidebar =
-    document.getElementById("sideContent");
+    document.getElementById(
+        "sidebar"
+    );
 
 const cameraError =
-    document.getElementById("cameraError");
+    document.getElementById(
+        "cameraError"
+    );
 
 const clearArchiveBtn =
-    document.getElementById("clearArchive");
+    document.getElementById(
+        "clearArchive"
+    );
 
 const archiveCount =
-    document.getElementById("archiveCount");
+    document.getElementById(
+        "archiveCount"
+    );
 
 
 /* =========================================================
@@ -475,73 +800,140 @@ const archiveCount =
 ========================================================= */
 
 const STORAGE_KEY =
-    "edith_infinite_archive_v54";
+    "edith_infinite_archive_v55";
+
+
+/*
+   Center scan area.
+
+   These values are percentages of
+   the actual camera image.
+*/
 
 const SCAN_X = 0.31;
+
 const SCAN_Y = 0.18;
 
 const SCAN_W = 0.38;
+
 const SCAN_H = 0.60;
 
+
 /*
-    Lower number = easier recognition.
-    Higher number = stricter recognition.
+   Recognition tolerance.
+
+   Lower = stricter.
+   Higher = easier to match.
 */
 
-const MATCH_TOLERANCE = 45;
+const MATCH_TOLERANCE = 12;
 
 
 /*
-    Target must remain present this many
-    scans before E.D.I.T.H. commits to it.
+   How different the live scene must be
+   from the background to count as a target.
+*/
+
+const PRESENCE_THRESHOLD = 10;
+
+
+/*
+   Consecutive scans needed to confirm
+   a new target.
 */
 
 const LOCK_CONFIRMATIONS = 2;
 
 
 /*
-    Target must be absent for this many
-    scans before reset.
+   Consecutive empty scans required
+   before clearing a target.
 */
 
-const EMPTY_CONFIRMATIONS = 3;
+const EMPTY_CONFIRMATIONS = 2;
+
+
+/*
+   Every radar cycle is 2.5 seconds.
+*/
+
+const RADAR_INTERVAL = 2500;
 
 
 /* =========================================================
    STATE
 ========================================================= */
 
-let identityArchive = loadArchive();
+let identityArchive =
+    loadArchive();
 
-let cameraStream = null;
 
-let activated = false;
+let cameraStream =
+    null;
 
-let currentIdentity = null;
 
-let pendingIdentity = null;
+let activated =
+    false;
 
-let pendingCount = 0;
 
-let emptyCount = 0;
+let currentIdentity =
+    null;
 
-let scanLineY = 0;
 
-let scanDirection = 1;
+let pendingIdentity =
+    null;
 
-let battery = 100;
 
-let radarTimer = null;
+let pendingCount =
+    0;
 
-let renderTimer = null;
 
-let clockTimer = null;
+let emptyCount =
+    0;
 
-let lastAlert = 0;
+
+let backgroundSignature =
+    null;
+
+
+let backgroundBrightness =
+    null;
+
+
+let backgroundReady =
+    false;
+
+
+let scanLineY =
+    0;
+
+
+let scanDirection =
+    1;
+
+
+let battery =
+    100;
+
+
+let radarTimer =
+    null;
+
+
+let renderTimer =
+    null;
+
+
+let clockTimer =
+    null;
+
+
+let lastAlert =
+    0;
 
 
 /* =========================================================
-   LOAD ARCHIVE SAFELY
+   LOAD ARCHIVE
 ========================================================= */
 
 function loadArchive() {
@@ -549,30 +941,49 @@ function loadArchive() {
     try {
 
         const saved =
-            localStorage.getItem(STORAGE_KEY);
+            localStorage.getItem(
+                STORAGE_KEY
+            );
+
 
         if (!saved) {
+
             return [];
+
         }
+
 
         const parsed =
-            JSON.parse(saved);
+            JSON.parse(
+                saved
+            );
 
-        if (!Array.isArray(parsed)) {
+
+        if (
+            !Array.isArray(
+                parsed
+            )
+        ) {
+
             return [];
+
         }
 
+
         return parsed;
+
 
     } catch (error) {
 
         console.warn(
-            "E.D.I.T.H. archive load failed:",
+            "Archive load error:",
             error
         );
 
         return [];
+
     }
+
 }
 
 
@@ -585,19 +996,30 @@ function saveArchive() {
     try {
 
         localStorage.setItem(
+
             STORAGE_KEY,
-            JSON.stringify(identityArchive)
+
+            JSON.stringify(
+                identityArchive
+            )
+
         );
 
+
         updateArchiveCount();
+
 
     } catch (error) {
 
         actionText.innerText =
             "// ARCHIVE WRITE ERROR";
 
-        console.error(error);
+        console.error(
+            error
+        );
+
     }
+
 }
 
 
@@ -608,9 +1030,11 @@ function saveArchive() {
 function updateArchiveCount() {
 
     archiveCount.innerText =
+
         "ARCHIVE: " +
         identityArchive.length +
         " PROFILES";
+
 }
 
 
@@ -621,42 +1045,70 @@ function updateArchiveCount() {
 function startClock() {
 
     clockTimer =
-        setInterval(() => {
+        setInterval(
 
-            clockText.innerText =
-                "TIME: " +
-                new Date().toLocaleTimeString();
+            () => {
 
-        }, 1000);
+                clockText.innerText =
+                    "TIME: " +
+                    new Date()
+                        .toLocaleTimeString();
+
+            },
+
+            1000
+
+        );
+
 }
 
 
 /* =========================================================
-   BATTERY DISPLAY
+   BATTERY
 ========================================================= */
 
 function updateBattery() {
 
-    let bars = "|||||";
+    let bars =
+        "|||||";
 
-    if (battery < 80)
-        bars = "|||| ";
 
-    if (battery < 60)
-        bars = "|||  ";
+    if (
+        battery < 80
+    )
+        bars =
+            "|||| ";
 
-    if (battery < 40)
-        bars = "||   ";
 
-    if (battery < 20)
-        bars = "|    ";
+    if (
+        battery < 60
+    )
+        bars =
+            "|||  ";
+
+
+    if (
+        battery < 40
+    )
+        bars =
+            "||   ";
+
+
+    if (
+        battery < 20
+    )
+        bars =
+            "|    ";
+
 
     batteryText.innerText =
+
         "BATT: " +
         battery +
         "% [" +
         bars +
         "]";
+
 }
 
 
@@ -664,117 +1116,130 @@ function updateBattery() {
    SPEECH
 ========================================================= */
 
-function speak(text) {
+function speak(
+    text
+) {
 
     if (
-        !("speechSynthesis" in window)
+        !("speechSynthesis"
+        in window)
     ) {
+
         return;
+
     }
+
 
     try {
 
         speechSynthesis.cancel();
 
-        const utterance =
-            new SpeechSynthesisUtterance(text);
 
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
+        const utterance =
+            new SpeechSynthesisUtterance(
+                text
+            );
+
+
+        utterance.rate =
+            1.0;
+
+        utterance.pitch =
+            1.0;
+
+        utterance.volume =
+            1.0;
+
 
         speechSynthesis.speak(
             utterance
         );
 
+
     } catch (error) {
 
         console.warn(
-            "Speech unavailable",
+            "Speech unavailable:",
             error
         );
+
     }
+
 }
 
 
 /* =========================================================
-   CAMERA INITIALIZATION
+   CAMERA START
 ========================================================= */
 
 async function initializeCamera() {
 
-    if (activated) {
+    if (
+        activated
+    ) {
+
         return;
+
     }
 
-    activated = true;
-
-    bootBtn.classList.add("hidden");
 
     statusText.innerText =
         "// STATUS: REQUESTING CAMERA";
 
+
     actionText.innerText =
-        "// WAITING FOR OPTICAL PERMISSION...";
+        "// WAITING FOR OPTICAL PERMISSION";
+
 
     cameraError.style.display =
         "none";
 
 
-    /*
-        Check browser support first.
-    */
-
     if (
         !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
+        !navigator.mediaDevices
+            .getUserMedia
     ) {
 
         showCameraError(
-            "CAMERA API UNAVAILABLE — OPEN THIS FILE IN A MODERN BROWSER."
+            "CAMERA API UNAVAILABLE"
         );
 
         return;
+
     }
 
 
     try {
 
-        /*
-            Ask for the rear/front webcam.
-
-            We deliberately avoid an exact 640x480
-            requirement because some webcams reject
-            unsupported resolutions.
-        */
-
         cameraStream =
-            await navigator.mediaDevices.getUserMedia({
+            await navigator
+                .mediaDevices
+                .getUserMedia({
 
-                video: {
-                    width: {
-                        ideal: 1280
+                    video: {
+
+                        width: {
+                            ideal: 1280
+                        },
+
+                        height: {
+                            ideal: 720
+                        },
+
+                        facingMode:
+                            "user"
+
                     },
 
-                    height: {
-                        ideal: 720
-                    },
+                    audio: false
 
-                    facingMode: "user"
-                },
-
-                audio: false
-            });
+                });
 
 
         video.srcObject =
             cameraStream;
 
-
-        /*
-            IMPORTANT:
-            Wait until the actual video has dimensions.
-        */
 
         await new Promise(
             resolve => {
@@ -800,29 +1265,38 @@ async function initializeCamera() {
         await video.play();
 
 
-        /*
-            Match canvas to actual camera resolution.
-        */
+        activated =
+            true;
+
+
+        bootBtn.classList.add(
+            "hidden"
+        );
+
 
         resizeCanvas();
+
+
+        /*
+           IMPORTANT:
+
+           Establish the background BEFORE
+           normal radar tracking starts.
+        */
+
+        await calibrateBackground();
 
 
         statusText.innerText =
             "// STATUS: OPTICAL ONLINE";
 
+
         actionText.innerText =
             "// RADAR: PASSIVE SCAN ENGAGED";
 
+
         setupSidebar();
 
-        speak(
-            "Optical matrix online. Passive scan engaged."
-        );
-
-
-        /*
-            Start systems ONLY after camera succeeds.
-        */
 
         startClock();
 
@@ -831,23 +1305,38 @@ async function initializeCamera() {
         startRadar();
 
 
+        speak(
+            "Optical matrix online. Passive scan engaged."
+        );
+
+
     } catch (error) {
 
         console.error(
-            "Camera initialization failed:",
+            "Camera error:",
             error
         );
 
-        activated = false;
 
-        bootBtn.classList.remove("hidden");
+        activated =
+            false;
+
+
+        bootBtn.classList.remove(
+            "hidden"
+        );
+
 
         showCameraError(
-            getCameraErrorMessage(error)
+            getCameraErrorMessage(
+                error
+            )
         );
+
 
         statusText.innerText =
             "// STATUS: CAMERA OFFLINE";
+
 
         actionText.innerText =
             "// CAMERA COUPLING FAILED";
@@ -858,70 +1347,81 @@ async function initializeCamera() {
 
 
 /* =========================================================
-   CAMERA ERROR
+   CAMERA ERROR MESSAGE
 ========================================================= */
 
-function showCameraError(message) {
-
-    cameraError.innerText =
-        message;
-
-    cameraError.style.display =
-        "block";
-}
-
-
-/* =========================================================
-   FRIENDLY CAMERA ERRORS
-========================================================= */
-
-function getCameraErrorMessage(error) {
+function getCameraErrorMessage(
+    error
+) {
 
     if (
-        error &&
-        error.name === "NotAllowedError"
+        error?.name ===
+        "NotAllowedError"
     ) {
 
         return (
             "CAMERA PERMISSION DENIED — " +
             "ALLOW CAMERA ACCESS IN YOUR BROWSER."
         );
+
     }
 
 
     if (
-        error &&
-        error.name === "NotFoundError"
+        error?.name ===
+        "NotFoundError"
     ) {
 
         return (
-            "NO CAMERA DETECTED — " +
-            "CHECK THAT YOUR WEBCAM IS CONNECTED."
+            "NO CAMERA DETECTED."
         );
+
     }
 
 
     if (
-        error &&
-        error.name === "NotReadableError"
+        error?.name ===
+        "NotReadableError"
     ) {
 
         return (
             "CAMERA IS BUSY — " +
-            "CLOSE OTHER APPS USING YOUR WEBCAM."
+            "CLOSE OTHER APPS USING THE CAMERA."
         );
+
     }
 
 
     return (
         "CAMERA ERROR — " +
-        (error?.message || "UNKNOWN ERROR")
+        (
+            error?.message ||
+            "UNKNOWN ERROR"
+        )
     );
+
 }
 
 
 /* =========================================================
-   CANVAS SIZE
+   SHOW CAMERA ERROR
+========================================================= */
+
+function showCameraError(
+    message
+) {
+
+    cameraError.innerText =
+        message;
+
+    cameraError.style.display =
+        "block";
+
+}
+
+
+/* =========================================================
+   RESIZE CANVAS
 ========================================================= */
 
 function resizeCanvas() {
@@ -930,267 +1430,61 @@ function resizeCanvas() {
         video.videoWidth <= 0 ||
         video.videoHeight <= 0
     ) {
+
         return;
+
     }
+
 
     canvas.width =
         video.videoWidth;
 
+
     canvas.height =
         video.videoHeight;
+
 }
 
 
 /* =========================================================
-   GET SCAN RECTANGLE
+   SCAN RECTANGLE
 ========================================================= */
 
 function getScanRect() {
 
-    const w = canvas.width;
-    const h = canvas.height;
-
     return {
 
-        x: Math.floor(w * SCAN_X),
+        x:
+            Math.floor(
+                canvas.width *
+                SCAN_X
+            ),
 
-        y: Math.floor(h * SCAN_Y),
+        y:
+            Math.floor(
+                canvas.height *
+                SCAN_Y
+            ),
 
-        width: Math.floor(w * SCAN_W),
+        width:
+            Math.floor(
+                canvas.width *
+                SCAN_W
+            ),
 
-        height: Math.floor(h * SCAN_H)
+        height:
+            Math.floor(
+                canvas.height *
+                SCAN_H
+            )
 
     };
+
 }
 
 
 /* =========================================================
-   DRAW HUD
-========================================================= */
-
-function renderHUD() {
-
-    if (!activated) {
-        return;
-    }
-
-    if (
-        canvas.width === 0 ||
-        canvas.height === 0
-    ) {
-        return;
-    }
-
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    const rect =
-        getScanRect();
-
-
-    /*
-        Radar scan line.
-    */
-
-    scanLineY +=
-        4 * scanDirection;
-
-    if (
-        scanLineY > canvas.height - 5 ||
-        scanLineY < 5
-    ) {
-
-        scanDirection *= -1;
-    }
-
-
-    ctx.strokeStyle =
-        document.body.classList.contains("threat")
-            ? "#ff3030"
-            : "#00bfff";
-
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        0,
-        scanLineY
-    );
-
-    ctx.lineTo(
-        canvas.width,
-        scanLineY
-    );
-
-    ctx.stroke();
-
-
-    /*
-        Main targeting box.
-    */
-
-    ctx.lineWidth = 3;
-
-    ctx.strokeStyle =
-        currentIdentity
-            ? "#00ff66"
-            : document.body.classList.contains("threat")
-                ? "#ff3030"
-                : "#00bfff";
-
-
-    ctx.strokeRect(
-        rect.x,
-        rect.y,
-        rect.width,
-        rect.height
-    );
-
-
-    /*
-        Corner brackets.
-    */
-
-    const c = 25;
-
-    ctx.lineWidth = 4;
-
-    drawCorner(
-        rect.x,
-        rect.y,
-        c,
-        c
-    );
-
-    drawCorner(
-        rect.x + rect.width,
-        rect.y,
-        -c,
-        c
-    );
-
-    drawCorner(
-        rect.x,
-        rect.y + rect.height,
-        c,
-        -c
-    );
-
-    drawCorner(
-        rect.x + rect.width,
-        rect.y + rect.height,
-        -c,
-        -c
-    );
-
-
-    /*
-        Target label.
-    */
-
-    ctx.save();
-
-    /*
-        Camera image is mirrored,
-        so mirror the HUD text too.
-    */
-
-    ctx.scale(-1, 1);
-
-    ctx.font =
-        "bold 18px Courier New";
-
-    ctx.fillStyle =
-        currentIdentity
-            ? "#00ff66"
-            : document.body.classList.contains("threat")
-                ? "#ff3030"
-                : "#00bfff";
-
-
-    let label =
-        "BIOMETRIC MONITOR";
-
-    if (currentIdentity) {
-
-        label =
-            "LOCK: " +
-            currentIdentity.name;
-
-    } else if (
-        document.body.classList.contains("threat")
-    ) {
-
-        label =
-            "UNKNOWN SECTOR TARGET";
-
-    }
-
-
-    ctx.fillText(
-        label,
-        -(rect.x + rect.width),
-        rect.y - 12
-    );
-
-    ctx.restore();
-}
-
-
-/* =========================================================
-   DRAW CORNER
-========================================================= */
-
-function drawCorner(x, y, dx, dy) {
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        x,
-        y + dy
-    );
-
-    ctx.lineTo(
-        x,
-        y
-    );
-
-    ctx.lineTo(
-        x + dx,
-        y
-    );
-
-    ctx.stroke();
-}
-
-
-/* =========================================================
-   RENDER LOOP
-========================================================= */
-
-function startRendering() {
-
-    if (renderTimer) {
-        clearInterval(renderTimer);
-    }
-
-    renderTimer =
-        setInterval(
-            renderHUD,
-            30
-        );
-}
-
-
-/* =========================================================
-   CAPTURE CENTER REGION
+   CAPTURE SCAN IMAGE
 ========================================================= */
 
 function captureScanRegion() {
@@ -1200,67 +1494,85 @@ function captureScanRegion() {
 
 
     const temp =
-        document.createElement("canvas");
+        document.createElement(
+            "canvas"
+        );
+
+
+    /*
+       Small signature image.
+
+       32x32 gives us considerably more
+       information than the old average RGB value.
+    */
 
     temp.width =
-        160;
+        32;
 
     temp.height =
-        160;
+        32;
 
 
     const tempCtx =
-        temp.getContext("2d", {
-            willReadFrequently: true
-        });
+        temp.getContext(
+            "2d",
+            {
+                willReadFrequently:
+                    true
+            }
+        );
 
 
     try {
 
         tempCtx.drawImage(
+
             video,
 
             rect.x,
             rect.y,
+
             rect.width,
             rect.height,
 
             0,
             0,
-            temp.width,
-            temp.height
+
+            32,
+            32
+
         );
 
 
         return tempCtx.getImageData(
             0,
             0,
-            temp.width,
-            temp.height
+            32,
+            32
         );
+
 
     } catch (error) {
 
         return null;
+
     }
+
 }
 
 
 /* =========================================================
-   CREATE VISUAL SIGNATURE
-=========================================================
-
-   This is intentionally NOT pretending to be
-   true facial recognition.
-
-   It creates a compact visual fingerprint from
-   brightness + RGB information in the scan area.
+   CREATE SIGNATURE
 ========================================================= */
 
-function createVisualSignature(imageData) {
+function createSignature(
+    imageData
+) {
 
     if (!imageData) {
+
         return null;
+
     }
 
 
@@ -1268,78 +1580,119 @@ function createVisualSignature(imageData) {
         imageData.data;
 
 
+    const signature =
+        [];
+
+
     /*
-        16x16 grayscale/color blocks.
+       Instead of only brightness,
+       record RGB-derived luminance.
+
+       This gives the archive a spatial
+       visual fingerprint.
     */
 
-    const signature = [];
-
-    const width =
-        imageData.width;
-
-    const height =
-        imageData.height;
-
-
     for (
-        let gy = 0;
-        gy < 16;
-        gy++
+        let i = 0;
+        i < data.length;
+        i += 4
     ) {
 
-        for (
-            let gx = 0;
-            gx < 16;
-            gx++
-        ) {
+        const r =
+            data[i];
 
-            const x =
-                Math.floor(
-                    gx * width / 16
-                );
+        const g =
+            data[i + 1];
 
-            const y =
-                Math.floor(
-                    gy * height / 16
-                );
+        const b =
+            data[i + 2];
 
 
-            const index =
-                (y * width + x) * 4;
+        /*
+           Luminance approximation.
+        */
 
+        const luminance =
 
-            const r =
-                data[index];
-
-            const g =
-                data[index + 1];
-
-            const b =
-                data[index + 2];
-
-
-            /*
-                Normalize brightness.
-
-                This makes the signature somewhat
-                less sensitive to small lighting changes.
-            */
-
-            const brightness =
-                (r + g + b) / 3;
-
-
-            signature.push(
-                Math.round(
-                    brightness / 16
-                )
+            (
+                0.299 * r +
+                0.587 * g +
+                0.114 * b
             );
 
-        }
+
+        /*
+           Quantize to reduce tiny
+           camera noise.
+        */
+
+        signature.push(
+
+            Math.round(
+                luminance / 16
+            )
+
+        );
+
     }
 
 
     return signature;
+
+}
+
+
+/* =========================================================
+   GET AVERAGE BRIGHTNESS
+========================================================= */
+
+function getAverageBrightness(
+    imageData
+) {
+
+    if (!imageData) {
+
+        return 0;
+
+    }
+
+
+    const data =
+        imageData.data;
+
+
+    let total =
+        0;
+
+
+    let count =
+        0;
+
+
+    for (
+        let i = 0;
+        i < data.length;
+        i += 4
+    ) {
+
+        total +=
+
+            (
+                data[i] +
+                data[i + 1] +
+                data[i + 2]
+            ) / 3;
+
+
+        count++;
+
+    }
+
+
+    return (
+        total / count
+    );
+
 }
 
 
@@ -1347,19 +1700,25 @@ function createVisualSignature(imageData) {
    SIGNATURE DISTANCE
 ========================================================= */
 
-function signatureDistance(a, b) {
+function signatureDistance(
+    a,
+    b
+) {
 
     if (
         !a ||
         !b ||
-        a.length !== b.length
+        a.length !==
+            b.length
     ) {
 
         return Infinity;
+
     }
 
 
-    let total = 0;
+    let total =
+        0;
 
 
     for (
@@ -1369,126 +1728,285 @@ function signatureDistance(a, b) {
     ) {
 
         total +=
+
             Math.abs(
                 a[i] - b[i]
             );
+
     }
 
 
-    return total / a.length;
+    return (
+        total / a.length
+    );
+
 }
 
 
 /* =========================================================
-   SAMPLE TARGET
+   BACKGROUND CALIBRATION
 ========================================================= */
 
-function sampleTarget() {
+async function calibrateBackground() {
 
-    const imageData =
+    document.body.classList.add(
+        "calibrating"
+    );
+
+
+    statusText.innerText =
+        "// STATUS: CALIBRATING";
+
+
+    actionText.innerText =
+        "// HOLD STILL — BUILDING BACKGROUND MAP";
+
+
+    /*
+       Take several samples.
+
+       Averaging them makes the background
+       reference more stable.
+    */
+
+    const samples =
+        [];
+
+
+    const brightnesses =
+        [];
+
+
+    for (
+        let i = 0;
+        i < 6;
+        i++
+    ) {
+
+        const image =
+            captureScanRegion();
+
+
+        const signature =
+            createSignature(
+                image
+            );
+
+
+        if (signature) {
+
+            samples.push(
+                signature
+            );
+
+
+            brightnesses.push(
+                getAverageBrightness(
+                    image
+                )
+            );
+
+        }
+
+
+        await delay(
+            150
+        );
+
+    }
+
+
+    if (
+        samples.length > 0
+    ) {
+
+        const length =
+            samples[0].length;
+
+
+        const averaged =
+            new Array(
+                length
+            ).fill(0);
+
+
+        for (
+            const sample of samples
+        ) {
+
+            for (
+                let i = 0;
+                i < length;
+                i++
+            ) {
+
+                averaged[i] +=
+                    sample[i];
+
+            }
+
+        }
+
+
+        for (
+            let i = 0;
+            i < length;
+            i++
+        ) {
+
+            averaged[i] /=
+                samples.length;
+
+        }
+
+
+        backgroundSignature =
+            averaged;
+
+
+        backgroundBrightness =
+
+            brightnesses.reduce(
+                (
+                    a,
+                    b
+                ) => a + b,
+                0
+            ) /
+            brightnesses.length;
+
+
+        backgroundReady =
+            true;
+
+    }
+
+
+    document.body.classList.remove(
+        "calibrating"
+    );
+
+}
+
+
+/* =========================================================
+   DELAY
+========================================================= */
+
+function delay(
+    ms
+) {
+
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
+    );
+
+}
+
+
+/* =========================================================
+   PRESENCE CHECK
+========================================================= */
+
+function isTargetPresent(
+    signature,
+    brightness
+) {
+
+    if (
+        !backgroundReady ||
+        !backgroundSignature
+    ) {
+
+        return true;
+
+    }
+
+
+    const distance =
+        signatureDistance(
+            signature,
+            backgroundSignature
+        );
+
+
+    const brightnessDifference =
+        Math.abs(
+            brightness -
+            backgroundBrightness
+        );
+
+
+    /*
+       A target is considered present when
+       the center area has changed enough
+       from the empty background.
+
+       Either spatial change OR substantial
+       brightness change can trigger presence.
+    */
+
+    return (
+
+        distance >
+        PRESENCE_THRESHOLD
+
+        ||
+
+        brightnessDifference >
+        18
+
+    );
+
+}
+
+
+/* =========================================================
+   LIVE SAMPLE
+========================================================= */
+
+function getLiveSample() {
+
+    const image =
         captureScanRegion();
 
 
-    if (!imageData) {
+    if (!image) {
 
         return {
+
             present: false,
-            signature: null
+
+            signature: null,
+
+            brightness: 0
+
         };
 
     }
 
 
     const signature =
-        createVisualSignature(
-            imageData
+        createSignature(
+            image
         );
 
 
-    /*
-        Calculate average brightness.
-
-        This is a presence heuristic, not
-        guaranteed face detection.
-    */
-
-    const data =
-        imageData.data;
-
-    let brightnessTotal = 0;
-
-    let pixelCount = 0;
-
-
-    for (
-        let i = 0;
-        i < data.length;
-        i += 4
-    ) {
-
-        brightnessTotal +=
-            (
-                data[i] +
-                data[i + 1] +
-                data[i + 2]
-            ) / 3;
-
-        pixelCount++;
-
-    }
-
-
-    const averageBrightness =
-        brightnessTotal / pixelCount;
-
-
-    /*
-        Calculate local contrast.
-
-        A completely empty/flat wall often has
-        lower variation than a person.
-    */
-
-    let variance = 0;
-
-
-    for (
-        let i = 0;
-        i < data.length;
-        i += 4
-    ) {
-
-        const brightness =
-            (
-                data[i] +
-                data[i + 1] +
-                data[i + 2]
-            ) / 3;
-
-        variance +=
-            Math.pow(
-                brightness -
-                averageBrightness,
-                2
-            );
-    }
-
-
-    variance =
-        Math.sqrt(
-            variance / pixelCount
+    const brightness =
+        getAverageBrightness(
+            image
         );
 
-
-    /*
-        Conservative presence test.
-
-        Adjust these if your room has a very
-        bright/dark background.
-    */
 
     const present =
-        variance > 14;
+        isTargetPresent(
+            signature,
+            brightness
+        );
 
 
     return {
@@ -1497,20 +2015,20 @@ function sampleTarget() {
 
         signature,
 
-        brightness:
-            averageBrightness,
-
-        variance
+        brightness
 
     };
+
 }
 
 
 /* =========================================================
-   FIND MATCH
+   BEST PROFILE MATCH
 ========================================================= */
 
-function findBestMatch(signature) {
+function findBestMatch(
+    signature
+) {
 
     if (
         !signature ||
@@ -1518,16 +2036,21 @@ function findBestMatch(signature) {
     ) {
 
         return null;
+
     }
 
 
-    let bestProfile = null;
+    let bestProfile =
+        null;
 
-    let bestDistance = Infinity;
+
+    let bestDistance =
+        Infinity;
 
 
     for (
-        const profile of identityArchive
+        const profile
+        of identityArchive
     ) {
 
         const distance =
@@ -1538,21 +2061,26 @@ function findBestMatch(signature) {
 
 
         if (
-            distance < bestDistance
+            distance <
+            bestDistance
         ) {
 
             bestDistance =
                 distance;
 
+
             bestProfile =
                 profile;
+
         }
+
     }
 
 
     if (
         bestProfile &&
-        bestDistance <= MATCH_TOLERANCE
+        bestDistance <=
+            MATCH_TOLERANCE
     ) {
 
         return {
@@ -1569,36 +2097,39 @@ function findBestMatch(signature) {
 
 
     return null;
+
 }
 
 
 /* =========================================================
-   RADAR
+   RADAR START
 ========================================================= */
 
 function startRadar() {
 
-    if (radarTimer) {
-        clearInterval(radarTimer);
+    if (
+        radarTimer
+    ) {
+
+        clearInterval(
+            radarTimer
+        );
+
     }
 
-
-    /*
-        First scan immediately.
-    */
 
     runRadarScan();
 
 
-    /*
-        Autonomous scan every 2.5 seconds.
-    */
-
     radarTimer =
         setInterval(
+
             runRadarScan,
-            2500
+
+            RADAR_INTERVAL
+
         );
+
 }
 
 
@@ -1609,33 +2140,51 @@ function startRadar() {
 function runRadarScan() {
 
     if (!activated) {
+
         return;
+
     }
 
 
     if (
         video.readyState < 2
     ) {
+
         return;
+
     }
 
 
     const sample =
-        sampleTarget();
+        getLiveSample();
 
 
-    /*
-        EMPTY SECTOR
-    */
+    /* =====================================================
+       EMPTY SECTOR
+    ===================================================== */
 
-    if (!sample.present) {
-
-        pendingIdentity = null;
-
-        pendingCount = 0;
+    if (
+        !sample.present
+    ) {
 
         emptyCount++;
 
+        pendingIdentity =
+            null;
+
+        pendingCount =
+            0;
+
+
+        /*
+           THIS IS THE IMPORTANT v55 FIX:
+
+           The current lock is actively released
+           when the target leaves.
+
+           The previous version could keep
+           treating the old target as active.
+        */
 
         if (
             emptyCount >=
@@ -1647,16 +2196,35 @@ function runRadarScan() {
         }
 
 
+        /*
+           Slowly update the background while
+           the sector is empty.
+
+           This helps with gradual lighting changes.
+        */
+
+        updateBackground(
+            sample.signature,
+            sample.brightness
+        );
+
+
         return;
+
     }
 
 
+    /* =====================================================
+       SOMETHING IS PRESENT
+    ===================================================== */
+
+    emptyCount =
+        0;
+
+
     /*
-        SOMETHING IS IN THE SECTOR
+       Find the best matching profile.
     */
-
-    emptyCount = 0;
-
 
     const match =
         findBestMatch(
@@ -1664,9 +2232,9 @@ function runRadarScan() {
         );
 
 
-    /*
-        KNOWN TARGET
-    */
+    /* =====================================================
+       KNOWN TARGET
+    ===================================================== */
 
     if (match) {
 
@@ -1676,12 +2244,13 @@ function runRadarScan() {
         );
 
         return;
+
     }
 
 
-    /*
-        UNKNOWN TARGET
-    */
+    /* =====================================================
+       UNKNOWN TARGET
+    ===================================================== */
 
     handleUnknownTarget();
 
@@ -1689,7 +2258,69 @@ function runRadarScan() {
 
 
 /* =========================================================
-   KNOWN TARGET
+   BACKGROUND UPDATE
+========================================================= */
+
+function updateBackground(
+    signature,
+    brightness
+) {
+
+    if (
+        !signature ||
+        !backgroundSignature
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+       Very slow adaptation.
+
+       This prevents a tiny lighting shift
+       from permanently breaking exit detection.
+    */
+
+    const alpha =
+        0.08;
+
+
+    for (
+        let i = 0;
+        i < backgroundSignature.length;
+        i++
+    ) {
+
+        backgroundSignature[i] =
+
+            backgroundSignature[i] *
+            (1 - alpha)
+
+            +
+
+            signature[i] *
+            alpha;
+
+    }
+
+
+    backgroundBrightness =
+
+        backgroundBrightness *
+        (1 - alpha)
+
+        +
+
+        brightness *
+        alpha;
+
+}
+
+
+/* =========================================================
+   KNOWN TARGET HANDLER
 ========================================================= */
 
 function handleKnownTarget(
@@ -1697,18 +2328,27 @@ function handleKnownTarget(
     distance
 ) {
 
+    /*
+       IMPORTANT v55 CHANGE:
+
+       If someone new matches a different
+       saved profile, they are allowed to
+       replace the old target.
+    */
+
     document.body.classList.remove(
         "threat"
     );
 
 
     /*
-        Same person already locked.
+       Same person already locked.
     */
 
     if (
         currentIdentity &&
-        currentIdentity.id === profile.id
+        currentIdentity.id ===
+            profile.id
     ) {
 
         updateKnownSidebar(
@@ -1717,42 +2357,62 @@ function handleKnownTarget(
         );
 
         return;
+
     }
 
 
     /*
-        Stabilization buffer.
+       A DIFFERENT known person is here.
+
+       Start a new confirmation sequence.
     */
 
     if (
         !pendingIdentity ||
-        pendingIdentity.id !== profile.id
+        pendingIdentity.id !==
+            profile.id
     ) {
 
         pendingIdentity =
             profile;
 
-        pendingCount = 1;
+        pendingCount =
+            1;
 
     } else {
 
         pendingCount++;
+
     }
 
+
+    /*
+       Once confirmed, SWITCH the lock.
+    */
 
     if (
         pendingCount >=
         LOCK_CONFIRMATIONS
     ) {
 
+        const previousIdentity =
+            currentIdentity;
+
+
         currentIdentity =
             profile;
 
-        pendingIdentity = null;
 
-        pendingCount = 0;
+        pendingIdentity =
+            null;
 
-        emptyCount = 0;
+
+        pendingCount =
+            0;
+
+
+        emptyCount =
+            0;
 
 
         statusText.innerText =
@@ -1760,6 +2420,7 @@ function handleKnownTarget(
 
 
         actionText.innerText =
+
             "// LOCK: STABILIZED — " +
             profile.name;
 
@@ -1771,16 +2432,15 @@ function handleKnownTarget(
 
 
         /*
-            Only speak when identity changes.
+           Speak when the active target
+           actually changes.
         */
 
         if (
-            !profile.hasBeenWelcomed
+            !previousIdentity ||
+            previousIdentity.id !==
+                profile.id
         ) {
-
-            profile.hasBeenWelcomed = true;
-
-            saveArchive();
 
             speak(
                 "Welcome, " +
@@ -1800,11 +2460,25 @@ function handleKnownTarget(
 
 function handleUnknownTarget() {
 
-    currentIdentity = null;
+    /*
+       IMPORTANT:
 
-    pendingIdentity = null;
+       Unknown targets also RELEASE
+       the previous person's name.
 
-    pendingCount = 0;
+       This fixes the "stuck name" problem.
+    */
+
+    currentIdentity =
+        null;
+
+
+    pendingIdentity =
+        null;
+
+
+    pendingCount =
+        0;
 
 
     document.body.classList.add(
@@ -1814,6 +2488,7 @@ function handleUnknownTarget() {
 
     statusText.innerText =
         "// STATUS: THREAT MATRIX";
+
 
     actionText.innerText =
         "// UNKNOWN SECTOR TARGET";
@@ -1826,17 +2501,21 @@ function handleUnknownTarget() {
         "LOCK: UNVERIFIED"
     );
 
+
+    addSidebarRow(
+        "TARGET: UNKNOWN"
+    );
+
+
     addSidebarRow(
         "CLEARANCE: DENIED"
     );
 
-    addSidebarRow(
-        "CLASS: UNKNOWN TARGET"
-    );
 
     addSidebarRow(
         "SECTOR: CENTER"
     );
+
 
     addSidebarRow(
         "ACTION: MONITOR"
@@ -1844,7 +2523,7 @@ function handleUnknownTarget() {
 
 
     /*
-        Don't repeatedly shout the alert.
+       Prevent speech spam.
     */
 
     const now =
@@ -1852,10 +2531,13 @@ function handleUnknownTarget() {
 
 
     if (
-        now - lastAlert > 10000
+        now - lastAlert >
+        10000
     ) {
 
-        lastAlert = now;
+        lastAlert =
+            now;
+
 
         speak(
             "Unknown target detected."
@@ -1867,76 +2549,29 @@ function handleUnknownTarget() {
 
 
 /* =========================================================
-   KNOWN SIDEBAR
-========================================================= */
-
-function updateKnownSidebar(
-    profile,
-    distance
-) {
-
-    clearSidebar();
-
-
-    addSidebarRow(
-        "LOCK: STABILIZED"
-    );
-
-    addSidebarRow(
-        "TARGET: " +
-        profile.name
-    );
-
-    addSidebarRow(
-        "CLEARANCE: GRANTED"
-    );
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "MATCH: " +
-        distance.toFixed(1)
-    );
-
-    addSidebarRow(
-        "ARCHIVE ID: " +
-        profile.id
-    );
-
-    addSidebarRow(
-        "STATUS: TRACKING"
-    );
-
-}
-
-
-/* =========================================================
    RESET TARGET
 ========================================================= */
 
 function resetTarget() {
 
-    if (!currentIdentity) {
-
-        document.body.classList.remove(
-            "threat"
-        );
-
-        return;
-    }
+    const hadTarget =
+        currentIdentity !== null;
 
 
-    const oldName =
-        currentIdentity.name;
+    currentIdentity =
+        null;
 
 
-    currentIdentity = null;
+    pendingIdentity =
+        null;
 
-    pendingIdentity = null;
 
-    pendingCount = 0;
+    pendingCount =
+        0;
+
+
+    emptyCount =
+        0;
 
 
     document.body.classList.remove(
@@ -1959,46 +2594,64 @@ function resetTarget() {
         "LOCK: RELEASED"
     );
 
+
     addSidebarRow(
         "SECTOR: CLEAR"
     );
+
 
     addSidebarRow(
         "RADAR: SEARCHING"
     );
 
 
-    speak(
-        "Target out of sector. Resuming passive scan."
-    );
+    /*
+       Only speak if there really was
+       an active target.
+    */
+
+    if (
+        hadTarget
+    ) {
+
+        speak(
+            "Target out of sector. Resuming passive scan."
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   SIDEBAR CLEAR
+   SIDEBAR
 ========================================================= */
 
 function clearSidebar() {
 
-    sidebar.innerHTML = "";
+    sidebar.innerHTML =
+        "";
+
 }
 
 
-/* =========================================================
-   SIDEBAR ADD
-========================================================= */
-
-function addSidebarRow(text) {
+function addSidebarRow(
+    text
+) {
 
     const row =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     row.className =
         "tracker-row";
 
+
     row.innerText =
         text;
+
 
     sidebar.appendChild(
         row
@@ -2007,9 +2660,53 @@ function addSidebarRow(text) {
 }
 
 
-/* =========================================================
-   INITIAL SIDEBAR
-========================================================= */
+function updateKnownSidebar(
+    profile,
+    distance
+) {
+
+    clearSidebar();
+
+
+    addSidebarRow(
+        "LOCK: STABILIZED"
+    );
+
+
+    addSidebarRow(
+        "TARGET: " +
+        profile.name
+    );
+
+
+    addSidebarRow(
+        "CLEARANCE: GRANTED"
+    );
+
+
+    addSidebarRow(
+        "SECTOR: CENTER"
+    );
+
+
+    addSidebarRow(
+        "MATCH: " +
+        distance.toFixed(1)
+    );
+
+
+    addSidebarRow(
+        "ARCHIVE ID: " +
+        profile.id
+    );
+
+
+    addSidebarRow(
+        "STATUS: TRACKING"
+    );
+
+}
+
 
 function setupSidebar() {
 
@@ -2020,17 +2717,21 @@ function setupSidebar() {
         "LOCK: SEARCHING"
     );
 
+
     addSidebarRow(
         "CLEARANCE: PENDING"
     );
+
 
     addSidebarRow(
         "SECTOR: CENTER"
     );
 
+
     addSidebarRow(
         "RADAR: ACTIVE"
     );
+
 
     addSidebarRow(
         "ARCHIVE: " +
@@ -2041,7 +2742,7 @@ function setupSidebar() {
 
 
 /* =========================================================
-   REGISTER TARGET
+   REGISTER TARGET WITH T
 ========================================================= */
 
 function registerCurrentTarget() {
@@ -2052,30 +2753,39 @@ function registerCurrentTarget() {
             "// CAMERA MUST BE ONLINE";
 
         return;
+
     }
 
 
     const sample =
-        sampleTarget();
+        getLiveSample();
 
 
-    if (!sample.present) {
+    if (
+        !sample.present
+    ) {
 
         actionText.innerText =
             "// NO TARGET IN CENTER SECTOR";
+
 
         speak(
             "No target detected in the center sector."
         );
 
+
         return;
+
     }
 
 
     const name =
         prompt(
+
             "E.D.I.T.H. IDENTITY REGISTRATION\n\n" +
+
             "Enter a name for the current target:"
+
         );
 
 
@@ -2087,6 +2797,7 @@ function registerCurrentTarget() {
             "// REGISTRATION CANCELLED";
 
         return;
+
     }
 
 
@@ -2094,40 +2805,46 @@ function registerCurrentTarget() {
         name.trim();
 
 
-    if (!cleanName) {
+    if (
+        !cleanName
+    ) {
 
         actionText.innerText =
             "// INVALID IDENTITY NAME";
 
         return;
+
     }
 
 
     /*
-        Create permanent local profile.
+       Create a new permanent local profile.
     */
 
     const profile = {
 
         id:
+
             "ED-" +
             Date.now() +
             "-" +
             Math.floor(
-                Math.random() * 9999
+                Math.random() *
+                9999
             ),
+
 
         name:
             cleanName,
 
+
         signature:
             sample.signature,
 
-        created:
-            new Date().toISOString(),
 
-        hasBeenWelcomed:
-            false
+        created:
+            new Date()
+                .toISOString()
 
     };
 
@@ -2141,18 +2858,23 @@ function registerCurrentTarget() {
 
 
     /*
-        Lock this profile immediately.
+       Immediately lock the new profile.
     */
 
     currentIdentity =
         profile;
 
 
-    pendingIdentity = null;
+    pendingIdentity =
+        null;
 
-    pendingCount = 0;
 
-    emptyCount = 0;
+    pendingCount =
+        0;
+
+
+    emptyCount =
+        0;
 
 
     document.body.classList.remove(
@@ -2165,6 +2887,7 @@ function registerCurrentTarget() {
 
 
     actionText.innerText =
+
         "// IDENTITY LOCKED: " +
         cleanName;
 
@@ -2184,20 +2907,22 @@ function registerCurrentTarget() {
 
 
 /* =========================================================
-   KEYBOARD CONTROL
+   KEYBOARD
 ========================================================= */
 
 document.addEventListener(
+
     "keydown",
+
     event => {
 
         /*
-            Don't trigger T while typing
-            into a browser prompt/input.
+           T = register current target
         */
 
         if (
-            event.key.toLowerCase() === "t"
+            event.key.toLowerCase()
+            === "t"
         ) {
 
             registerCurrentTarget();
@@ -2206,7 +2931,8 @@ document.addEventListener(
 
 
         if (
-            event.key === "Escape"
+            event.key ===
+            "Escape"
         ) {
 
             actionText.innerText =
@@ -2215,6 +2941,7 @@ document.addEventListener(
         }
 
     }
+
 );
 
 
@@ -2223,32 +2950,51 @@ document.addEventListener(
 ========================================================= */
 
 clearArchiveBtn.addEventListener(
+
     "click",
+
     () => {
 
         const confirmed =
             confirm(
-                "Delete every E.D.I.T.H. identity profile stored in this browser?"
+
+                "Delete every E.D.I.T.H. " +
+                "identity profile stored in " +
+                "this browser?"
+
             );
 
 
         if (!confirmed) {
+
             return;
+
         }
 
 
-        identityArchive = [];
+        identityArchive =
+            [];
+
 
         localStorage.removeItem(
             STORAGE_KEY
         );
 
 
-        currentIdentity = null;
+        currentIdentity =
+            null;
 
-        pendingIdentity = null;
 
-        pendingCount = 0;
+        pendingIdentity =
+            null;
+
+
+        pendingCount =
+            0;
+
+
+        emptyCount =
+            0;
 
 
         document.body.classList.remove(
@@ -2258,12 +3004,14 @@ clearArchiveBtn.addEventListener(
 
         updateArchiveCount();
 
+
         clearSidebar();
 
 
         addSidebarRow(
             "ARCHIVE: EMPTY"
         );
+
 
         addSidebarRow(
             "RADAR: SEARCHING"
@@ -2273,35 +3021,43 @@ clearArchiveBtn.addEventListener(
         statusText.innerText =
             "// STATUS: ARCHIVE CLEARED";
 
+
         actionText.innerText =
             "// IDENTITY DATABASE RESET";
 
     }
+
 );
 
 
 /* =========================================================
-   BOOT BUTTON
+   BOOT
 ========================================================= */
 
 bootBtn.addEventListener(
+
     "click",
+
     initializeCamera
+
 );
 
 
 /* =========================================================
-   WINDOW RESIZE
+   RESIZE
 ========================================================= */
 
 window.addEventListener(
+
     "resize",
+
     resizeCanvas
+
 );
 
 
 /* =========================================================
-   INITIALIZATION
+   INITIAL UI
 ========================================================= */
 
 updateArchiveCount();
@@ -2310,13 +3066,16 @@ updateBattery();
 
 clearSidebar();
 
+
 addSidebarRow(
     "LOCK: OFFLINE"
 );
 
+
 addSidebarRow(
     "RADAR: STANDBY"
 );
+
 
 addSidebarRow(
     "ARCHIVE: " +
@@ -2329,17 +3088,13 @@ addSidebarRow(
 ========================================================= */
 
 setInterval(
+
     () => {
 
         if (
             activated &&
             battery > 0
         ) {
-
-            /*
-                This is only a HUD simulation.
-                It does NOT measure your laptop battery.
-            */
 
             battery--;
 
@@ -2348,32 +3103,43 @@ setInterval(
         }
 
     },
+
     6000
+
 );
 
 
 /* =========================================================
-   PAGE EXIT — STOP CAMERA
+   STOP CAMERA WHEN PAGE CLOSES
 ========================================================= */
 
 window.addEventListener(
+
     "beforeunload",
+
     () => {
 
-        if (cameraStream) {
+        if (
+            cameraStream
+        ) {
 
             cameraStream
                 .getTracks()
                 .forEach(
-                    track => track.stop()
+
+                    track =>
+                        track.stop()
+
                 );
 
         }
 
     }
+
 );
 
 </script>
 
 </body>
+
 </html>
