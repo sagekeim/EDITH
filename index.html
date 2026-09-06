@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 
 <meta charset="UTF-8">
@@ -26,7 +25,6 @@ body {
 body {
     padding: 12px;
     overflow-x: hidden;
-
     transition:
         background 0.25s ease,
         box-shadow 0.25s ease;
@@ -43,7 +41,6 @@ body.threat {
 body.threat .hud-line,
 body.threat .sidebar-row {
     color: #ff3030;
-
     text-shadow:
         0 0 8px rgba(255, 0, 0, 0.8);
 }
@@ -53,13 +50,9 @@ body.threat .sidebar-row {
 ========================================================= */
 
 .header {
-
     display: flex;
-
     justify-content: space-between;
-
     gap: 20px;
-
     margin-bottom: 18px;
 }
 
@@ -68,17 +61,11 @@ body.threat .sidebar-row {
 }
 
 .hud-line {
-
     color: #20c8ff;
-
     font-weight: bold;
-
     font-size: 18px;
-
     letter-spacing: 2px;
-
     line-height: 1.8;
-
     text-shadow:
         0 0 8px rgba(0, 191, 255, 0.75);
 }
@@ -88,7 +75,6 @@ body.threat .sidebar-row {
 ========================================================= */
 
 .workspace {
-
     display: grid;
 
     grid-template-columns:
@@ -105,7 +91,6 @@ body.threat .sidebar-row {
 ========================================================= */
 
 .camera-shell {
-
     position: relative;
 
     width: 100%;
@@ -123,7 +108,6 @@ body.threat .sidebar-row {
     overflow: hidden;
 
     box-shadow:
-
         0 0 18px
         rgba(0, 191, 255, 0.45),
 
@@ -131,7 +115,6 @@ body.threat .sidebar-row {
         rgba(0, 191, 255, 0.05);
 
     transition:
-
         border-color 0.25s ease,
         box-shadow 0.25s ease;
 }
@@ -142,7 +125,6 @@ body.threat .camera-shell {
         #ff3030;
 
     box-shadow:
-
         0 0 30px
         rgba(255, 0, 0, 0.75),
 
@@ -244,6 +226,7 @@ body.threat .camera-shell {
     z-index: 30;
 
     left: 50%;
+
     bottom: 25%;
 
     transform:
@@ -370,13 +353,6 @@ body.threat .sidebar {
     font-weight: bold;
 }
 
-.yellow {
-
-    color: #ffe45c;
-
-    font-weight: bold;
-}
-
 button.small-btn {
 
     margin-top: 10px;
@@ -469,7 +445,6 @@ button.danger-btn:hover {
 }
 
 </style>
-
 </head>
 
 <body>
@@ -483,9 +458,7 @@ button.danger-btn:hover {
     <div>
 
         <div class="hud-line">
-
             // E.D.I.T.H. AUTONOMOUS MATRIX v59.0
-
         </div>
 
         <div
@@ -530,7 +503,7 @@ button.danger-btn:hover {
 
 
 <!-- =======================================================
-     MAIN CAMERA AREA
+     MAIN CAMERA
 ======================================================= -->
 
 <div class="workspace">
@@ -553,9 +526,7 @@ button.danger-btn:hover {
             class="boot-panel">
 
             <button id="bootBtn">
-
                 [ 🚀 INITIALIZE OPTICAL MATRIX ]
-
             </button>
 
         </div>
@@ -572,9 +543,7 @@ button.danger-btn:hover {
     <div class="sidebar">
 
         <div class="sidebar-title">
-
             // IDENTITY ARCHIVE //
-
         </div>
 
         <div id="sidebarContent"></div>
@@ -591,60 +560,38 @@ button.danger-btn:hover {
 <div class="controls">
 
     <div class="protocol">
-
         [ STABILIZED RADAR PROTOCOL v59 ]
-
     </div>
 
     <div>
-
         <b>[T]</b>
         Register the person currently inside the center box.
-
     </div>
 
     <div>
-
         <b>[C]</b>
         Recalibrate the empty background.
-
     </div>
 
     <div>
-
         <b>[ESC]</b>
         Reset temporary verification.
-
     </div>
 
     <div class="green">
-
         // MULTI-FRAME IDENTITY VOTING: ACTIVE
-
     </div>
 
     <div class="green">
-
-        // PRESENCE HYSTERESIS: ACTIVE
-
+        // SMART PRESENCE DETECTION: ACTIVE
     </div>
 
     <div class="green">
-
         // PERSISTENT ARCHIVE: ACTIVE
-
     </div>
 
     <div class="green">
-
         // PERSISTENT CALIBRATION: ACTIVE
-
-    </div>
-
-    <div class="yellow">
-
-        // DUAL STORAGE ARCHIVE: ACTIVE
-
     </div>
 
     <button
@@ -664,9 +611,7 @@ button.danger-btn:hover {
     </button>
 
     <div id="archiveCount">
-
         ARCHIVE: 0 PROFILES
-
     </div>
 
 </div>
@@ -680,23 +625,8 @@ button.danger-btn:hover {
 
 
 /* =========================================================
-   STORAGE IDENTIFIERS
+   STORAGE
 ========================================================= */
-
-/*
-   localStorage is the primary persistent store.
-
-   IndexedDB is a second browser-persistent copy.
-
-   Both normally survive:
-
-   - page refresh
-   - tab closing
-   - browser restart
-
-   They are removed if the browser's site data
-   is deliberately cleared.
-*/
 
 const STORAGE_KEY =
     "edith_v59_identity_archive";
@@ -704,70 +634,135 @@ const STORAGE_KEY =
 const CALIBRATION_KEY =
     "edith_v59_background_signature";
 
+const OLD_STORAGE_KEY =
+    "edith_v58_identity_archive";
 
-/*
-   IndexedDB database.
-*/
-
-const IDB_NAME =
-    "EDITH_V59_PERSISTENT_DATABASE";
-
-const IDB_VERSION =
-    1;
-
-const IDB_STORE =
-    "edith_state";
+const OLD_CALIBRATION_KEY =
+    "edith_v58_background_signature";
 
 
 /* =========================================================
-   RADAR SETTINGS
+   RADAR
 ========================================================= */
 
+/*
+   Faster than V58.
+
+   This means E.D.I.T.H. checks the center
+   sector roughly once every second instead
+   of once every two seconds.
+*/
+
 const RADAR_INTERVAL =
-    2000;
+    1000;
+
+
+/* =========================================================
+   PRESENCE SETTINGS
+========================================================= */
+
+/*
+   These values control whether E.D.I.T.H.
+   thinks something has entered the box.
+
+   The old V58 system depended too heavily
+   on one threshold.
+
+   V59 uses multiple measurements.
+*/
+
+const PRESENCE_ENTER_THRESHOLD =
+    0.020;
+
+const PRESENCE_EXIT_THRESHOLD =
+    0.013;
+
+const RAW_FOREGROUND_THRESHOLD =
+    0.025;
+
+const FOREGROUND_PIXEL_RATIO =
+    0.055;
+
+
+/*
+   Number of consecutive detections required
+   to confirm that someone really entered.
+*/
+
+const PRESENCE_SCANS_TO_CONFIRM =
+    2;
+
+
+/*
+   Number of empty scans required before
+   the target is released.
+*/
 
 const EMPTY_SCANS_TO_RELEASE =
-    4;
+    5;
 
-const MATCH_SCANS_TO_LOCK =
-    4;
+
+/* =========================================================
+   IDENTITY SETTINGS
+========================================================= */
+
+const MATCH_TOLERANCE =
+    0.145;
+
+
+/*
+   A second profile must be sufficiently
+   worse than the best profile.
+
+   This helps prevent Person A from
+   randomly becoming Person B.
+*/
+
+const PROFILE_MARGIN =
+    0.012;
+
+
+/*
+   Number of observations used for voting.
+*/
+
+const IDENTITY_HISTORY_LENGTH =
+    5;
+
+
+/*
+   Number of matching observations needed.
+*/
+
+const REQUIRED_VOTES =
+    3;
+
+
+/*
+   Unknown target confirmation.
+*/
 
 const UNKNOWN_SCANS_TO_CONFIRM =
     3;
 
 
 /* =========================================================
-   PRESENCE HYSTERESIS
+   SIGNATURE SETTINGS
 ========================================================= */
-
-const PRESENCE_ENTER_THRESHOLD =
-    0.050;
-
-const PRESENCE_EXIT_THRESHOLD =
-    0.035;
-
-
-/* =========================================================
-   IDENTITY MATCHING
-========================================================= */
-
-const MATCH_TOLERANCE =
-    0.105;
 
 const SIGNATURE_WIDTH =
-    24;
+    32;
 
 const SIGNATURE_HEIGHT =
-    24;
+    32;
+
+
+/*
+   More samples = better profile stability.
+*/
 
 const PROFILE_SAMPLE_COUNT =
-    7;
-
-const IDENTITY_HISTORY_LENGTH =
-    7;
-
-const REQUIRED_VOTES =
-    4;
+    9;
 
 
 /* =========================================================
@@ -869,34 +864,23 @@ let batteryTimer =
 
 
 /*
-   Persistent state.
-
-   IMPORTANT:
-
-   These are initialized empty first.
-
-   The real saved data is restored asynchronously
-   from localStorage and IndexedDB.
+   Persistent calibration.
 */
 
-let backgroundSignature =
-    null;
+let backgroundCalibration =
+    loadCalibration();
+
+
+/*
+   Persistent people.
+*/
 
 let identityArchive =
-    [];
+    loadArchive();
 
 
 /*
-   Prevent camera initialization from happening
-   before the persistent archive is restored.
-*/
-
-let persistenceReady =
-    restorePersistentState();
-
-
-/*
-   Current confirmed target.
+   Currently locked person.
 */
 
 let currentIdentity =
@@ -912,7 +896,7 @@ let identityHistory =
 
 
 /*
-   Unknown confirmation.
+   Unknown scan counter.
 */
 
 let unknownScanCount =
@@ -920,7 +904,7 @@ let unknownScanCount =
 
 
 /*
-   Empty-sector confirmation.
+   Empty scan counter.
 */
 
 let emptyScanCount =
@@ -928,7 +912,24 @@ let emptyScanCount =
 
 
 /*
-   Last spoken unknown alert.
+   Presence confirmation counter.
+*/
+
+let presenceScanCount =
+    0;
+
+
+/*
+   True once a target has actually
+   been confirmed inside the box.
+*/
+
+let presenceLocked =
+    false;
+
+
+/*
+   Last unknown speech alert.
 */
 
 let lastUnknownAlert =
@@ -936,7 +937,7 @@ let lastUnknownAlert =
 
 
 /*
-   Battery display.
+   Battery.
 */
 
 let batteryLevel =
@@ -944,916 +945,240 @@ let batteryLevel =
 
 
 /* =========================================================
-   SAFE LOCAL STORAGE
+   ARCHIVE LOAD
 ========================================================= */
 
-function readLocalStorage(
-    key
-) {
+function loadArchive() {
 
     try {
 
-        const value =
+        let saved =
             localStorage.getItem(
-                key
+                STORAGE_KEY
             );
 
-        if (
-            value === null
-        ) {
 
-            return null;
+        /*
+           If V59 storage doesn't exist,
+           attempt to migrate V58 storage.
+        */
+
+        if (!saved) {
+
+            saved =
+                localStorage.getItem(
+                    OLD_STORAGE_KEY
+                );
 
         }
 
-        return JSON.parse(
-            value
-        );
 
-    } catch (error) {
+        if (!saved) {
 
-        console.warn(
-            "Local storage read failed:",
-            error
-        );
-
-        return null;
-
-    }
-
-}
-
-
-function writeLocalStorage(
-    key,
-    value
-) {
-
-    try {
-
-        localStorage.setItem(
-
-            key,
-
-            JSON.stringify(
-                value
-            )
-
-        );
-
-        return true;
-
-    } catch (error) {
-
-        console.warn(
-            "Local storage write failed:",
-            error
-        );
-
-        return false;
-
-    }
-
-}
-
-
-function removeLocalStorage(
-    key
-) {
-
-    try {
-
-        localStorage.removeItem(
-            key
-        );
-
-    } catch (error) {
-
-        console.warn(
-            "Local storage removal failed:",
-            error
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   INDEXEDDB OPEN
-========================================================= */
-
-function openPersistentDatabase() {
-
-    return new Promise(
-        (
-            resolve,
-            reject
-        ) => {
-
-            if (
-                !("indexedDB" in window)
-            ) {
-
-                resolve(null);
-
-                return;
-
-            }
-
-
-            let request;
-
-            try {
-
-                request =
-                    indexedDB.open(
-                        IDB_NAME,
-                        IDB_VERSION
-                    );
-
-            } catch (error) {
-
-                resolve(null);
-
-                return;
-
-            }
-
-
-            request.onupgradeneeded =
-                event => {
-
-                    const database =
-                        event.target.result;
-
-                    if (
-                        !database.objectStoreNames.contains(
-                            IDB_STORE
-                        )
-                    ) {
-
-                        database.createObjectStore(
-                            IDB_STORE
-                        );
-
-                    }
-
-                };
-
-
-            request.onsuccess =
-                () => {
-
-                    resolve(
-                        request.result
-                    );
-
-                };
-
-
-            request.onerror =
-                () => {
-
-                    resolve(null);
-
-                };
+            return [];
 
         }
-    );
-
-}
 
 
-/* =========================================================
-   INDEXEDDB READ
-========================================================= */
-
-function idbRead(
-    key
-) {
-
-    return openPersistentDatabase()
-        .then(
-            database => {
-
-                if (!database) {
-
-                    return null;
-
-                }
-
-                return new Promise(
-                    resolve => {
-
-                        try {
-
-                            const transaction =
-                                database.transaction(
-                                    IDB_STORE,
-                                    "readonly"
-                                );
-
-                            const store =
-                                transaction.objectStore(
-                                    IDB_STORE
-                                );
-
-                            const request =
-                                store.get(
-                                    key
-                                );
+        const parsed =
+            JSON.parse(
+                saved
+            );
 
 
-                            request.onsuccess =
-                                () => {
+        if (!Array.isArray(parsed)) {
 
-                                    const result =
-                                        request.result;
+            return [];
 
-                                    database.close();
-
-                                    resolve(
-                                        result ?? null
-                                    );
-
-                                };
+        }
 
 
-                            request.onerror =
-                                () => {
+        return parsed.filter(
+            profile => {
 
-                                    database.close();
+                return (
 
-                                    resolve(
-                                        null
-                                    );
+                    profile &&
 
-                                };
+                    profile.id &&
 
-                        } catch (error) {
+                    profile.name &&
 
-                            try {
-                                database.close();
-                            } catch (_) {}
+                    Array.isArray(
+                        profile.samples
+                    ) &&
 
-                            resolve(
-                                null
-                            );
+                    profile.samples.length > 0
 
-                        }
-
-                    }
                 );
 
             }
-        )
-        .catch(
-            () => null
         );
 
-}
+    } catch (error) {
 
-
-/* =========================================================
-   INDEXEDDB WRITE
-========================================================= */
-
-function idbWrite(
-    key,
-    value
-) {
-
-    return openPersistentDatabase()
-        .then(
-            database => {
-
-                if (!database) {
-
-                    return false;
-
-                }
-
-                return new Promise(
-                    resolve => {
-
-                        try {
-
-                            const transaction =
-                                database.transaction(
-                                    IDB_STORE,
-                                    "readwrite"
-                                );
-
-                            const store =
-                                transaction.objectStore(
-                                    IDB_STORE
-                                );
-
-                            const request =
-                                store.put(
-                                    value,
-                                    key
-                                );
-
-
-                            request.onsuccess =
-                                () => {
-
-                                    database.close();
-
-                                    resolve(
-                                        true
-                                    );
-
-                                };
-
-
-                            request.onerror =
-                                () => {
-
-                                    database.close();
-
-                                    resolve(
-                                        false
-                                    );
-
-                                };
-
-                        } catch (error) {
-
-                            try {
-                                database.close();
-                            } catch (_) {}
-
-                            resolve(
-                                false
-                            );
-
-                        }
-
-                    }
-                );
-
-            }
-        )
-        .catch(
-            () => false
+        console.error(
+            "Archive load error:",
+            error
         );
-
-}
-
-
-/* =========================================================
-   INDEXEDDB DELETE
-========================================================= */
-
-function idbDelete(
-    key
-) {
-
-    return openPersistentDatabase()
-        .then(
-            database => {
-
-                if (!database) {
-
-                    return false;
-
-                }
-
-                return new Promise(
-                    resolve => {
-
-                        try {
-
-                            const transaction =
-                                database.transaction(
-                                    IDB_STORE,
-                                    "readwrite"
-                                );
-
-                            const store =
-                                transaction.objectStore(
-                                    IDB_STORE
-                                );
-
-                            const request =
-                                store.delete(
-                                    key
-                                );
-
-
-                            request.onsuccess =
-                                () => {
-
-                                    database.close();
-
-                                    resolve(
-                                        true
-                                    );
-
-                                };
-
-
-                            request.onerror =
-                                () => {
-
-                                    database.close();
-
-                                    resolve(
-                                        false
-                                    );
-
-                                };
-
-                        } catch (error) {
-
-                            try {
-                                database.close();
-                            } catch (_) {}
-
-                            resolve(
-                                false
-                            );
-
-                        }
-
-                    }
-                );
-
-            }
-        )
-        .catch(
-            () => false
-        );
-
-}
-
-
-/* =========================================================
-   PROFILE VALIDATION
-========================================================= */
-
-function isValidProfile(
-    profile
-) {
-
-    return (
-
-        profile &&
-
-        typeof profile.id ===
-            "string" &&
-
-        profile.id.length > 0 &&
-
-        typeof profile.name ===
-            "string" &&
-
-        profile.name.trim().length > 0 &&
-
-        Array.isArray(
-            profile.samples
-        ) &&
-
-        profile.samples.length > 0 &&
-
-        profile.samples.every(
-            sample =>
-                Array.isArray(
-                    sample
-                )
-        )
-
-    );
-
-}
-
-
-/* =========================================================
-   NORMALIZE PROFILE
-========================================================= */
-
-function normalizeProfile(
-    profile
-) {
-
-    if (
-        !isValidProfile(
-            profile
-        )
-    ) {
-
-        return null;
-
-    }
-
-
-    return {
-
-        id:
-            profile.id,
-
-        name:
-            profile.name.trim(),
-
-        samples:
-            profile.samples,
-
-        created:
-            profile.created ||
-            new Date().toISOString(),
-
-        updated:
-            profile.updated ||
-            profile.created ||
-            new Date().toISOString()
-
-    };
-
-}
-
-
-/* =========================================================
-   VALIDATE ARCHIVE
-========================================================= */
-
-function validateArchive(
-    archive
-) {
-
-    if (
-        !Array.isArray(
-            archive
-        )
-    ) {
 
         return [];
 
     }
 
-
-    return archive
-
-        .map(
-            normalizeProfile
-        )
-
-        .filter(
-            Boolean
-        );
-
 }
 
 
 /* =========================================================
-   MERGE ARCHIVES
+   ARCHIVE SAVE
 ========================================================= */
 
-function mergeArchives(
-    first,
-    second
-) {
+function saveArchive() {
 
-    const map =
-        new Map();
+    try {
 
+        localStorage.setItem(
 
-    const allProfiles = [
+            STORAGE_KEY,
 
-        ...validateArchive(
-            first
-        ),
-
-        ...validateArchive(
-            second
-        )
-
-    ];
-
-
-    for (
-        const profile
-        of allProfiles
-    ) {
-
-        const existing =
-            map.get(
-                profile.id
-            );
-
-
-        if (!existing) {
-
-            map.set(
-                profile.id,
-                profile
-            );
-
-            continue;
-
-        }
-
-
-        const existingTime =
-            Date.parse(
-                existing.updated ||
-                existing.created ||
-                0
-            ) || 0;
-
-
-        const newTime =
-            Date.parse(
-                profile.updated ||
-                profile.created ||
-                0
-            ) || 0;
-
-
-        if (
-            newTime >=
-            existingTime
-        ) {
-
-            map.set(
-                profile.id,
-                profile
-            );
-
-        }
-
-    }
-
-
-    return Array.from(
-        map.values()
-    );
-
-}
-
-
-/* =========================================================
-   RESTORE PERSISTENT STATE
-========================================================= */
-
-async function restorePersistentState() {
-
-    /*
-       Read both storage systems.
-    */
-
-    const localArchive =
-        validateArchive(
-            readLocalStorage(
-                STORAGE_KEY
+            JSON.stringify(
+                identityArchive
             )
-        );
-
-
-    const localCalibration =
-        readLocalStorage(
-            CALIBRATION_KEY
-        );
-
-
-    const indexedArchive =
-        validateArchive(
-            await idbRead(
-                STORAGE_KEY
-            )
-        );
-
-
-    const indexedCalibration =
-        await idbRead(
-            CALIBRATION_KEY
-        );
-
-
-    /*
-       Merge profile archives.
-
-       This is important because it means
-       one storage copy can restore the other.
-    */
-
-    identityArchive =
-        mergeArchives(
-            localArchive,
-            indexedArchive
-        );
-
-
-    /*
-       Restore calibration.
-
-       Prefer localStorage when valid.
-
-       Otherwise use IndexedDB.
-    */
-
-    if (
-        Array.isArray(
-            localCalibration
-        ) &&
-        localCalibration.length > 0
-    ) {
-
-        backgroundSignature =
-            localCalibration;
-
-    } else if (
-        Array.isArray(
-            indexedCalibration
-        ) &&
-        indexedCalibration.length > 0
-    ) {
-
-        backgroundSignature =
-            indexedCalibration;
-
-    } else {
-
-        backgroundSignature =
-            null;
-
-    }
-
-
-    /*
-       Synchronize the merged archive
-       back into both storage systems.
-
-       This makes the two copies converge.
-    */
-
-    if (
-        identityArchive.length > 0
-    ) {
-
-        writeLocalStorage(
-
-            STORAGE_KEY,
-
-            identityArchive
 
         );
 
-        await idbWrite(
+        updateArchiveCount();
 
-            STORAGE_KEY,
-
-            identityArchive
-
-        );
-
-    }
-
-
-    if (
-        backgroundSignature
-    ) {
-
-        writeLocalStorage(
-
-            CALIBRATION_KEY,
-
-            backgroundSignature
-
-        );
-
-        await idbWrite(
-
-            CALIBRATION_KEY,
-
-            backgroundSignature
-
-        );
-
-    }
-
-
-    updateArchiveCount();
-
-
-    /*
-       Show restored state immediately.
-    */
-
-    showInitialArchiveState();
-
-
-    return true;
-
-}
-
-
-/* =========================================================
-   SAVE ARCHIVE
-========================================================= */
-
-async function saveArchive() {
-
-    const validArchive =
-        validateArchive(
-            identityArchive
-        );
-
-
-    identityArchive =
-        validArchive;
-
-
-    const localSaved =
-        writeLocalStorage(
-
-            STORAGE_KEY,
-
-            identityArchive
-
-        );
-
-
-    const indexedSaved =
-        await idbWrite(
-
-            STORAGE_KEY,
-
-            identityArchive
-
-        );
-
-
-    updateArchiveCount();
-
-
-    if (
-        !localSaved &&
-        !indexedSaved
-    ) {
+    } catch (error) {
 
         console.error(
-            "Both persistent archive stores failed."
+            "Archive save error:",
+            error
         );
 
         setAction(
             "// ARCHIVE SAVE FAILED"
         );
 
-        return false;
-
     }
-
-
-    return true;
 
 }
 
 
 /* =========================================================
-   SAVE CALIBRATION
+   CALIBRATION LOAD
 ========================================================= */
 
-async function saveCalibration() {
+function loadCalibration() {
 
-    if (
-        !backgroundSignature
-    ) {
+    try {
 
-        return;
+        let saved =
+            localStorage.getItem(
+                CALIBRATION_KEY
+            );
+
+
+        /*
+           Migrate V58 calibration.
+        */
+
+        if (!saved) {
+
+            saved =
+                localStorage.getItem(
+                    OLD_CALIBRATION_KEY
+                );
+
+        }
+
+
+        if (!saved) {
+
+            return null;
+
+        }
+
+
+        const parsed =
+            JSON.parse(
+                saved
+            );
+
+
+        /*
+           V58 stored only the normalized
+           signature as an array.
+
+           Convert that into the V59 format.
+        */
+
+        if (Array.isArray(parsed)) {
+
+            return {
+
+                normalized:
+                    parsed,
+
+                raw:
+                    null
+
+            };
+
+        }
+
+
+        if (
+            parsed &&
+            Array.isArray(
+                parsed.normalized
+            )
+        ) {
+
+            return parsed;
+
+        }
+
+
+        return null;
+
+    } catch (error) {
+
+        console.error(
+            "Calibration load error:",
+            error
+        );
+
+        return null;
 
     }
 
+}
 
-    const localSaved =
-        writeLocalStorage(
+
+/* =========================================================
+   CALIBRATION SAVE
+========================================================= */
+
+function saveCalibration() {
+
+    try {
+
+        localStorage.setItem(
 
             CALIBRATION_KEY,
 
-            backgroundSignature
+            JSON.stringify(
+                backgroundCalibration
+            )
 
         );
 
+    } catch (error) {
 
-    const indexedSaved =
-        await idbWrite(
-
-            CALIBRATION_KEY,
-
-            backgroundSignature
-
-        );
-
-
-    if (
-        !localSaved &&
-        !indexedSaved
-    ) {
-
-        console.warn(
-            "Calibration could not be persisted."
+        console.error(
+            "Calibration save error:",
+            error
         );
 
     }
@@ -1865,9 +1190,7 @@ async function saveCalibration() {
    HUD
 ========================================================= */
 
-function setStatus(
-    text
-) {
+function setStatus(text) {
 
     statusLine.textContent =
         "// STATUS: " +
@@ -1876,12 +1199,9 @@ function setStatus(
 }
 
 
-function setAction(
-    text
-) {
+function setAction(text) {
 
     actionLine.textContent =
-
         text.startsWith("//")
             ? text
             : "// " + text;
@@ -1901,9 +1221,7 @@ function clearSidebar() {
 }
 
 
-function addSidebarRow(
-    text
-) {
+function addSidebarRow(text) {
 
     const row =
         document.createElement(
@@ -1919,67 +1237,6 @@ function addSidebarRow(
     sidebarContent.appendChild(
         row
     );
-
-}
-
-
-/* =========================================================
-   INITIAL ARCHIVE STATE
-========================================================= */
-
-function showInitialArchiveState() {
-
-    clearSidebar();
-
-
-    if (
-        backgroundSignature
-    ) {
-
-        addSidebarRow(
-            "LOCK: CALIBRATION SAVED"
-        );
-
-        addSidebarRow(
-            "CLEARANCE: READY"
-        );
-
-    } else {
-
-        addSidebarRow(
-            "LOCK: OFFLINE"
-        );
-
-        addSidebarRow(
-            "CLEARANCE: PENDING"
-        );
-
-    }
-
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "RADAR: STANDBY"
-    );
-
-    addSidebarRow(
-        "ARCHIVE: " +
-        identityArchive.length
-    );
-
-
-    if (
-        identityArchive.length > 0
-    ) {
-
-        addSidebarRow(
-            "MEMORY: RESTORED"
-        );
-
-    }
 
 }
 
@@ -2066,6 +1323,46 @@ function showKnownSidebar(
 
 
 /* =========================================================
+   VERIFYING SIDEBAR
+========================================================= */
+
+function showVerifyingSidebar(
+    profile,
+    distance
+) {
+
+    clearSidebar();
+
+    addSidebarRow(
+        "LOCK: VERIFYING"
+    );
+
+    addSidebarRow(
+        "CANDIDATE: " +
+        profile.name
+    );
+
+    addSidebarRow(
+        "SECTOR: CENTER"
+    );
+
+    addSidebarRow(
+        "MATCH DELTA: " +
+        distance.toFixed(4)
+    );
+
+    addSidebarRow(
+        "MULTI-FRAME VOTE: ACTIVE"
+    );
+
+    addSidebarRow(
+        "STATUS: VERIFYING"
+    );
+
+}
+
+
+/* =========================================================
    UNKNOWN SIDEBAR
 ========================================================= */
 
@@ -2100,9 +1397,7 @@ function showUnknownSidebar() {
    SPEECH
 ========================================================= */
 
-function speak(
-    text
-) {
+function speak(text) {
 
     if (
         !("speechSynthesis" in window)
@@ -2112,17 +1407,14 @@ function speak(
 
     }
 
-
     try {
 
         window.speechSynthesis.cancel();
-
 
         const utterance =
             new SpeechSynthesisUtterance(
                 text
             );
-
 
         utterance.rate =
             1;
@@ -2132,7 +1424,6 @@ function speak(
 
         utterance.volume =
             1;
-
 
         window.speechSynthesis.speak(
             utterance
@@ -2197,39 +1488,28 @@ function updateBattery() {
         "|||||";
 
 
-    if (
-        batteryLevel < 80
-    ) {
+    if (batteryLevel < 80) {
 
         bars =
             "|||| ";
 
     }
 
-
-    if (
-        batteryLevel < 60
-    ) {
+    if (batteryLevel < 60) {
 
         bars =
             "|||  ";
 
     }
 
-
-    if (
-        batteryLevel < 40
-    ) {
+    if (batteryLevel < 40) {
 
         bars =
             "||   ";
 
     }
 
-
-    if (
-        batteryLevel < 20
-    ) {
+    if (batteryLevel < 20) {
 
         bars =
             "|    ";
@@ -2261,6 +1541,7 @@ function startBattery() {
 
     batteryTimer =
         setInterval(
+
             () => {
 
                 if (
@@ -2275,7 +1556,9 @@ function startBattery() {
                 }
 
             },
+
             30000
+
         );
 
 }
@@ -2286,17 +1569,6 @@ function startBattery() {
 ========================================================= */
 
 async function initializeCamera() {
-
-    /*
-       Wait until the archive has finished loading.
-
-       This is the important change that prevents
-       the camera/radar from starting before the
-       saved profiles are restored.
-    */
-
-    await persistenceReady;
-
 
     if (cameraOnline) {
 
@@ -2403,8 +1675,19 @@ async function initializeCamera() {
         startBattery();
 
 
+        /*
+           IMPORTANT V59 CHANGE:
+
+           If calibration already exists,
+           radar starts immediately.
+
+           E.D.I.T.H. doesn't require T
+           or another action to begin looking
+           for a saved person.
+        */
+
         if (
-            backgroundSignature
+            backgroundCalibration
         ) {
 
             setStatus(
@@ -2412,31 +1695,16 @@ async function initializeCamera() {
             );
 
             setAction(
-                "PERSISTENT MEMORY RESTORED — " +
-                identityArchive.length +
-                " PROFILE(S)"
+                "PERSISTENT CALIBRATION RESTORED — SEARCHING CENTER SECTOR"
             );
 
             showPassiveSidebar();
 
             startRadar();
 
-
-            if (
-                identityArchive.length > 0
-            ) {
-
-                speak(
-                    "Optical matrix online. Persistent identity archive restored."
-                );
-
-            } else {
-
-                speak(
-                    "Optical matrix online. Persistent calibration restored."
-                );
-
-            }
+            speak(
+                "Optical matrix online. Identity archive restored."
+            );
 
         } else {
 
@@ -2452,24 +1720,20 @@ async function initializeCamera() {
 
         }
 
-
     } catch (error) {
 
         console.error(
             error
         );
 
-
         cameraOnline =
             false;
-
 
         showCameraError(
             getCameraErrorMessage(
                 error
             )
         );
-
 
         setStatus(
             "CAMERA OFFLINE"
@@ -2488,9 +1752,7 @@ async function initializeCamera() {
    CAMERA ERROR
 ========================================================= */
 
-function getCameraErrorMessage(
-    error
-) {
+function getCameraErrorMessage(error) {
 
     if (
         error &&
@@ -2499,8 +1761,7 @@ function getCameraErrorMessage(
     ) {
 
         return (
-            "CAMERA PERMISSION DENIED — " +
-            "ALLOW CAMERA ACCESS AND TRY AGAIN"
+            "CAMERA PERMISSION DENIED — ALLOW CAMERA ACCESS AND TRY AGAIN"
         );
 
     }
@@ -2533,22 +1794,17 @@ function getCameraErrorMessage(
 
 
     return (
-
         "CAMERA ERROR — " +
-
         (
             error?.message ||
             "UNKNOWN FAILURE"
         )
-
     );
 
 }
 
 
-function showCameraError(
-    message
-) {
+function showCameraError(message) {
 
     errorBox.textContent =
         message;
@@ -2594,11 +1850,19 @@ function getScanRect() {
         overlay.height;
 
 
+    /*
+       Slightly wider than V58.
+
+       This makes entering the square
+       easier to detect without requiring
+       perfect positioning.
+    */
+
     const boxWidth =
-        width * 0.42;
+        width * 0.48;
 
     const boxHeight =
-        height * 0.62;
+        height * 0.68;
 
 
     return {
@@ -2621,7 +1885,7 @@ function getScanRect() {
 
 
 /* =========================================================
-   RENDER ENGINE
+   RENDER
 ========================================================= */
 
 function startRendering() {
@@ -2710,7 +1974,6 @@ function startRendering() {
         ctx.lineWidth =
             5;
 
-
         const corner =
             35;
 
@@ -2788,7 +2051,6 @@ function startRendering() {
         /* RADAR SWEEP */
 
         const sweep =
-
             (
                 Math.sin(
                     Date.now() / 450
@@ -2797,25 +2059,21 @@ function startRendering() {
 
 
         const lineY =
-
             rect.y +
             rect.height *
             sweep;
 
 
         ctx.strokeStyle =
-
             threat
                 ? "rgba(255,50,50,0.9)"
                 : "rgba(40,210,255,0.9)";
-
 
         ctx.lineWidth =
             2;
 
 
         ctx.beginPath();
-
 
         ctx.moveTo(
             rect.x,
@@ -2826,7 +2084,6 @@ function startRendering() {
             rect.x + rect.width,
             lineY
         );
-
 
         ctx.stroke();
 
@@ -2840,14 +2097,23 @@ function startRendering() {
             "bold 22px Courier New";
 
 
-        if (
-            currentIdentity
-        ) {
+        if (currentIdentity) {
 
             ctx.fillText(
 
                 "TARGET LOCK: " +
                 currentIdentity.name,
+
+                rect.x + 12,
+                rect.y - 14
+
+            );
+
+        } else if (presenceLocked) {
+
+            ctx.fillText(
+
+                "TARGET ACQUIRED",
 
                 rect.x + 12,
                 rect.y - 14
@@ -2912,10 +2178,10 @@ function startRendering() {
 
 
 /* =========================================================
-   CAPTURE
+   CAPTURE RAW IMAGE
 ========================================================= */
 
-function captureScanImage() {
+function captureRawImage() {
 
     if (
         !cameraOnline ||
@@ -3000,12 +2266,10 @@ function captureScanImage() {
 
 
 /* =========================================================
-   SIGNATURE
+   CREATE RAW + NORMALIZED SIGNATURE
 ========================================================= */
 
-function createSignature(
-    imageData
-) {
+function createSignature(imageData) {
 
     if (!imageData) {
 
@@ -3018,7 +2282,7 @@ function createSignature(
         imageData.data;
 
 
-    const result =
+    const raw =
         [];
 
 
@@ -3039,7 +2303,6 @@ function createSignature(
 
 
         const brightness =
-
             (
                 r * 0.299 +
                 g * 0.587 +
@@ -3047,7 +2310,7 @@ function createSignature(
             );
 
 
-        result.push(
+        raw.push(
             brightness
         );
 
@@ -3056,6 +2319,10 @@ function createSignature(
 
     /*
        Normalize brightness.
+
+       This makes identity matching less
+       sensitive to the room becoming brighter
+       or darker.
     */
 
     let mean =
@@ -3064,7 +2331,7 @@ function createSignature(
 
     for (
         const value
-        of result
+        of raw
     ) {
 
         mean +=
@@ -3074,7 +2341,7 @@ function createSignature(
 
 
     mean /=
-        result.length;
+        raw.length;
 
 
     let variance =
@@ -3083,11 +2350,10 @@ function createSignature(
 
     for (
         const value
-        of result
+        of raw
     ) {
 
         variance +=
-
             Math.pow(
                 value - mean,
                 2
@@ -3097,40 +2363,41 @@ function createSignature(
 
 
     const standardDeviation =
-
         Math.sqrt(
             variance /
-            result.length
+            raw.length
         ) || 1;
 
 
-    for (
-        let i = 0;
-        i < result.length;
-        i++
-    ) {
-
-        result[i] =
-
-            (
-                result[i] -
-                mean
-            ) /
-            standardDeviation;
-
-    }
+    const normalized =
+        raw.map(
+            value =>
+                (
+                    value -
+                    mean
+                ) /
+                standardDeviation
+        );
 
 
-    return result;
+    return {
+
+        raw:
+            raw,
+
+        normalized:
+            normalized
+
+    };
 
 }
 
 
 /* =========================================================
-   DISTANCE
+   ARRAY DISTANCE
 ========================================================= */
 
-function signatureDistance(
+function arrayDistance(
     first,
     second
 ) {
@@ -3158,7 +2425,6 @@ function signatureDistance(
     ) {
 
         total +=
-
             Math.abs(
                 first[i] -
                 second[i]
@@ -3168,10 +2434,42 @@ function signatureDistance(
 
 
     return (
-
         total /
         first.length
+    );
 
+}
+
+
+/* =========================================================
+   NORMALIZED DISTANCE
+========================================================= */
+
+function normalizedDistance(
+    first,
+    second
+) {
+
+    return arrayDistance(
+        first,
+        second
+    );
+
+}
+
+
+/* =========================================================
+   RAW DISTANCE
+========================================================= */
+
+function rawDistance(
+    first,
+    second
+) {
+
+    return arrayDistance(
+        first,
+        second
     );
 
 }
@@ -3180,6 +2478,18 @@ function signatureDistance(
 /* =========================================================
    PROFILE DISTANCE
 ========================================================= */
+
+/*
+   V58 used the single BEST sample.
+
+   That can be fooled by one lucky frame.
+
+   V59 compares against all samples and uses
+   the average of the closest few samples.
+
+   This makes the name substantially harder
+   to randomly switch.
+*/
 
 function profileDistance(
     signature,
@@ -3198,8 +2508,8 @@ function profileDistance(
     }
 
 
-    let best =
-        Infinity;
+    const distances =
+        [];
 
 
     for (
@@ -3207,35 +2517,105 @@ function profileDistance(
         of profile.samples
     ) {
 
-        const distance =
-            signatureDistance(
+        let sampleNormalized;
 
-                signature,
-                sample
+
+        /*
+           Supports both V58-style arrays
+           and V59-style objects.
+        */
+
+        if (Array.isArray(sample)) {
+
+            sampleNormalized =
+                sample;
+
+        } else {
+
+            sampleNormalized =
+                sample.normalized;
+
+        }
+
+
+        const distance =
+            normalizedDistance(
+
+                signature.normalized,
+
+                sampleNormalized
 
             );
 
 
         if (
-            distance <
-            best
+            Number.isFinite(
+                distance
+            )
         ) {
 
-            best =
-                distance;
+            distances.push(
+                distance
+            );
 
         }
 
     }
 
 
-    return best;
+    if (
+        distances.length === 0
+    ) {
+
+        return Infinity;
+
+    }
+
+
+    distances.sort(
+        (a, b) =>
+            a - b
+    );
+
+
+    /*
+       Use the three strongest matching
+       samples when possible.
+    */
+
+    const count =
+        Math.min(
+            3,
+            distances.length
+        );
+
+
+    let total =
+        0;
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        total +=
+            distances[i];
+
+    }
+
+
+    return (
+        total /
+        count
+    );
 
 }
 
 
 /* =========================================================
-   BEST PROFILE
+   FIND BEST PROFILE
 ========================================================= */
 
 function findBestProfile(
@@ -3251,11 +2631,8 @@ function findBestProfile(
     }
 
 
-    let bestProfile =
-        null;
-
-    let bestDistance =
-        Infinity;
+    const ranked =
+        [];
 
 
     for (
@@ -3265,49 +2642,97 @@ function findBestProfile(
 
         const distance =
             profileDistance(
-
                 signature,
                 profile
-
             );
 
 
+        ranked.push({
+
+            profile:
+                profile,
+
+            distance:
+                distance
+
+        });
+
+    }
+
+
+    ranked.sort(
+        (a, b) =>
+            a.distance -
+            b.distance
+    );
+
+
+    const best =
+        ranked[0];
+
+
+    if (
+        !best ||
+        !Number.isFinite(
+            best.distance
+        )
+    ) {
+
+        return null;
+
+    }
+
+
+    /*
+       Must actually be close enough.
+    */
+
+    if (
+        best.distance >
+        MATCH_TOLERANCE
+    ) {
+
+        return null;
+
+    }
+
+
+    /*
+       If there are multiple profiles,
+       make sure the second-best isn't
+       almost identical.
+
+       With only one profile, this check
+       is skipped.
+    */
+
+    if (
+        ranked.length > 1
+    ) {
+
+        const second =
+            ranked[1];
+
+
         if (
-            distance <
-            bestDistance
+            Number.isFinite(
+                second.distance
+            ) &&
+            (
+                second.distance -
+                best.distance
+            ) <
+            PROFILE_MARGIN
         ) {
 
-            bestDistance =
-                distance;
-
-            bestProfile =
-                profile;
+            return null;
 
         }
 
     }
 
 
-    if (
-        bestProfile &&
-        bestDistance <=
-            MATCH_TOLERANCE
-    ) {
-
-        return {
-
-            profile:
-                bestProfile,
-
-            distance:
-                bestDistance
-
-        };
-
-    }
-
-
-    return null;
+    return best;
 
 }
 
@@ -3316,54 +2741,232 @@ function findBestProfile(
    PRESENCE DETECTION
 ========================================================= */
 
-function presenceDifference(
+/*
+   This is the biggest V59 change.
+
+   V58 primarily asked:
+
+       "Is the normalized image different
+        enough from the background?"
+
+   V59 asks several questions:
+
+       1. Did the image structure change?
+       2. Did actual brightness pixels change?
+       3. Did enough pixels change?
+
+   This makes stepping into the box much
+   more likely to trigger recognition.
+*/
+
+function getPresenceMetrics(
     signature
 ) {
 
     if (
-        !backgroundSignature
+        !signature ||
+        !backgroundCalibration
     ) {
 
-        return 0;
+        return {
+
+            normalizedDifference:
+                0,
+
+            rawDifference:
+                0,
+
+            changedPixelRatio:
+                0,
+
+            score:
+                0
+
+        };
 
     }
 
 
-    return signatureDistance(
+    const normalizedBackground =
+        backgroundCalibration.normalized;
 
-        signature,
 
-        backgroundSignature
+    const normalizedDifference =
+        normalizedDistance(
 
-    );
+            signature.normalized,
+
+            normalizedBackground
+
+        );
+
+
+    let rawDifference =
+        0;
+
+    let changedPixels =
+        0;
+
+
+    if (
+        backgroundCalibration.raw &&
+        signature.raw
+    ) {
+
+        rawDifference =
+            rawDistance(
+
+                signature.raw,
+
+                backgroundCalibration.raw
+
+            );
+
+
+        for (
+            let i = 0;
+            i < signature.raw.length;
+            i++
+        ) {
+
+            if (
+                Math.abs(
+                    signature.raw[i] -
+                    backgroundCalibration.raw[i]
+                ) >
+                RAW_FOREGROUND_THRESHOLD
+            ) {
+
+                changedPixels++;
+
+            }
+
+        }
+
+    } else {
+
+        /*
+           Old V58 calibration didn't store
+           raw brightness.
+
+           Fall back to normalized detection.
+        */
+
+        rawDifference =
+            normalizedDifference;
+
+        changedPixels =
+            signature.normalized.filter(
+                (value, index) => {
+
+                    return (
+                        Math.abs(
+                            value -
+                            normalizedBackground[index]
+                        ) >
+                        0.35
+                    );
+
+                }
+            ).length;
+
+    }
+
+
+    const changedPixelRatio =
+        changedPixels /
+        signature.raw.length;
+
+
+    /*
+       Combined score.
+
+       Structural change gets more weight
+       than raw brightness.
+    */
+
+    const score =
+        (
+            normalizedDifference *
+            0.65
+        ) +
+        (
+            rawDifference *
+            0.35
+        );
+
+
+    return {
+
+        normalizedDifference:
+            normalizedDifference,
+
+        rawDifference:
+            rawDifference,
+
+        changedPixelRatio:
+            changedPixelRatio,
+
+        score:
+            score
+
+    };
 
 }
 
+
+/* =========================================================
+   TARGET PRESENT?
+========================================================= */
 
 function isTargetPresent(
     signature
 ) {
 
-    const difference =
-        presenceDifference(
+    const metrics =
+        getPresenceMetrics(
             signature
         );
 
 
     const threshold =
+        presenceLocked
+            ? PRESENCE_EXIT_THRESHOLD
+            : PRESENCE_ENTER_THRESHOLD;
 
+
+    /*
+       Primary structural test.
+    */
+
+    const structuralMatch =
+        metrics.score >
+        threshold;
+
+
+    /*
+       Secondary foreground test.
+
+       This catches cases where the person
+       clearly changes a large portion of
+       the center sector even if the overall
+       image difference is small.
+    */
+
+    const foregroundDetected =
         (
-            currentIdentity
-                ? PRESENCE_EXIT_THRESHOLD
-                : PRESENCE_ENTER_THRESHOLD
+            metrics.rawDifference >
+            RAW_FOREGROUND_THRESHOLD
+        ) &&
+        (
+            metrics.changedPixelRatio >
+            FOREGROUND_PIXEL_RATIO
         );
 
 
     return (
-
-        difference >
-        threshold
-
+        structuralMatch ||
+        foregroundDetected
     );
 
 }
@@ -3374,9 +2977,6 @@ function isTargetPresent(
 ========================================================= */
 
 async function calibrateBackground() {
-
-    await persistenceReady;
-
 
     if (!cameraOnline) {
 
@@ -3398,18 +2998,21 @@ async function calibrateBackground() {
     );
 
 
-    const samples =
+    const normalizedSamples =
+        [];
+
+    const rawSamples =
         [];
 
 
     for (
         let i = 0;
-        i < 9;
+        i < 10;
         i++
     ) {
 
         const image =
-            captureScanImage();
+            captureRawImage();
 
 
         const signature =
@@ -3420,8 +3023,12 @@ async function calibrateBackground() {
 
         if (signature) {
 
-            samples.push(
-                signature
+            normalizedSamples.push(
+                signature.normalized
+            );
+
+            rawSamples.push(
+                signature.raw
             );
 
         }
@@ -3431,7 +3038,7 @@ async function calibrateBackground() {
 
             "EMPTY SECTOR SAMPLE " +
             (i + 1) +
-            "/9"
+            "/10"
 
         );
 
@@ -3440,7 +3047,7 @@ async function calibrateBackground() {
             resolve =>
                 setTimeout(
                     resolve,
-                    160
+                    140
                 )
         );
 
@@ -3448,7 +3055,7 @@ async function calibrateBackground() {
 
 
     if (
-        samples.length === 0
+        normalizedSamples.length === 0
     ) {
 
         setStatus(
@@ -3464,48 +3071,34 @@ async function calibrateBackground() {
     }
 
 
-    const average =
-        new Array(
-            samples[0].length
-        ).fill(0);
+    const normalizedAverage =
+        averageArrays(
+            normalizedSamples
+        );
 
 
-    for (
-        const sample
-        of samples
-    ) {
-
-        for (
-            let i = 0;
-            i < sample.length;
-            i++
-        ) {
-
-            average[i] +=
-                sample[i];
-
-        }
-
-    }
+    const rawAverage =
+        averageArrays(
+            rawSamples
+        );
 
 
-    for (
-        let i = 0;
-        i < average.length;
-        i++
-    ) {
+    backgroundCalibration = {
 
-        average[i] /=
-            samples.length;
+        normalized:
+            normalizedAverage,
 
-    }
+        raw:
+            rawAverage,
+
+        created:
+            new Date()
+                .toISOString()
+
+    };
 
 
-    backgroundSignature =
-        average;
-
-
-    await saveCalibration();
+    saveCalibration();
 
 
     currentIdentity =
@@ -3520,6 +3113,12 @@ async function calibrateBackground() {
     emptyScanCount =
         0;
 
+    presenceScanCount =
+        0;
+
+    presenceLocked =
+        false;
+
 
     document.body.classList.remove(
         "threat"
@@ -3531,7 +3130,7 @@ async function calibrateBackground() {
     );
 
     setAction(
-        "CALIBRATION SAVED — RADAR ACTIVE"
+        "CALIBRATION SAVED — AUTOMATIC TARGET DETECTION ACTIVE"
     );
 
 
@@ -3541,8 +3140,72 @@ async function calibrateBackground() {
 
 
     speak(
-        "Background calibration complete. Passive scan active."
+        "Background calibration complete. Automatic target detection active."
     );
+
+}
+
+
+/* =========================================================
+   AVERAGE ARRAYS
+========================================================= */
+
+function averageArrays(
+    arrays
+) {
+
+    if (
+        !arrays ||
+        arrays.length === 0
+    ) {
+
+        return [];
+
+    }
+
+
+    const length =
+        arrays[0].length;
+
+
+    const result =
+        new Array(
+            length
+        ).fill(0);
+
+
+    for (
+        const array
+        of arrays
+    ) {
+
+        for (
+            let i = 0;
+            i < length;
+            i++
+        ) {
+
+            result[i] +=
+                array[i];
+
+        }
+
+    }
+
+
+    for (
+        let i = 0;
+        i < result.length;
+        i++
+    ) {
+
+        result[i] /=
+            arrays.length;
+
+    }
+
+
+    return result;
 
 }
 
@@ -3603,7 +3266,7 @@ function pushIdentityObservation(
 
 
 /* =========================================================
-   VOTE
+   WINNING IDENTITY
 ========================================================= */
 
 function getWinningIdentity() {
@@ -3628,7 +3291,8 @@ function getWinningIdentity() {
 
         votes[id] =
             (
-                votes[id] || 0
+                votes[id] ||
+                0
             ) + 1;
 
     }
@@ -3665,7 +3329,7 @@ function getWinningIdentity() {
         winner &&
         winner !== "UNKNOWN" &&
         winnerVotes >=
-            REQUIRED_VOTES
+        REQUIRED_VOTES
     ) {
 
         return {
@@ -3690,9 +3354,7 @@ function getWinningIdentity() {
    GET PROFILE
 ========================================================= */
 
-function getProfileById(
-    id
-) {
+function getProfileById(id) {
 
     return identityArchive.find(
 
@@ -3705,6 +3367,22 @@ function getProfileById(
 
 
 /* =========================================================
+   COUNT VOTES
+========================================================= */
+
+function countVotesFor(id) {
+
+    return identityHistory.filter(
+
+        observation =>
+            observation === id
+
+    ).length;
+
+}
+
+
+/* =========================================================
    MAIN RADAR
 ========================================================= */
 
@@ -3712,7 +3390,7 @@ function runRadarScan() {
 
     if (
         !cameraOnline ||
-        !backgroundSignature
+        !backgroundCalibration
     ) {
 
         return;
@@ -3721,7 +3399,7 @@ function runRadarScan() {
 
 
     const image =
-        captureScanImage();
+        captureRawImage();
 
 
     const liveSignature =
@@ -3744,12 +3422,17 @@ function runRadarScan() {
 
 
     /* =====================================================
-       EMPTY SECTOR
+       PERSON NOT PRESENT
     ===================================================== */
 
     if (!present) {
 
+        presenceScanCount =
+            0;
+
+
         emptyScanCount++;
+
 
         unknownScanCount =
             0;
@@ -3775,7 +3458,7 @@ function runRadarScan() {
 
             setAction(
 
-                "PRESENCE CHECK " +
+                "SECTOR CHECK " +
                 emptyScanCount +
                 "/" +
                 EMPTY_SCANS_TO_RELEASE
@@ -3791,11 +3474,71 @@ function runRadarScan() {
 
 
     /* =====================================================
-       SOMETHING IS PRESENT
+       PERSON HAS ENTERED THE BOX
     ===================================================== */
 
     emptyScanCount =
         0;
+
+
+    presenceScanCount++;
+
+
+    /*
+       Don't attempt identity matching
+       from one random frame.
+
+       First confirm that the target really
+       entered the sector.
+    */
+
+    if (
+        !presenceLocked
+    ) {
+
+        setStatus(
+            "TARGET ACQUIRED"
+        );
+
+        setAction(
+
+            "CENTER TARGET DETECTED — VERIFYING " +
+            presenceScanCount +
+            "/" +
+            PRESENCE_SCANS_TO_CONFIRM
+
+        );
+
+
+        if (
+            presenceScanCount >=
+            PRESENCE_SCANS_TO_CONFIRM
+        ) {
+
+            presenceLocked =
+                true;
+
+            identityHistory =
+                [];
+
+            unknownScanCount =
+                0;
+
+            setStatus(
+                "IDENTITY SCAN"
+            );
+
+            setAction(
+                "TARGET ACQUIRED — SEARCHING IDENTITY ARCHIVE"
+            );
+
+        } else {
+
+            return;
+
+        }
+
+    }
 
 
     /* =====================================================
@@ -3842,7 +3585,6 @@ function runRadarScan() {
                 "TARGET LOCKED"
             );
 
-
             setAction(
 
                 "LOCK STABILIZED — " +
@@ -3866,9 +3608,9 @@ function runRadarScan() {
 
 
         /*
-           Different identity.
+           Identity hasn't been locked yet.
 
-           Require voting agreement.
+           Require the voting system to agree.
         */
 
         if (
@@ -3897,19 +3639,33 @@ function runRadarScan() {
 
         } else {
 
+            const votes =
+                countVotesFor(
+                    match.profile.id
+                );
+
+
             setStatus(
                 "VERIFYING TARGET"
             );
 
-
             setAction(
 
                 "IDENTITY VOTE " +
-                countVotesFor(
-                    match.profile.id
-                ) +
+                votes +
                 "/" +
-                REQUIRED_VOTES
+                REQUIRED_VOTES +
+                " — " +
+                match.profile.name
+
+            );
+
+
+            showVerifyingSidebar(
+
+                match.profile,
+
+                match.distance
 
             );
 
@@ -3933,6 +3689,11 @@ function runRadarScan() {
     unknownScanCount++;
 
 
+    /*
+       Give a known identity some protection
+       from one or two bad frames.
+    */
+
     if (
         unknownScanCount <
         UNKNOWN_SCANS_TO_CONFIRM
@@ -3942,7 +3703,7 @@ function runRadarScan() {
 
             currentIdentity
                 ? "TARGET LOCKED"
-                : "VERIFYING TARGET"
+                : "IDENTITY SCAN"
 
         );
 
@@ -4015,24 +3776,6 @@ function runRadarScan() {
 
 
 /* =========================================================
-   COUNT VOTES
-========================================================= */
-
-function countVotesFor(
-    id
-) {
-
-    return identityHistory.filter(
-
-        observation =>
-            observation === id
-
-    ).length;
-
-}
-
-
-/* =========================================================
    LOCK PROFILE
 ========================================================= */
 
@@ -4062,8 +3805,13 @@ function lockOntoProfile(
     unknownScanCount =
         0;
 
+
     emptyScanCount =
         0;
+
+
+    presenceLocked =
+        true;
 
 
     document.body.classList.remove(
@@ -4093,6 +3841,11 @@ function lockOntoProfile(
     );
 
 
+    /*
+       Speak only if the person actually
+       changed.
+    */
+
     if (
         !oldTarget ||
         oldTarget.id !==
@@ -4100,10 +3853,8 @@ function lockOntoProfile(
     ) {
 
         speak(
-
             "Welcome, " +
             profile.name
-
         );
 
     }
@@ -4118,12 +3869,11 @@ function lockOntoProfile(
 function releaseTarget() {
 
     const hadTarget =
-
         (
             currentIdentity !==
             null
         ) ||
-
+        presenceLocked ||
         document.body.classList.contains(
             "threat"
         );
@@ -4140,8 +3890,17 @@ function releaseTarget() {
     unknownScanCount =
         0;
 
+
     emptyScanCount =
         0;
+
+
+    presenceScanCount =
+        0;
+
+
+    presenceLocked =
+        false;
 
 
     document.body.classList.remove(
@@ -4155,7 +3914,7 @@ function releaseTarget() {
 
 
     setAction(
-        "TARGET OUT OF SECTOR — RESUMING PASSIVE SCAN"
+        "TARGET OUT OF SECTOR — RESUMING AUTOMATIC SCAN"
     );
 
 
@@ -4179,9 +3938,6 @@ function releaseTarget() {
 
 async function registerCurrentTarget() {
 
-    await persistenceReady;
-
-
     if (!cameraOnline) {
 
         setAction(
@@ -4193,7 +3949,7 @@ async function registerCurrentTarget() {
     }
 
 
-    if (!backgroundSignature) {
+    if (!backgroundCalibration) {
 
         setAction(
             "CALIBRATE EMPTY SECTOR FIRST — PRESS C"
@@ -4204,8 +3960,13 @@ async function registerCurrentTarget() {
     }
 
 
+    /*
+       Registration now uses the stronger
+       V59 presence detector.
+    */
+
     const firstImage =
-        captureScanImage();
+        captureRawImage();
 
 
     const firstSignature =
@@ -4271,7 +4032,6 @@ async function registerCurrentTarget() {
         "REGISTERING PROFILE"
     );
 
-
     setAction(
         "COLLECTING STABILIZED IDENTITY SAMPLES"
     );
@@ -4288,7 +4048,7 @@ async function registerCurrentTarget() {
     ) {
 
         const image =
-            captureScanImage();
+            captureRawImage();
 
 
         const signature =
@@ -4304,9 +4064,12 @@ async function registerCurrentTarget() {
             )
         ) {
 
-            samples.push(
-                signature
-            );
+            samples.push({
+
+                normalized:
+                    signature.normalized
+
+            });
 
         }
 
@@ -4322,18 +4085,21 @@ async function registerCurrentTarget() {
 
 
         await new Promise(
+
             resolve =>
                 setTimeout(
                     resolve,
                     180
                 )
+
         );
 
     }
 
 
     if (
-        samples.length < 4
+        samples.length <
+        5
     ) {
 
         setStatus(
@@ -4341,7 +4107,7 @@ async function registerCurrentTarget() {
         );
 
         setAction(
-            "NOT ENOUGH VALID SAMPLES"
+            "NOT ENOUGH VALID SAMPLES — KEEP TARGET CENTERED"
         );
 
         return;
@@ -4349,40 +4115,9 @@ async function registerCurrentTarget() {
     }
 
 
-    /*
-       Generate a stable profile ID.
+    const profile = {
 
-       If the same name already exists,
-       its original ID is preserved.
-    */
-
-    const existingIndex =
-        identityArchive.findIndex(
-
-            profileItem =>
-
-                profileItem.name
-                    .toLowerCase() ===
-                cleanName.toLowerCase()
-
-        );
-
-
-    let profileId;
-
-
-    if (
-        existingIndex !== -1
-    ) {
-
-        profileId =
-            identityArchive[
-                existingIndex
-            ].id;
-
-    } else {
-
-        profileId =
+        id:
 
             "ED59-" +
             Date.now() +
@@ -4390,20 +4125,7 @@ async function registerCurrentTarget() {
             Math.floor(
                 Math.random() *
                 99999
-            );
-
-    }
-
-
-    const now =
-        new Date()
-            .toISOString();
-
-
-    const profile = {
-
-        id:
-            profileId,
+            ),
 
         name:
             cleanName,
@@ -4412,20 +4134,8 @@ async function registerCurrentTarget() {
             samples,
 
         created:
-
-            existingIndex !== -1
-
-                ? (
-                    identityArchive[
-                        existingIndex
-                    ].created ||
-                    now
-                )
-
-                : now,
-
-        updated:
-            now
+            new Date()
+                .toISOString()
 
     };
 
@@ -4433,13 +4143,28 @@ async function registerCurrentTarget() {
     /*
        Replace an existing profile
        with the same name.
-
-       Otherwise create a new profile.
     */
+
+    const existingIndex =
+        identityArchive.findIndex(
+
+            profileItem =>
+                profileItem.name
+                    .toLowerCase() ===
+                cleanName.toLowerCase()
+
+        );
+
 
     if (
         existingIndex !== -1
     ) {
+
+        profile.id =
+            identityArchive[
+                existingIndex
+            ].id;
+
 
         identityArchive[
             existingIndex
@@ -4456,30 +4181,10 @@ async function registerCurrentTarget() {
 
 
     /*
-       THIS IS THE IMPORTANT PART:
-
-       Save the updated archive to BOTH
-       persistent browser storage systems
-       BEFORE declaring registration complete.
+       SAVE PERMANENTLY.
     */
 
-    const saved =
-        await saveArchive();
-
-
-    if (!saved) {
-
-        setStatus(
-            "REGISTRATION WARNING"
-        );
-
-        setAction(
-            "PROFILE CREATED BUT PERSISTENT SAVE FAILED"
-        );
-
-        return;
-
-    }
+    saveArchive();
 
 
     currentIdentity =
@@ -4493,8 +4198,13 @@ async function registerCurrentTarget() {
     unknownScanCount =
         0;
 
+
     emptyScanCount =
         0;
+
+
+    presenceLocked =
+        true;
 
 
     document.body.classList.remove(
@@ -4509,7 +4219,7 @@ async function registerCurrentTarget() {
 
     setAction(
 
-        "IDENTITY SAVED PERMANENTLY — " +
+        "IDENTITY LOCKED — " +
         cleanName
 
     );
@@ -4538,13 +4248,12 @@ async function registerCurrentTarget() {
    CLEAR ARCHIVE
 ========================================================= */
 
-async function clearArchive() {
+function clearArchive() {
 
     const confirmed =
         confirm(
 
-            "Delete ALL saved E.D.I.T.H. identity profiles?\n\n" +
-            "This will remove the persistent identity archive."
+            "Delete all saved E.D.I.T.H. identity profiles?"
 
         );
 
@@ -4560,44 +4269,26 @@ async function clearArchive() {
         [];
 
 
-    /*
-       Remove from localStorage.
-    */
-
-    removeLocalStorage(
+    localStorage.removeItem(
         STORAGE_KEY
     );
 
 
-    /*
-       Remove from IndexedDB.
-    */
-
-    await idbDelete(
-        STORAGE_KEY
+    localStorage.removeItem(
+        OLD_STORAGE_KEY
     );
 
-
-    /*
-       Reset temporary identity state.
-    */
 
     currentIdentity =
         null;
 
+
     identityHistory =
         [];
 
+
     unknownScanCount =
         0;
-
-    emptyScanCount =
-        0;
-
-
-    document.body.classList.remove(
-        "threat"
-    );
 
 
     updateArchiveCount();
@@ -4623,8 +4314,11 @@ async function clearArchive() {
 ========================================================= */
 
 document.addEventListener(
+
     "keydown",
+
     event => {
+
 
         if (
             event.key.toLowerCase() ===
@@ -4655,18 +4349,13 @@ document.addEventListener(
             "Escape"
         ) {
 
-            /*
-               IMPORTANT:
-
-               ESC DOES NOT DELETE THE ARCHIVE.
-
-               It only resets temporary verification.
-            */
-
             identityHistory =
                 [];
 
             unknownScanCount =
+                0;
+
+            presenceScanCount =
                 0;
 
 
@@ -4681,12 +4370,13 @@ document.addEventListener(
 
 
             setAction(
-                "TEMPORARY VERIFICATION STATE RESET — ARCHIVE PRESERVED"
+                "TEMPORARY VERIFICATION STATE RESET"
             );
 
         }
 
     }
+
 );
 
 
@@ -4695,26 +4385,38 @@ document.addEventListener(
 ========================================================= */
 
 bootBtn.addEventListener(
+
     "click",
+
     initializeCamera
+
 );
 
 
 calibrateBtn.addEventListener(
+
     "click",
+
     calibrateBackground
+
 );
 
 
 clearArchiveBtn.addEventListener(
+
     "click",
+
     clearArchive
+
 );
 
 
 window.addEventListener(
+
     "resize",
+
     resizeOverlay
+
 );
 
 
@@ -4723,16 +4425,21 @@ window.addEventListener(
 ========================================================= */
 
 window.addEventListener(
+
     "beforeunload",
+
     () => {
+
 
         if (cameraStream) {
 
             cameraStream
                 .getTracks()
                 .forEach(
+
                     track =>
                         track.stop()
+
                 );
 
         }
@@ -4774,6 +4481,7 @@ window.addEventListener(
         }
 
     }
+
 );
 
 
@@ -4793,7 +4501,7 @@ function updateArchiveCount() {
 
 
 /* =========================================================
-   STARTUP
+   INITIAL HUD
 ========================================================= */
 
 updateArchiveCount();
@@ -4801,51 +4509,59 @@ updateArchiveCount();
 updateBattery();
 
 
-/*
-   The persistence system runs immediately.
+if (
+    backgroundCalibration
+) {
 
-   When it finishes, the startup HUD is updated
-   with the recovered archive.
-*/
+    addSidebarRow(
+        "LOCK: CALIBRATION SAVED"
+    );
 
-persistenceReady.then(
-    () => {
+    addSidebarRow(
+        "CLEARANCE: READY"
+    );
 
-        updateArchiveCount();
+    addSidebarRow(
+        "SECTOR: CENTER"
+    );
 
-        showInitialArchiveState();
+    addSidebarRow(
+        "RADAR: STANDBY"
+    );
 
+    addSidebarRow(
 
-        if (
-            identityArchive.length > 0
-        ) {
+        "ARCHIVE: " +
+        identityArchive.length
 
-            setAction(
+    );
 
-                "PERSISTENT MEMORY READY — " +
-                identityArchive.length +
-                " PROFILE(S) STORED"
+} else {
 
-            );
+    addSidebarRow(
+        "LOCK: OFFLINE"
+    );
 
-        } else if (
-            backgroundSignature
-        ) {
+    addSidebarRow(
+        "CLEARANCE: PENDING"
+    );
 
-            setAction(
-                "PERSISTENT CALIBRATION READY"
-            );
+    addSidebarRow(
+        "SECTOR: CENTER"
+    );
 
-        } else {
+    addSidebarRow(
+        "RADAR: STANDBY"
+    );
 
-            setAction(
-                "WAITING FOR OPTICAL INITIALIZATION"
-            );
+    addSidebarRow(
 
-        }
+        "ARCHIVE: " +
+        identityArchive.length
 
-    }
-);
+    );
+
+}
 
 </script>
 
