@@ -7,7 +7,11 @@
 
 <title>E.D.I.T.H. Autonomous Matrix v62.0</title>
 
+<!-- REAL FACE RECOGNITION ENGINE -->
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -15,318 +19,551 @@
 html,
 body {
     margin: 0;
-    min-height: 100%;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     background: #000;
-    color: #20c8ff;
-    font-family: "Courier New", monospace;
+    color: #00bfff;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-    padding: 12px;
-    overflow-x: hidden;
-}
-
-body.threat {
-    background: #120000;
-}
-
-body.threat .hud-line,
-body.threat .sidebar-row {
-    color: #ff3030;
-    text-shadow: 0 0 8px rgba(255, 0, 0, .8);
-}
-
-/* HEADER */
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 18px;
-}
-
-.header-right {
-    text-align: right;
-}
-
-.hud-line {
-    color: #20c8ff;
-    font-weight: bold;
-    font-size: 18px;
-    letter-spacing: 2px;
-    line-height: 1.8;
-    text-shadow: 0 0 8px rgba(0, 191, 255, .75);
-}
-
-/* MAIN */
-
-.workspace {
-    display: grid;
-    grid-template-columns: minmax(500px, 1fr) 380px;
-    gap: 20px;
-    align-items: start;
+    position: relative;
 }
 
 /* CAMERA */
 
-.camera-shell {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    background: #000;
-    border: 2px solid #20c8ff;
-    border-radius: 7px;
-    overflow: hidden;
-
-    box-shadow:
-        0 0 18px rgba(0, 191, 255, .45),
-        inset 0 0 25px rgba(0, 191, 255, .05);
-}
-
-body.threat .camera-shell {
-    border-color: #ff3030;
-
-    box-shadow:
-        0 0 30px rgba(255, 0, 0, .75),
-        inset 0 0 50px rgba(255, 0, 0, .15);
-}
-
-#webcam,
-#overlay {
-    position: absolute;
+#camera {
+    position: fixed;
     inset: 0;
     width: 100%;
     height: 100%;
-}
-
-#webcam {
     object-fit: cover;
     transform: scaleX(-1);
     background: #000;
+    z-index: 1;
 }
 
-#overlay {
+/* DARK HUD */
+
+#hud {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
     pointer-events: none;
 }
 
-/* BOOT */
+/* TOP BAR */
 
-.boot-panel {
+#topBar {
     position: absolute;
-    inset: 0;
-    z-index: 20;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 75px;
+
+    background: rgba(0, 10, 18, 0.78);
+    border-bottom: 1px solid rgba(0,191,255,0.5);
 
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: space-between;
+
+    padding: 0 25px;
+
+    box-shadow: 0 0 25px rgba(0,191,255,0.15);
 }
 
-.boot-panel.hidden {
-    display: none;
-}
-
-#bootBtn {
-    border: none;
-    padding: 20px 34px;
-    border-radius: 7px;
-
-    background: #20bce9;
-    color: #00131d;
-
-    font-family: "Courier New", monospace;
+#edithTitle {
+    font-size: 22px;
     font-weight: bold;
-    font-size: 17px;
-    cursor: pointer;
-
-    box-shadow: 0 0 20px rgba(0, 191, 255, .8);
+    letter-spacing: 4px;
 }
 
-#bootBtn:hover {
-    background: #c8f5ff;
+#systemStatus {
+    font-size: 12px;
+    letter-spacing: 2px;
 }
 
-/* ERROR */
+/* CENTER SCAN AREA */
 
-#errorBox {
+#scanArea {
     position: absolute;
-    z-index: 30;
+
+    width: min(48vw, 430px);
+    height: min(62vh, 520px);
+
     left: 50%;
-    bottom: 25%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    border: 2px solid rgba(0,191,255,0.8);
+
+    box-shadow:
+        0 0 12px rgba(0,191,255,0.4),
+        inset 0 0 25px rgba(0,191,255,0.08);
+
+    transition: 0.25s;
+}
+
+#scanArea::before,
+#scanArea::after {
+    content: "";
+    position: absolute;
+    width: 35px;
+    height: 35px;
+}
+
+#scanArea::before {
+    left: -3px;
+    top: -3px;
+
+    border-left: 5px solid #00bfff;
+    border-top: 5px solid #00bfff;
+}
+
+#scanArea::after {
+    right: -3px;
+    bottom: -3px;
+
+    border-right: 5px solid #00bfff;
+    border-bottom: 5px solid #00bfff;
+}
+
+/* FACE DETECTED */
+
+#scanArea.facePresent {
+    border-color: #00ffcc;
+
+    box-shadow:
+        0 0 18px rgba(0,255,204,0.7),
+        inset 0 0 35px rgba(0,255,204,0.1);
+}
+
+/* RECOGNIZED */
+
+#scanArea.recognized {
+    border-color: #00ff88;
+
+    box-shadow:
+        0 0 30px rgba(0,255,136,0.8),
+        inset 0 0 40px rgba(0,255,136,0.12);
+}
+
+/* UNKNOWN */
+
+#scanArea.unknown {
+    border-color: #ffaa00;
+
+    box-shadow:
+        0 0 25px rgba(255,170,0,0.7);
+}
+
+/* SCAN LINE */
+
+#scanLine {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    height: 2px;
+
+    background: #00bfff;
+
+    box-shadow: 0 0 12px #00bfff;
+
+    animation: scan 2.8s linear infinite;
+}
+
+@keyframes scan {
+    0% {
+        top: 0;
+    }
+
+    50% {
+        top: 100%;
+    }
+
+    100% {
+        top: 0;
+    }
+}
+
+/* TARGET INFORMATION */
+
+#targetBox {
+    position: absolute;
+
+    left: 50%;
+    top: calc(50% + min(31vh, 260px) + 25px);
+
     transform: translateX(-50%);
 
-    width: 80%;
+    min-width: 260px;
 
     text-align: center;
-    color: #ff3333;
-    font-size: 18px;
+
+    padding: 14px 22px;
+
+    background: rgba(0, 8, 15, 0.86);
+
+    border: 1px solid rgba(0,191,255,0.55);
+
+    box-shadow: 0 0 20px rgba(0,191,255,0.15);
+
+    letter-spacing: 2px;
+}
+
+#targetName {
+    font-size: 25px;
     font-weight: bold;
 
-    text-shadow: 0 0 8px red;
+    color: #00ffcc;
+}
 
-    display: none;
+#targetState {
+    margin-top: 6px;
+
+    font-size: 11px;
+
+    color: #7ddfff;
 }
 
 /* SIDEBAR */
 
-.sidebar {
-    min-height: 430px;
+#sidebar {
+    position: absolute;
 
-    height:
-        calc(
-            (100vw - 420px) * .5625
-        );
+    right: 20px;
+    top: 100px;
 
-    max-height: 720px;
-
-    border: 2px dashed rgba(39, 200, 255, .55);
-    border-radius: 7px;
+    width: 240px;
 
     padding: 16px;
 
-    background: rgba(0, 10, 28, .7);
+    background: rgba(0,8,15,0.78);
 
-    overflow: auto;
+    border: 1px solid rgba(0,191,255,0.4);
+
+    box-shadow: 0 0 20px rgba(0,191,255,0.1);
 }
 
-body.threat .sidebar {
-    border-color: rgba(255, 60, 60, .85);
+.panelTitle {
+    font-size: 11px;
+
+    letter-spacing: 3px;
+
+    margin-bottom: 12px;
+
+    color: #7ddfff;
 }
 
-.sidebar-title {
+#archiveList {
+    max-height: 240px;
+
+    overflow-y: auto;
+
+    font-size: 13px;
+}
+
+.person {
+    padding: 9px 5px;
+
+    border-bottom: 1px solid rgba(0,191,255,0.15);
+
+    display: flex;
+
+    justify-content: space-between;
+}
+
+.person.active {
+    color: #00ff99;
+}
+
+.legacy {
+    color: #888;
+}
+
+/* BOTTOM */
+
+#bottomBar {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 65px;
+
+    background: rgba(0,8,15,0.82);
+
+    border-top: 1px solid rgba(0,191,255,0.4);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 25px;
+
+    pointer-events: auto;
+}
+
+#instructions {
+    font-size: 11px;
+
+    letter-spacing: 1px;
+
+    color: #72d8ff;
+}
+
+#clock {
+    font-size: 14px;
+
+    letter-spacing: 2px;
+}
+
+/* BOOT */
+
+#boot {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100;
+
+    background: #000;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-direction: column;
+}
+
+#bootTitle {
+    font-size: 32px;
+
+    letter-spacing: 8px;
+
+    margin-bottom: 20px;
+}
+
+#bootStatus {
+    font-size: 13px;
+
+    letter-spacing: 3px;
+
+    color: #72d8ff;
+
     text-align: center;
-    color: #999;
 
-    padding-bottom: 12px;
-    margin-bottom: 14px;
+    max-width: 600px;
 
-    border-bottom:
-        1px solid rgba(39, 200, 255, .35);
-
-    font-size: 14px;
+    line-height: 1.8;
 }
 
-.sidebar-row {
-    margin: 12px 0;
+#bootButton {
+    margin-top: 30px;
 
-    color: #20c8ff;
-    font-weight: bold;
-    font-size: 14px;
-
-    word-break: break-word;
-
-    text-shadow:
-        0 0 6px rgba(0, 191, 255, .5);
-}
-
-/* CONTROLS */
-
-.controls {
-    margin-top: 18px;
-    max-width: 1100px;
-
-    color: #999;
-    line-height: 1.7;
-    font-size: 15px;
-}
-
-.controls b {
-    color: #fff;
-}
-
-.protocol {
-    color: #ffb52e;
-    font-weight: bold;
-}
-
-.green {
-    color: #43ff75;
-    font-weight: bold;
-}
-
-button.small-btn {
-    margin-top: 10px;
-    margin-right: 8px;
-
-    padding: 8px 12px;
+    padding: 13px 28px;
 
     background: transparent;
-    color: #20c8ff;
 
-    border: 1px solid #20c8ff;
+    color: #00bfff;
 
-    font-family: "Courier New", monospace;
+    border: 1px solid #00bfff;
 
     cursor: pointer;
+
+    letter-spacing: 3px;
+
+    font-weight: bold;
 }
 
-button.small-btn:hover {
-    background: #20c8ff;
-    color: #000;
+#bootButton:hover {
+    background: rgba(0,191,255,0.12);
 }
 
-button.danger-btn {
-    color: #ff5555;
-    border-color: #ff5555;
+/* NOTIFICATION */
+
+#notification {
+    position: fixed;
+
+    left: 50%;
+    top: 15%;
+
+    transform: translateX(-50%);
+
+    z-index: 30;
+
+    padding: 14px 24px;
+
+    background: rgba(0,8,15,0.92);
+
+    border: 1px solid #00bfff;
+
+    box-shadow: 0 0 25px rgba(0,191,255,0.3);
+
+    font-size: 13px;
+
+    letter-spacing: 2px;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition: opacity 0.2s;
 }
 
-button.danger-btn:hover {
-    background: #ff3333;
-    color: #000;
+#notification.show {
+    opacity: 1;
 }
 
-#archiveCount {
-    margin-top: 10px;
-    color: #777;
+/* STATUS DOT */
+
+#statusDot {
+    display: inline-block;
+
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #ff3300;
+
+    margin-right: 8px;
+
+    box-shadow: 0 0 8px #ff3300;
+}
+
+#statusDot.ready {
+    background: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
 }
 
 /* MOBILE */
 
-@media (max-width: 900px) {
-    .workspace {
-        grid-template-columns: 1fr;
+@media(max-width: 800px) {
+
+    #sidebar {
+        display: none;
     }
 
-    .sidebar {
-        height: 350px;
-        min-height: 350px;
-        max-height: none;
+    #scanArea {
+        width: 65vw;
+        height: 58vh;
     }
 
-    .hud-line {
-        font-size: 13px;
+    #edithTitle {
+        font-size: 16px;
     }
+
 }
+
 </style>
 </head>
 
 <body>
 
-<div class="header">
+<!-- CAMERA -->
+<video id="camera" autoplay muted playsinline></video>
 
-    <div>
+<!-- HUD -->
+<div id="hud">
 
-        <div class="hud-line">
-            // E.D.I.T.H. AUTONOMOUS MATRIX v62.0
+    <div id="topBar">
+
+        <div id="edithTitle">
+            E.D.I.T.H.
         </div>
 
-        <div id="statusLine" class="hud-line">
-            // STATUS: STANDBY
-        </div>
-
-        <div id="actionLine" class="hud-line">
-            // WAITING FOR OPTICAL INITIALIZATION
+        <div id="systemStatus">
+            <span id="statusDot"></span>
+            <span id="statusText">
+                OFFLINE
+            </span>
         </div>
 
     </div>
 
-    <div class="header-right">
 
-        <div id="clock" class="hud-line">
-            TIME: STANDBY
+    <!-- CENTER TARGET AREA -->
+
+    <div id="scanArea">
+
+        <div id="scanLine"></div>
+
+    </div>
+
+
+    <!-- TARGET -->
+
+    <div id="targetBox">
+
+        <div id="targetName">
+            NO TARGET
         </div>
 
-        <div id="battery" class="hud-line">
-            BATT: 100% [|||||]
+        <div id="targetState">
+            STEP INTO THE CENTER AREA
+        </div>
+
+    </div>
+
+
+    <!-- SIDEBAR -->
+
+    <div id="sidebar">
+
+        <div class="panelTitle">
+            IDENTITY ARCHIVE
+        </div>
+
+        <div id="archiveList">
+            NO PROFILES
+        </div>
+
+        <br>
+
+        <div class="panelTitle">
+            FACE ENGINE
+        </div>
+
+        <div id="engineStatus">
+            OFFLINE
+        </div>
+
+        <br>
+
+        <div class="panelTitle">
+            RECOGNITION
+        </div>
+
+        <div>
+            EMBEDDING MATCH
+        </div>
+
+    </div>
+
+
+    <!-- BOTTOM -->
+
+    <div id="bottomBar">
+
+        <div id="instructions">
+            T = TRAIN &nbsp; | &nbsp;
+            C = RESET TRACKING &nbsp; | &nbsp;
+            ESC = CLEAR TARGET
+        </div>
+
+        <div id="clock">
+            --:--:--
         </div>
 
     </div>
@@ -334,970 +571,428 @@ button.danger-btn:hover {
 </div>
 
 
-<div class="workspace">
+<!-- NOTIFICATION -->
 
-    <div class="camera-shell">
+<div id="notification"></div>
 
-        <video
-            id="webcam"
-            autoplay
-            muted
-            playsinline>
-        </video>
 
-        <canvas id="overlay"></canvas>
+<!-- BOOT SCREEN -->
 
-        <div id="bootPanel" class="boot-panel">
+<div id="boot">
 
-            <button id="bootBtn">
-                [ 🚀 INITIALIZE OPTICAL MATRIX ]
-            </button>
-
-        </div>
-
-        <div id="errorBox"></div>
-
+    <div id="bootTitle">
+        E.D.I.T.H.
     </div>
 
-
-    <div class="sidebar">
-
-        <div class="sidebar-title">
-            // IDENTITY ARCHIVE //
-        </div>
-
-        <div id="sidebarContent"></div>
-
+    <div id="bootStatus">
+        AUTONOMOUS MATRIX v62.0<br>
+        REAL FACIAL RECOGNITION SYSTEM
     </div>
 
-</div>
-
-
-<div class="controls">
-
-    <div class="protocol">
-        [ STABILIZED IDENTITY PROTOCOL v62 ]
-    </div>
-
-    <div>
-        <b>[T]</b>
-        Register the person currently inside the center box.
-    </div>
-
-    <div>
-        <b>[C]</b>
-        Recalibrate the empty background.
-    </div>
-
-    <div>
-        <b>[ESC]</b>
-        Reset temporary verification.
-    </div>
-
-    <div class="green">
-        // MULTI-FRAME PRESENCE CONFIRMATION: ACTIVE
-    </div>
-
-    <div class="green">
-        // MULTI-FRAME IDENTITY VOTING: ACTIVE
-    </div>
-
-    <div class="green">
-        // IDENTITY STABILITY LOCK: ACTIVE
-    </div>
-
-    <div class="green">
-        // INDEPENDENT EXIT DETECTION: ACTIVE
-    </div>
-
-    <div class="green">
-        // PERSISTENT ARCHIVE: ACTIVE
-    </div>
-
-    <div class="green">
-        // PERSISTENT CALIBRATION: ACTIVE
-    </div>
-
-    <button id="calibrateBtn" class="small-btn">
-        RECALIBRATE EMPTY SECTOR
+    <button id="bootButton">
+        INITIALIZE SYSTEM
     </button>
-
-    <button id="clearArchiveBtn" class="small-btn danger-btn">
-        CLEAR IDENTITY ARCHIVE
-    </button>
-
-    <div id="archiveCount">
-        ARCHIVE: 0 PROFILES
-    </div>
 
 </div>
 
 
 <script>
 
-/* =========================================================
-   E.D.I.T.H. V62
-   STABILIZED IDENTITY ENGINE
-========================================================= */
+/* ============================================================
+   E.D.I.T.H. v62.0
+   REAL FACE RECOGNITION
+   ============================================================
 
-
-/* =========================================================
-   STORAGE
-========================================================= */
-
-const STORAGE_KEY =
-    "edith_v62_identity_archive";
-
-const CALIBRATION_KEY =
-    "edith_v62_background_signature";
-
-const OLD_STORAGE_KEYS = [
-    "edith_v61_identity_archive",
-    "edith_v60_identity_archive",
-    "edith_v59_identity_archive",
-    "edith_v58_identity_archive"
-];
-
-
-/* =========================================================
-   TIMING
-========================================================= */
-
-const RADAR_INTERVAL = 450;
-
-
-/*
-   Presence must remain stable for several
-   consecutive frames.
-*/
-
-const PRESENCE_SCANS_TO_CONFIRM = 3;
-
-
-/*
-   Four consecutive empty scans are required
-   before a target is released.
-*/
-
-const EMPTY_SCANS_TO_RELEASE = 4;
-
-
-/*
-   Identity needs several independent
-   observations before locking.
-*/
-
-const IDENTITY_HISTORY_LENGTH = 9;
-
-const REQUIRED_VOTES = 5;
-
-
-/*
-   Unknown targets also need multiple
-   frames before being declared unknown.
-*/
-
-const UNKNOWN_SCANS_TO_CONFIRM = 6;
-
-
-/* =========================================================
-   PRESENCE SETTINGS
-========================================================= */
-
-const PRESENCE_RAW_THRESHOLD = 0.050;
-
-const PRESENCE_PIXEL_RATIO = 0.075;
-
-const STRONG_PRESENCE_RAW_THRESHOLD = 0.095;
-
-const NOISE_THRESHOLD = 0.018;
-
-
-/* =========================================================
-   IDENTITY SETTINGS
-========================================================= */
-
-
-/*
-   Lower number = stricter match.
-
-   V62 uses a slightly more forgiving threshold
-   than V61, while requiring MORE frames.
-*/
-
-const MATCH_TOLERANCE = 0.175;
-
-
-/*
-   Best match must beat second-best match
-   by this amount.
-*/
-
-const PROFILE_MARGIN = 0.008;
-
-
-/*
-   Number of best samples used to calculate
-   profile distance.
-*/
-
-const BEST_SAMPLE_COUNT = 6;
-
-
-/*
-   Number of samples stored for a profile.
-*/
-
-const PROFILE_SAMPLE_COUNT = 18;
-
-
-/*
-   Number of consecutive matching observations
-   needed before accepting a person.
-*/
-
-const IDENTITY_CONFIRM_VOTES = 5;
-
-
-/* =========================================================
-   IMAGE SETTINGS
-========================================================= */
-
-const SIGNATURE_WIDTH = 40;
-
-const SIGNATURE_HEIGHT = 40;
-
-
-/* =========================================================
-   DOM
-========================================================= */
-
-const video =
-    document.getElementById("webcam");
-
-const overlay =
-    document.getElementById("overlay");
-
-const ctx =
-    overlay.getContext("2d");
-
-const bootBtn =
-    document.getElementById("bootBtn");
-
-const bootPanel =
-    document.getElementById("bootPanel");
-
-const errorBox =
-    document.getElementById("errorBox");
-
-const statusLine =
-    document.getElementById("statusLine");
-
-const actionLine =
-    document.getElementById("actionLine");
-
-const clock =
-    document.getElementById("clock");
-
-const batteryDisplay =
-    document.getElementById("battery");
-
-const sidebarContent =
-    document.getElementById("sidebarContent");
-
-const archiveCount =
-    document.getElementById("archiveCount");
-
-const calibrateBtn =
-    document.getElementById("calibrateBtn");
-
-const clearArchiveBtn =
-    document.getElementById("clearArchiveBtn");
-
-
-/* =========================================================
-   STATE
-========================================================= */
-
-let cameraStream = null;
-
-let cameraOnline = false;
-
-let renderAnimation = null;
-
-let radarTimer = null;
-
-let clockTimer = null;
-
-let batteryTimer = null;
-
-
-/*
-   Persistent background calibration.
-*/
-
-let backgroundCalibration =
-    loadCalibration();
-
-
-/*
-   Persistent identity archive.
-*/
-
-let identityArchive =
-    loadArchive();
-
-
-/*
    IMPORTANT:
 
-   currentIdentity is only the DISPLAYED identity.
+   This version uses face descriptors rather than raw pixels.
 
-   It does NOT decide whether somebody
-   is physically present.
+   Each trained face produces a numerical facial embedding.
+   Returning faces are compared against those embeddings.
+
+   Presence is determined by an actual detected face inside
+   the center square.
+
+   Therefore:
+
+   FACE LEAVES SQUARE
+        ↓
+   face disappears
+        ↓
+   target released
+
+   FACE RETURNS
+        ↓
+   face detected
+        ↓
+   descriptor generated
+        ↓
+   compared against archive
+        ↓
+   matching name restored
+
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   ELEMENTS
+------------------------------------------------------------ */
+
+const video = document.getElementById("camera");
+
+const boot = document.getElementById("boot");
+const bootButton = document.getElementById("bootButton");
+const bootStatus = document.getElementById("bootStatus");
+
+const scanArea = document.getElementById("scanArea");
+
+const targetName = document.getElementById("targetName");
+const targetState = document.getElementById("targetState");
+
+const archiveList = document.getElementById("archiveList");
+
+const statusText = document.getElementById("statusText");
+const statusDot = document.getElementById("statusDot");
+
+const engineStatus = document.getElementById("engineStatus");
+
+const notification = document.getElementById("notification");
+
+const clock = document.getElementById("clock");
+
+
+/* ------------------------------------------------------------
+   CONFIGURATION
+------------------------------------------------------------ */
+
+const MODEL_URL =
+    "https://cdn.jsdelivr.net/gh/vladmandic/face-api/model/";
+
+const STORAGE_KEY =
+    "EDITH_V62_FACE_ARCHIVE";
+
+
+/*
+    Lower = stricter.
+
+    Typical face-api distance:
+    0.60 = fairly permissive
+    0.50 = stricter
+    0.45 = very strict
+
+    We use 0.52 to balance reliability and recognition.
 */
+
+const FACE_MATCH_THRESHOLD = 0.52;
+
+
+/*
+    Difference required between the best and second-best
+    profile.
+
+    This helps prevent E.D.I.T.H. from randomly choosing
+    between similar profiles.
+*/
+
+const MATCH_MARGIN = 0.035;
+
+
+/*
+    Number of recognition frames required.
+
+    E.D.I.T.H. does NOT trust one frame.
+*/
+
+const VOTE_WINDOW = 7;
+
+const REQUIRED_VOTES = 4;
+
+
+/*
+    How many consecutive "no face" scans before releasing
+    the target.
+*/
+
+const RELEASE_SCANS = 4;
+
+
+/*
+    How many consecutive face detections are needed before
+    recognition begins.
+*/
+
+const PRESENCE_CONFIRMATIONS = 2;
+
+
+/*
+    Detection interval.
+
+    Slower = more careful and less CPU usage.
+*/
+
+const SCAN_INTERVAL = 650;
+
+
+/* ------------------------------------------------------------
+   STATE
+------------------------------------------------------------ */
+
+let modelsReady = false;
+
+let cameraReady = false;
+
+let scanning = false;
+
+let scanTimer = null;
+
+let lastScan = 0;
+
+
+/* Presence */
+
+let faceSeenCount = 0;
+
+let noFaceCount = 0;
+
+
+/* Recognition */
+
+let voteHistory = [];
 
 let currentIdentity = null;
 
-
-/*
-   Candidate identity currently being verified.
-*/
-
-let candidateIdentity = null;
-
-let candidateVoteCount = 0;
+let identityLocked = false;
 
 
-/*
-   Recent identity observations.
+/* Training */
 
-   Each entry contains:
-
-   profile ID
-   or
-   UNKNOWN
-*/
-
-let identityHistory = [];
+let training = false;
 
 
-/*
-   Presence state.
-*/
+/* Archive */
 
-let presenceLocked = false;
-
-let presenceScanCount = 0;
-
-let emptyScanCount = 0;
+let archive = [];
 
 
-/*
-   Unknown state.
-*/
-
-let unknownScanCount = 0;
-
-
-/*
-   Alert timer.
-*/
-
-let lastUnknownAlert = 0;
-
-
-/*
-   Battery.
-*/
-
-let batteryLevel = 100;
-
-
-/* =========================================================
-   ARCHIVE LOADING
-========================================================= */
+/* ------------------------------------------------------------
+   LOAD ARCHIVE
+------------------------------------------------------------ */
 
 function loadArchive() {
 
     try {
 
-        let saved =
-            localStorage.getItem(
-                STORAGE_KEY
-            );
-
-
-        /*
-           Import older archives if V62
-           doesn't exist yet.
-        */
+        const saved =
+            localStorage.getItem(STORAGE_KEY);
 
         if (!saved) {
 
-            for (
-                const oldKey of OLD_STORAGE_KEYS
-            ) {
+            archive = [];
 
-                const oldSaved =
-                    localStorage.getItem(
-                        oldKey
-                    );
-
-                if (oldSaved) {
-
-                    saved =
-                        oldSaved;
-
-                    break;
-
-                }
-
-            }
+            return;
 
         }
-
-
-        if (!saved) {
-            return [];
-        }
-
 
         const parsed =
             JSON.parse(saved);
 
+        if (Array.isArray(parsed)) {
 
-        if (!Array.isArray(parsed)) {
-            return [];
+            archive = parsed;
+
+        } else {
+
+            archive = [];
+
         }
 
-
-        return parsed.filter(profile => {
-
-            return (
-
-                profile &&
-
-                profile.id &&
-
-                profile.name &&
-
-                Array.isArray(
-                    profile.samples
-                ) &&
-
-                profile.samples.length > 0
-
-            );
-
-        });
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "Archive loading failed:",
             error
         );
 
-        return [];
+        archive = [];
 
     }
+
+    renderArchive();
 
 }
 
 
-/* =========================================================
+/* ------------------------------------------------------------
    SAVE ARCHIVE
-========================================================= */
+------------------------------------------------------------ */
 
 function saveArchive() {
 
     try {
 
         localStorage.setItem(
-
             STORAGE_KEY,
-
-            JSON.stringify(
-                identityArchive
-            )
-
+            JSON.stringify(archive)
         );
 
-        updateArchiveCount();
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "Archive save failed:",
             error
         );
 
+        showNotification(
+            "WARNING: PROFILE STORAGE FAILED"
+        );
+
     }
 
 }
 
 
-/* =========================================================
-   HUD
-========================================================= */
+/* ------------------------------------------------------------
+   ARCHIVE UI
+------------------------------------------------------------ */
 
-function setStatus(text) {
+function renderArchive() {
 
-    statusLine.textContent =
-        "// STATUS: " + text;
+    if (!archive.length) {
 
-}
-
-
-function setAction(text) {
-
-    actionLine.textContent =
-        text.startsWith("//")
-            ? text
-            : "// " + text;
-
-}
-
-
-/* =========================================================
-   SIDEBAR
-========================================================= */
-
-function clearSidebar() {
-
-    sidebarContent.innerHTML = "";
-
-}
-
-
-function addSidebarRow(text) {
-
-    const row =
-        document.createElement("div");
-
-    row.className =
-        "sidebar-row";
-
-    row.textContent =
-        text;
-
-    sidebarContent.appendChild(row);
-
-}
-
-
-/* =========================================================
-   SIDEBAR STATES
-========================================================= */
-
-function showPassiveSidebar() {
-
-    clearSidebar();
-
-    addSidebarRow(
-        "LOCK: SEARCHING"
-    );
-
-    addSidebarRow(
-        "CLEARANCE: PENDING"
-    );
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "RADAR: ACTIVE"
-    );
-
-    addSidebarRow(
-        "PRESENCE SENSOR: READY"
-    );
-
-    addSidebarRow(
-        "IDENTITY ARCHIVE: " +
-        identityArchive.length
-    );
-
-}
-
-
-function showPresenceSidebar() {
-
-    clearSidebar();
-
-    addSidebarRow(
-        "LOCK: TARGET ACQUIRED"
-    );
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "PRESENCE: CONFIRMED"
-    );
-
-    addSidebarRow(
-        "IDENTITY: VERIFYING"
-    );
-
-    addSidebarRow(
-        "MULTI-FRAME ANALYSIS: ACTIVE"
-    );
-
-}
-
-
-function showCandidateSidebar(
-    profile,
-    distance
-) {
-
-    clearSidebar();
-
-    addSidebarRow(
-        "LOCK: VERIFYING"
-    );
-
-    addSidebarRow(
-        "CANDIDATE: " +
-        profile.name
-    );
-
-    addSidebarRow(
-        "MATCH DELTA: " +
-        distance.toFixed(4)
-    );
-
-    addSidebarRow(
-        "IDENTITY VOTE: " +
-        candidateVoteCount +
-        "/" +
-        IDENTITY_CONFIRM_VOTES
-    );
-
-    addSidebarRow(
-        "PRESENCE: CONFIRMED"
-    );
-
-    addSidebarRow(
-        "STATUS: CAREFUL VERIFICATION"
-    );
-
-}
-
-
-function showKnownSidebar(
-    profile,
-    distance
-) {
-
-    clearSidebar();
-
-    addSidebarRow(
-        "LOCK: STABILIZED"
-    );
-
-    addSidebarRow(
-        "TARGET: " +
-        profile.name
-    );
-
-    addSidebarRow(
-        "CLEARANCE: GRANTED"
-    );
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "MATCH DELTA: " +
-        distance.toFixed(4)
-    );
-
-    addSidebarRow(
-        "PROFILE SAMPLES: " +
-        profile.samples.length
-    );
-
-    addSidebarRow(
-        "IDENTITY: CONFIRMED"
-    );
-
-    addSidebarRow(
-        "PRESENCE: CONFIRMED"
-    );
-
-    addSidebarRow(
-        "STATUS: TRACKING"
-    );
-
-}
-
-
-function showExitSidebar() {
-
-    clearSidebar();
-
-    if (!currentIdentity) {
-
-        showPassiveSidebar();
+        archiveList.innerHTML =
+            "NO PROFILES";
 
         return;
 
     }
 
-    addSidebarRow(
-        "LOCK: " +
-        currentIdentity.name
-    );
 
-    addSidebarRow(
-        "CLEARANCE: GRANTED"
-    );
-
-    addSidebarRow(
-        "PRESENCE: TEMPORARILY LOST"
-    );
-
-    addSidebarRow(
-        "EMPTY FRAMES: " +
-        emptyScanCount +
-        "/" +
-        EMPTY_SCANS_TO_RELEASE
-    );
-
-    addSidebarRow(
-        "IDENTITY: HELD"
-    );
-
-    addSidebarRow(
-        "STATUS: VERIFYING EXIT"
-    );
-
-}
+    archiveList.innerHTML = "";
 
 
-function showUnknownSidebar() {
+    archive.forEach(profile => {
 
-    clearSidebar();
+        const div =
+            document.createElement("div");
 
-    addSidebarRow(
-        "LOCK: UNVERIFIED"
-    );
-
-    addSidebarRow(
-        "TARGET: UNKNOWN"
-    );
-
-    addSidebarRow(
-        "CLEARANCE: DENIED"
-    );
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "IDENTITY: NOT FOUND"
-    );
-
-    addSidebarRow(
-        "STATUS: MONITORING"
-    );
-
-}
+        div.className =
+            "person";
 
 
-/* =========================================================
-   SPEECH
-========================================================= */
+        /*
+            Profiles from older versions may exist.
 
-function speak(text) {
+            They don't contain real face descriptors,
+            so they cannot be used by the new engine.
+        */
 
-    if (
-        !("speechSynthesis" in window)
-    ) {
-        return;
-    }
-
-    try {
-
-        window.speechSynthesis.cancel();
-
-        const utterance =
-            new SpeechSynthesisUtterance(
-                text
+        const hasDescriptor =
+            profile.samples &&
+            profile.samples.some(
+                sample =>
+                    Array.isArray(sample.descriptor)
             );
 
-        utterance.rate = 1;
 
-        utterance.pitch = 1;
+        if (!hasDescriptor) {
 
-        utterance.volume = 1;
+            div.classList.add("legacy");
 
-        window.speechSynthesis.speak(
-            utterance
-        );
+            div.innerHTML =
+                `<span>${escapeHTML(profile.name)}</span>
+                 <span>RETRAIN</span>`;
 
-    }
+        } else {
 
-    catch (error) {
+            div.innerHTML =
+                `<span>${escapeHTML(profile.name)}</span>
+                 <span>${profile.samples.length}</span>`;
 
-        console.warn(
-            "Speech error:",
-            error
-        );
+        }
 
-    }
+
+        archiveList.appendChild(div);
+
+    });
 
 }
 
 
-/* =========================================================
+/* ------------------------------------------------------------
+   HTML ESCAPE
+------------------------------------------------------------ */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* ------------------------------------------------------------
+   NOTIFICATION
+------------------------------------------------------------ */
+
+let notificationTimer = null;
+
+function showNotification(message) {
+
+    notification.textContent =
+        message;
+
+    notification.classList.add("show");
+
+    clearTimeout(notificationTimer);
+
+    notificationTimer =
+        setTimeout(() => {
+
+            notification.classList.remove("show");
+
+        }, 3000);
+
+}
+
+
+/* ------------------------------------------------------------
    CLOCK
-========================================================= */
+------------------------------------------------------------ */
 
-function startClock() {
+function updateClock() {
 
-    if (clockTimer) {
+    const now = new Date();
 
-        clearInterval(
-            clockTimer
-        );
-
-    }
-
-
-    function updateClock() {
-
-        clock.textContent =
-            "TIME: " +
-            new Date().toLocaleTimeString();
-
-    }
-
-
-    updateClock();
-
-    clockTimer =
-        setInterval(
-            updateClock,
-            1000
-        );
+    clock.textContent =
+        now.toLocaleTimeString();
 
 }
 
+setInterval(
+    updateClock,
+    1000
+);
 
-/* =========================================================
-   BATTERY
-========================================================= */
-
-function updateBattery() {
-
-    let bars = "|||||";
-
-    if (batteryLevel < 80)
-        bars = "|||| ";
-
-    if (batteryLevel < 60)
-        bars = "|||  ";
-
-    if (batteryLevel < 40)
-        bars = "||   ";
-
-    if (batteryLevel < 20)
-        bars = "|    ";
+updateClock();
 
 
-    batteryDisplay.textContent =
-        "BATT: " +
-        batteryLevel +
-        "% [" +
-        bars +
-        "]";
-
-}
-
-
-function startBattery() {
-
-    if (batteryTimer) {
-
-        clearInterval(
-            batteryTimer
-        );
-
-    }
-
-
-    batteryTimer =
-        setInterval(() => {
-
-            if (
-                cameraOnline &&
-                batteryLevel > 1
-            ) {
-
-                batteryLevel--;
-
-                updateBattery();
-
-            }
-
-        }, 30000);
-
-}
-
-
-/* =========================================================
+/* ------------------------------------------------------------
    CAMERA
-========================================================= */
+------------------------------------------------------------ */
 
-async function initializeCamera() {
-
-    if (cameraOnline) {
-        return;
-    }
-
-
-    errorBox.style.display =
-        "none";
-
-
-    setStatus(
-        "REQUESTING CAMERA"
-    );
-
-    setAction(
-        "WAITING FOR CAMERA PERMISSION"
-    );
-
-
-    if (
-        !navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia
-    ) {
-
-        showCameraError(
-            "CAMERA API NOT AVAILABLE"
-        );
-
-        return;
-
-    }
-
+async function startCamera() {
 
     try {
 
-        cameraStream =
+        bootStatus.innerHTML =
+            "REQUESTING CAMERA ACCESS...";
+
+
+        const stream =
             await navigator.mediaDevices.getUserMedia({
 
                 video: {
@@ -1320,632 +1015,195 @@ async function initializeCamera() {
 
 
         video.srcObject =
-            cameraStream;
+            stream;
 
 
         await new Promise(resolve => {
 
-            if (
-                video.readyState >= 1
-            ) {
+            if (video.readyState >= 2) {
 
                 resolve();
 
-            }
-
-            else {
+            } else {
 
                 video.onloadedmetadata =
-                    () => resolve();
+                    resolve;
 
             }
 
         });
 
 
-        await video.play();
+        cameraReady = true;
 
 
-        cameraOnline = true;
+        bootStatus.innerHTML =
+            "CAMERA ONLINE<br>" +
+            "LOADING FACIAL RECOGNITION MODELS...";
 
 
-        bootPanel.classList.add(
-            "hidden"
-        );
-
-
-        resizeOverlay();
-
-        startRendering();
-
-        startClock();
-
-        startBattery();
-
-
-        if (
-            backgroundCalibration
-        ) {
-
-            setStatus(
-                "PASSIVE SCAN"
-            );
-
-            setAction(
-                "CALIBRATION LOADED — IDENTITY SYSTEM READY"
-            );
-
-            showPassiveSidebar();
-
-        }
-
-        else {
-
-            setStatus(
-                "CALIBRATION REQUIRED"
-            );
-
-            setAction(
-                "CLEAR CENTER BOX — PRESS C TO CREATE EMPTY BACKGROUND"
-            );
-
-            showPassiveSidebar();
-
-        }
-
-        startRadar();
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(error);
 
-        cameraOnline = false;
 
-        showCameraError(
-            getCameraErrorMessage(error)
+        bootStatus.innerHTML =
+            "CAMERA INITIALIZATION FAILED.<br><br>" +
+            "Make sure camera permission is allowed.";
+
+        showNotification(
+            "CAMERA ACCESS FAILED"
         );
 
-        setStatus(
-            "CAMERA OFFLINE"
-        );
-
-        setAction(
-            "CAMERA COUPLING FAILED"
-        );
+        throw error;
 
     }
 
 }
 
 
-function getCameraErrorMessage(error) {
+/* ------------------------------------------------------------
+   LOAD FACE MODELS
+------------------------------------------------------------ */
 
-    if (
-        error &&
-        error.name === "NotAllowedError"
-    ) {
+async function loadFaceModels() {
 
-        return (
-            "CAMERA PERMISSION DENIED — ALLOW CAMERA ACCESS"
+    try {
+
+        engineStatus.textContent =
+            "LOADING MODELS";
+
+
+        /*
+            TinyFaceDetector:
+            Detects faces.
+
+            FaceLandmark68Net:
+            Finds facial landmarks.
+
+            FaceRecognitionNet:
+            Creates the actual face descriptor.
+        */
+
+
+        await faceapi.nets.tinyFaceDetector.loadFromUri(
+            MODEL_URL
         );
 
-    }
 
-
-    if (
-        error &&
-        error.name === "NotFoundError"
-    ) {
-
-        return (
-            "NO CAMERA DETECTED"
+        await faceapi.nets.faceLandmark68Net.loadFromUri(
+            MODEL_URL
         );
 
-    }
 
-
-    if (
-        error &&
-        error.name === "NotReadableError"
-    ) {
-
-        return (
-            "CAMERA IS BUSY — CLOSE OTHER CAMERA APPS"
+        await faceapi.nets.faceRecognitionNet.loadFromUri(
+            MODEL_URL
         );
 
-    }
+
+        modelsReady = true;
 
 
-    return (
-        "CAMERA ERROR — " +
-        (
-            error?.message ||
-            "UNKNOWN FAILURE"
-        )
-    );
-
-}
+        engineStatus.textContent =
+            "READY";
 
 
-function showCameraError(message) {
-
-    errorBox.textContent =
-        message;
-
-    errorBox.style.display =
-        "block";
-
-}
+        bootStatus.innerHTML =
+            "FACIAL RECOGNITION ONLINE<br>" +
+            "PERSISTENT IDENTITY ARCHIVE ONLINE";
 
 
-/* =========================================================
-   OVERLAY
-========================================================= */
+    } catch (error) {
 
-function resizeOverlay() {
+        console.error(
+            "Model loading failed:",
+            error
+        );
 
-    if (
-        video.videoWidth > 0 &&
-        video.videoHeight > 0
-    ) {
 
-        overlay.width =
-            video.videoWidth;
+        engineStatus.textContent =
+            "ERROR";
 
-        overlay.height =
-            video.videoHeight;
+
+        bootStatus.innerHTML =
+            "FACIAL RECOGNITION MODEL LOAD FAILED.<br><br>" +
+            "Check your internet connection and reload.";
+
+        throw error;
 
     }
 
 }
 
 
-/* =========================================================
-   SCAN RECTANGLE
-========================================================= */
+/* ------------------------------------------------------------
+   CENTER SQUARE
+------------------------------------------------------------ */
 
-function getScanRect() {
+function getScanRectangle() {
 
-    const width =
-        overlay.width;
-
-    const height =
-        overlay.height;
-
-
-    const boxWidth =
-        width * .48;
-
-    const boxHeight =
-        height * .68;
+    const rect =
+        scanArea.getBoundingClientRect();
 
 
     return {
 
-        x:
-            (width - boxWidth) / 2,
+        left: rect.left,
 
-        y:
-            (height - boxHeight) / 2,
+        top: rect.top,
 
-        width:
-            boxWidth,
+        right: rect.right,
 
-        height:
-            boxHeight
+        bottom: rect.bottom
 
     };
 
 }
 
 
-/* =========================================================
-   RENDER
-========================================================= */
-
-function startRendering() {
-
-    if (renderAnimation) {
-
-        cancelAnimationFrame(
-            renderAnimation
-        );
-
-    }
-
-
-    function render() {
-
-        if (
-            overlay.width === 0 ||
-            overlay.height === 0
-        ) {
-
-            renderAnimation =
-                requestAnimationFrame(
-                    render
-                );
-
-            return;
-
-        }
-
-
-        ctx.clearRect(
-            0,
-            0,
-            overlay.width,
-            overlay.height
-        );
-
-
-        const rect =
-            getScanRect();
-
-
-        const threat =
-            document.body.classList.contains(
-                "threat"
-            );
-
-
-        const mainColor =
-            threat
-                ? "#ff3030"
-                : "#20c8ff";
-
-
-        /* BOX */
-
-        ctx.strokeStyle =
-            mainColor;
-
-        ctx.lineWidth =
-            3;
-
-        ctx.shadowColor =
-            mainColor;
-
-        ctx.shadowBlur =
-            14;
-
-        ctx.strokeRect(
-            rect.x,
-            rect.y,
-            rect.width,
-            rect.height
-        );
-
-
-        /* CORNERS */
-
-        ctx.lineWidth = 5;
-
-        const corner = 35;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            rect.x,
-            rect.y + corner
-        );
-
-        ctx.lineTo(
-            rect.x,
-            rect.y
-        );
-
-        ctx.lineTo(
-            rect.x + corner,
-            rect.y
-        );
-
-
-        ctx.moveTo(
-            rect.x + rect.width - corner,
-            rect.y
-        );
-
-        ctx.lineTo(
-            rect.x + rect.width,
-            rect.y
-        );
-
-        ctx.lineTo(
-            rect.x + rect.width,
-            rect.y + corner
-        );
-
-
-        ctx.moveTo(
-            rect.x,
-            rect.y + rect.height - corner
-        );
-
-        ctx.lineTo(
-            rect.x,
-            rect.y + rect.height
-        );
-
-        ctx.lineTo(
-            rect.x + corner,
-            rect.y + rect.height
-        );
-
-
-        ctx.moveTo(
-            rect.x + rect.width - corner,
-            rect.y + rect.height
-        );
-
-        ctx.lineTo(
-            rect.x + rect.width,
-            rect.y + rect.height
-        );
-
-        ctx.lineTo(
-            rect.x + rect.width,
-            rect.y + rect.height - corner
-        );
-
-        ctx.stroke();
-
-
-        /* RADAR */
-
-        const sweep =
-            (
-                Math.sin(
-                    Date.now() / 450
-                ) + 1
-            ) / 2;
-
-
-        const lineY =
-            rect.y +
-            rect.height *
-            sweep;
-
-
-        ctx.strokeStyle =
-            threat
-                ? "rgba(255,50,50,.9)"
-                : "rgba(40,210,255,.9)";
-
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            rect.x,
-            lineY
-        );
-
-        ctx.lineTo(
-            rect.x + rect.width,
-            lineY
-        );
-
-        ctx.stroke();
-
-
-        /* TARGET LABEL */
-
-        ctx.fillStyle =
-            mainColor;
-
-        ctx.font =
-            "bold 22px Courier New";
-
-
-        if (currentIdentity) {
-
-            ctx.fillText(
-
-                "TARGET LOCK: " +
-                currentIdentity.name,
-
-                rect.x + 12,
-                rect.y - 14
-
-            );
-
-        }
-
-        else if (candidateIdentity) {
-
-            ctx.fillText(
-
-                "VERIFYING: " +
-                candidateIdentity.name,
-
-                rect.x + 12,
-                rect.y - 14
-
-            );
-
-        }
-
-        else if (presenceLocked) {
-
-            ctx.fillText(
-
-                "TARGET ACQUIRED",
-
-                rect.x + 12,
-                rect.y - 14
-
-            );
-
-        }
-
-        else {
-
-            ctx.fillText(
-
-                "SCAN SECTOR",
-
-                rect.x + 12,
-                rect.y - 14
-
-            );
-
-        }
-
-
-        /* EXIT WARNING */
-
-        if (
-            currentIdentity &&
-            emptyScanCount > 0
-        ) {
-
-            ctx.font =
-                "bold 20px Courier New";
-
-            ctx.fillStyle =
-                "#ffb52e";
-
-            ctx.fillText(
-
-                "VERIFYING EXIT " +
-                emptyScanCount +
-                "/" +
-                EMPTY_SCANS_TO_RELEASE,
-
-                rect.x + 15,
-
-                rect.y +
-                rect.height +
-                35
-
-            );
-
-        }
-
-
-        /* THREAT */
-
-        if (threat) {
-
-            ctx.font =
-                "bold 28px Courier New";
-
-            ctx.fillStyle =
-                "#ff3333";
-
-            ctx.fillText(
-
-                "UNKNOWN TARGET",
-
-                rect.x + 15,
-
-                rect.y +
-                rect.height +
-                40
-
-            );
-
-        }
-
-
-        ctx.shadowBlur = 0;
-
-
-        renderAnimation =
-            requestAnimationFrame(
-                render
-            );
-
-    }
-
-
-    render();
-
-}
-
-
-/* =========================================================
-   IMAGE CAPTURE
-========================================================= */
-
-function captureRawImage() {
-
-    if (
-        !cameraOnline ||
-        video.readyState < 2
-    ) {
+/* ------------------------------------------------------------
+   DETECT FACE
+------------------------------------------------------------ */
+
+async function detectFaceInsideSquare() {
+
+    if (!modelsReady ||
+        !cameraReady ||
+        video.readyState < 2) {
 
         return null;
 
     }
 
 
-    const rect =
-        getScanRect();
+    const options =
+        new faceapi.TinyFaceDetectorOptions({
+
+            inputSize: 416,
+
+            scoreThreshold: 0.50
+
+        });
 
 
-    const temp =
-        document.createElement(
-            "canvas"
-        );
-
-
-    temp.width =
-        SIGNATURE_WIDTH;
-
-    temp.height =
-        SIGNATURE_HEIGHT;
-
-
-    const tempCtx =
-        temp.getContext(
-            "2d",
-            {
-                willReadFrequently: true
-            }
-        );
+    let detections;
 
 
     try {
 
-        tempCtx.drawImage(
+        detections =
+            await faceapi
+                .detectAllFaces(
+                    video,
+                    options
+                )
+                .withFaceLandmarks()
+                .withFaceDescriptors();
 
-            video,
+    } catch (error) {
 
-            rect.x,
-            rect.y,
-
-            rect.width,
-            rect.height,
-
-            0,
-            0,
-
-            SIGNATURE_WIDTH,
-            SIGNATURE_HEIGHT
-
-        );
-
-
-        return tempCtx.getImageData(
-
-            0,
-            0,
-
-            SIGNATURE_WIDTH,
-            SIGNATURE_HEIGHT
-
-        );
-
-    }
-
-    catch (error) {
-
-        console.warn(
-            "Image capture failed:",
+        console.error(
+            "Detection error:",
             error
         );
 
@@ -1953,565 +1211,838 @@ function captureRawImage() {
 
     }
 
-}
 
+    if (!detections.length) {
 
-/* =========================================================
-   SIGNATURE CREATION
-========================================================= */
-
-function createSignature(imageData) {
-
-    if (!imageData) {
         return null;
+
     }
 
 
-    const data =
-        imageData.data;
+    /*
+        video is mirrored visually, but face-api works from
+        the underlying video coordinates.
+
+        We simply test the center of every detected face
+        against the center square.
+    */
 
 
-    const raw = [];
+    const scanRect =
+        getScanRectangle();
+
+
+    const videoRect =
+        video.getBoundingClientRect();
+
+
+    const videoWidth =
+        video.videoWidth;
+
+    const videoHeight =
+        video.videoHeight;
+
+
+    if (!videoWidth ||
+        !videoHeight) {
+
+        return null;
+
+    }
+
+
+    /*
+        Convert the scan square into video coordinates.
+    */
+
+    const scaleX =
+        videoWidth /
+        videoRect.width;
+
+    const scaleY =
+        videoHeight /
+        videoRect.height;
+
+
+    const scanLeft =
+        (scanRect.left -
+         videoRect.left) *
+        scaleX;
+
+
+    const scanTop =
+        (scanRect.top -
+         videoRect.top) *
+        scaleY;
+
+
+    const scanRight =
+        (scanRect.right -
+         videoRect.left) *
+        scaleX;
+
+
+    const scanBottom =
+        (scanRect.bottom -
+         videoRect.top) *
+        scaleY;
+
+
+    /*
+        Find a face whose center is inside the square.
+    */
+
+    for (const result of detections) {
+
+        const box =
+            result.detection.box;
+
+
+        const centerX =
+            box.x +
+            box.width / 2;
+
+
+        const centerY =
+            box.y +
+            box.height / 2;
+
+
+        if (
+
+            centerX >= scanLeft &&
+            centerX <= scanRight &&
+
+            centerY >= scanTop &&
+            centerY <= scanBottom
+
+        ) {
+
+            return result;
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+/* ------------------------------------------------------------
+   FACE DISTANCE
+------------------------------------------------------------ */
+
+function descriptorDistance(
+    a,
+    b
+) {
+
+    if (!a || !b) {
+
+        return Infinity;
+
+    }
+
+
+    let sum = 0;
+
+
+    const length =
+        Math.min(
+            a.length,
+            b.length
+        );
 
 
     for (
         let i = 0;
-        i < data.length;
-        i += 4
+        i < length;
+        i++
     ) {
 
-        const r =
-            data[i] / 255;
+        const diff =
+            a[i] - b[i];
 
-        const g =
-            data[i + 1] / 255;
+        sum += diff * diff;
 
-        const b =
-            data[i + 2] / 255;
+    }
+
+
+    return Math.sqrt(sum);
+
+}
+
+
+/* ------------------------------------------------------------
+   FIND BEST PERSON
+------------------------------------------------------------ */
+
+function findBestMatch(descriptor) {
+
+    let bestName = null;
+
+    let bestDistance =
+        Infinity;
+
+    let secondBest =
+        Infinity;
+
+
+    for (const profile of archive) {
+
+        /*
+            Ignore old pixel-based profiles.
+
+            Only real face descriptors count.
+        */
+
+        if (!profile.samples ||
+            !profile.samples.length) {
+
+            continue;
+
+        }
+
+
+        const distances = [];
+
+
+        for (
+            const sample
+            of profile.samples
+        ) {
+
+            if (
+                !Array.isArray(
+                    sample.descriptor
+                )
+            ) {
+
+                continue;
+
+            }
+
+
+            const distance =
+                descriptorDistance(
+                    descriptor,
+                    sample.descriptor
+                );
+
+
+            if (
+                Number.isFinite(distance)
+            ) {
+
+                distances.push(distance);
+
+            }
+
+        }
+
+
+        if (!distances.length) {
+
+            continue;
+
+        }
 
 
         /*
-           Luminance.
-
-           This is deliberately simple because
-           this remains a browser-only prototype.
+            Sort closest first.
         */
 
-        const brightness =
-            (
-                r * .299 +
-                g * .587 +
-                b * .114
-            );
-
-
-        raw.push(
-            brightness
-        );
-
-    }
-
-
-    let mean = 0;
-
-
-    for (
-        const value of raw
-    ) {
-
-        mean += value;
-
-    }
-
-
-    mean /=
-        raw.length;
-
-
-    let variance = 0;
-
-
-    for (
-        const value of raw
-    ) {
-
-        variance +=
-            Math.pow(
-                value - mean,
-                2
-            );
-
-    }
-
-
-    const standardDeviation =
-        Math.sqrt(
-            variance /
-            raw.length
-        ) || 1;
-
-
-    const normalized =
-        raw.map(
-            value =>
-                (
-                    value -
-                    mean
-                ) /
-                standardDeviation
+        distances.sort(
+            (a, b) => a - b
         );
 
 
-    return {
+        /*
+            Use the best few samples rather than just one.
 
-        raw:
-            raw,
+            This makes recognition more stable if lighting
+            or head position changes.
+        */
 
-        normalized:
-            normalized
-
-    };
-
-}
-
-
-/* =========================================================
-   ARRAY DISTANCE
-========================================================= */
-
-function arrayDistance(
-    first,
-    second
-) {
-
-    if (
-        !first ||
-        !second ||
-        first.length !== second.length
-    ) {
-
-        return Infinity;
-
-    }
-
-
-    let total = 0;
-
-
-    for (
-        let i = 0;
-        i < first.length;
-        i++
-    ) {
-
-        total +=
-            Math.abs(
-                first[i] -
-                second[i]
+        const topCount =
+            Math.min(
+                3,
+                distances.length
             );
 
-    }
+
+        let total = 0;
 
 
-    return (
-        total /
-        first.length
-    );
+        for (
+            let i = 0;
+            i < topCount;
+            i++
+        ) {
 
-}
+            total += distances[i];
 
-
-/* =========================================================
-   PROFILE DISTANCE
-========================================================= */
-
-function profileDistance(
-    signature,
-    profile
-) {
-
-    if (
-        !profile ||
-        !Array.isArray(
-            profile.samples
-        )
-    ) {
-
-        return Infinity;
-
-    }
+        }
 
 
-    const distances = [];
-
-
-    for (
-        const sample of profile.samples
-    ) {
-
-        let normalized;
+        const average =
+            total / topCount;
 
 
         if (
-            Array.isArray(sample)
+            average < bestDistance
         ) {
 
-            normalized =
-                sample;
+            secondBest =
+                bestDistance;
 
-        }
+            bestDistance =
+                average;
 
-        else {
+            bestName =
+                profile.name;
 
-            normalized =
-                sample.normalized;
-
-        }
-
-
-        const distance =
-            arrayDistance(
-
-                signature.normalized,
-
-                normalized
-
-            );
-
-
-        if (
-            Number.isFinite(distance)
+        } else if (
+            average < secondBest
         ) {
 
-            distances.push(
-                distance
-            );
+            secondBest =
+                average;
 
         }
 
     }
 
 
-    if (
-        distances.length === 0
-    ) {
-
-        return Infinity;
-
-    }
-
-
-    distances.sort(
-        (a, b) => a - b
-    );
-
-
-    /*
-       Instead of trusting ONE stored image,
-       average several of the best matches.
-    */
-
-    const count =
-        Math.min(
-            BEST_SAMPLE_COUNT,
-            distances.length
-        );
-
-
-    let total = 0;
-
-
-    for (
-        let i = 0;
-        i < count;
-        i++
-    ) {
-
-        total +=
-            distances[i];
-
-    }
-
-
-    return (
-        total /
-        count
-    );
-
-}
-
-
-/* =========================================================
-   FIND BEST PROFILE
-========================================================= */
-
-function findBestProfile(
-    signature
-) {
-
-    if (
-        identityArchive.length === 0
-    ) {
-
-        return null;
-
-    }
-
-
-    const ranked = [];
-
-
-    for (
-        const profile of identityArchive
-    ) {
-
-        const distance =
-            profileDistance(
-                signature,
-                profile
-            );
-
-
-        ranked.push({
-
-            profile:
-                profile,
-
-            distance:
-                distance
-
-        });
-
-    }
-
-
-    ranked.sort(
-        (a, b) =>
-            a.distance -
-            b.distance
-    );
-
-
-    const best =
-        ranked[0];
-
-
-    if (
-        !best ||
-        !Number.isFinite(
-            best.distance
-        )
-    ) {
-
-        return null;
-
-    }
-
-
-    /*
-       Must be close enough.
-    */
-
-    if (
-        best.distance >
-        MATCH_TOLERANCE
-    ) {
-
-        return null;
-
-    }
-
-
-    /*
-       If two profiles are almost equally
-       good, do NOT guess.
-    */
-
-    if (
-        ranked.length > 1
-    ) {
-
-        const second =
-            ranked[1];
-
-
-        if (
-            Number.isFinite(
-                second.distance
-            ) &&
-
-            (
-                second.distance -
-                best.distance
-            ) < PROFILE_MARGIN
-        ) {
-
-            return null;
-
-        }
-
-    }
-
-
-    return best;
-
-}
-
-
-/* =========================================================
-   PRESENCE METRICS
-========================================================= */
-
-function getPresenceMetrics(
-    signature
-) {
-
-    if (
-        !signature ||
-        !backgroundCalibration
-    ) {
+    if (!bestName) {
 
         return {
 
-            rawDifference: 0,
+            name: null,
 
-            changedPixelRatio: 0
+            distance: Infinity,
+
+            margin: 0
 
         };
 
     }
 
 
-    const backgroundRaw =
-        backgroundCalibration.raw;
+    const margin =
+        secondBest === Infinity
+            ? 1
+            : secondBest -
+              bestDistance;
 
+
+    /*
+        TWO requirements:
+
+        1. Distance must be good enough.
+        2. Best match must beat the next profile by enough.
+
+        This greatly reduces random name switching.
+    */
 
     if (
-        !Array.isArray(backgroundRaw) ||
+        bestDistance <=
+            FACE_MATCH_THRESHOLD &&
 
-        backgroundRaw.length !==
-            signature.raw.length
+        margin >=
+            MATCH_MARGIN
     ) {
 
         return {
 
-            rawDifference: 0,
+            name: bestName,
 
-            changedPixelRatio: 0
+            distance: bestDistance,
+
+            margin: margin
 
         };
 
     }
 
 
-    let totalDifference = 0;
-
-    let changedPixels = 0;
-
-
-    for (
-        let i = 0;
-        i < signature.raw.length;
-        i++
-    ) {
-
-        const difference =
-            Math.abs(
-
-                signature.raw[i] -
-                backgroundRaw[i]
-
-            );
-
-
-        totalDifference +=
-            difference;
-
-
-        if (
-            difference >
-            NOISE_THRESHOLD
-        ) {
-
-            changedPixels++;
-
-        }
-
-    }
-
-
     return {
 
-        rawDifference:
-            totalDifference /
-            signature.raw.length,
+        name: null,
 
-        changedPixelRatio:
-            changedPixels /
-            signature.raw.length
+        distance: bestDistance,
+
+        margin: margin
 
     };
 
 }
 
 
-/* =========================================================
-   PRESENCE TEST
-========================================================= */
+/* ------------------------------------------------------------
+   VOTING
+------------------------------------------------------------ */
 
-function isTargetPresent(
-    signature
-) {
+function addVote(name) {
+
+    voteHistory.push(name);
+
 
     if (
-        !backgroundCalibration
+        voteHistory.length >
+        VOTE_WINDOW
     ) {
 
-        return false;
+        voteHistory.shift();
 
     }
 
 
-    const metrics =
-        getPresenceMetrics(
-            signature
-        );
+    const counts = {};
 
 
-    const normalPresence =
+    for (
+        const vote
+        of voteHistory
+    ) {
 
-        metrics.rawDifference >=
-            PRESENCE_RAW_THRESHOLD
-
-        &&
-
-        metrics.changedPixelRatio >=
-            PRESENCE_PIXEL_RATIO;
+        const key =
+            vote || "__UNKNOWN__";
 
 
-    const strongPresence =
-        metrics.rawDifference >=
-        STRONG_PRESENCE_RAW_THRESHOLD;
+        counts[key] =
+            (counts[key] || 0) + 1;
+
+    }
 
 
-    return (
-        normalPresence ||
-        strongPresence
+    let winner = null;
+
+    let highest = 0;
+
+
+    for (
+        const key in counts
+    ) {
+
+        if (
+            counts[key] >
+            highest
+        ) {
+
+            highest =
+                counts[key];
+
+            winner =
+                key;
+
+        }
+
+    }
+
+
+    if (
+        winner &&
+        winner !== "__UNKNOWN__" &&
+        highest >= REQUIRED_VOTES
+    ) {
+
+        return winner;
+
+    }
+
+
+    return null;
+
+}
+
+
+/* ------------------------------------------------------------
+   TARGET DISPLAY
+------------------------------------------------------------ */
+
+function showNoTarget() {
+
+    targetName.textContent =
+        "NO TARGET";
+
+    targetState.textContent =
+        "STEP INTO THE CENTER AREA";
+
+    scanArea.classList.remove(
+        "facePresent",
+        "recognized",
+        "unknown"
     );
 
 }
 
 
-/* =========================================================
-   CALIBRATION
-========================================================= */
+function showScanning() {
 
-async function calibrateBackground() {
+    targetName.textContent =
+        "SCANNING...";
 
-    if (!cameraOnline) {
+    targetState.textContent =
+        "VERIFYING FACIAL FEATURES";
 
-        setAction(
-            "CAMERA MUST BE ONLINE FIRST"
+    scanArea.classList.add(
+        "facePresent"
+    );
+
+    scanArea.classList.remove(
+        "recognized",
+        "unknown"
+    );
+
+}
+
+
+function showUnknown() {
+
+    targetName.textContent =
+        "UNKNOWN TARGET";
+
+    targetState.textContent =
+        "FACE DETECTED — NO MATCH";
+
+    scanArea.classList.add(
+        "unknown"
+    );
+
+    scanArea.classList.remove(
+        "recognized"
+    );
+
+}
+
+
+function showRecognized(name) {
+
+    targetName.textContent =
+        name.toUpperCase();
+
+    targetState.textContent =
+        "IDENTITY VERIFIED";
+
+    scanArea.classList.add(
+        "recognized"
+    );
+
+    scanArea.classList.remove(
+        "unknown"
+    );
+
+}
+
+
+/* ------------------------------------------------------------
+   RELEASE TARGET
+------------------------------------------------------------ */
+
+function releaseTarget() {
+
+    currentIdentity =
+        null;
+
+    identityLocked =
+        false;
+
+    voteHistory = [];
+
+    faceSeenCount = 0;
+
+    noFaceCount = 0;
+
+
+    showNoTarget();
+
+}
+
+
+/* ------------------------------------------------------------
+   MAIN SCAN
+------------------------------------------------------------ */
+
+async function scan() {
+
+    if (!scanning ||
+        training ||
+        !modelsReady) {
+
+        return;
+
+    }
+
+
+    const now =
+        performance.now();
+
+
+    if (
+        now - lastScan <
+        SCAN_INTERVAL
+    ) {
+
+        return;
+
+    }
+
+
+    lastScan =
+        now;
+
+
+    const result =
+        await detectFaceInsideSquare();
+
+
+    /* --------------------------------------------------------
+       NO FACE
+    -------------------------------------------------------- */
+
+    if (!result) {
+
+        faceSeenCount = 0;
+
+        noFaceCount++;
+
+
+        /*
+            IMPORTANT:
+
+            We do NOT instantly erase the target.
+
+            A single failed detection can happen because
+            of blinking, movement, lighting, etc.
+
+            But after RELEASE_SCANS consecutive failures,
+            the target is definitely gone.
+        */
+
+        if (
+            noFaceCount >=
+            RELEASE_SCANS
+        ) {
+
+            releaseTarget();
+
+        }
+
+        return;
+
+    }
+
+
+    /* --------------------------------------------------------
+       FACE FOUND
+    -------------------------------------------------------- */
+
+    noFaceCount = 0;
+
+    faceSeenCount++;
+
+
+    scanArea.classList.add(
+        "facePresent"
+    );
+
+
+    /*
+        Don't recognize instantly.
+
+        First make sure the face really is inside the
+        square for multiple scans.
+    */
+
+    if (
+        faceSeenCount <
+        PRESENCE_CONFIRMATIONS
+    ) {
+
+        showScanning();
+
+        return;
+
+    }
+
+
+    /* --------------------------------------------------------
+       MATCH FACE
+    -------------------------------------------------------- */
+
+    const descriptor =
+        result.descriptor;
+
+
+    const match =
+        findBestMatch(
+            descriptor
+        );
+
+
+    /* --------------------------------------------------------
+       RECOGNIZED
+    -------------------------------------------------------- */
+
+    if (match.name) {
+
+        const winner =
+            addVote(
+                match.name
+            );
+
+
+        if (winner) {
+
+            currentIdentity =
+                winner;
+
+            identityLocked =
+                true;
+
+            showRecognized(
+                winner
+            );
+
+            statusText.textContent =
+                "IDENTITY VERIFIED";
+
+            statusDot.classList.add(
+                "ready"
+            );
+
+        } else {
+
+            /*
+                Still collecting votes.
+            */
+
+            if (
+                identityLocked &&
+                currentIdentity
+            ) {
+
+                showRecognized(
+                    currentIdentity
+                );
+
+            } else {
+
+                showScanning();
+
+            }
+
+        }
+
+    }
+
+
+    /* --------------------------------------------------------
+       UNKNOWN
+    -------------------------------------------------------- */
+
+    else {
+
+        addVote(null);
+
+
+        /*
+            If we already have a verified identity and the
+            face is still physically present, don't randomly
+            replace the person's name because of one imperfect
+            frame.
+        */
+
+        if (
+            identityLocked &&
+            currentIdentity
+        ) {
+
+            showRecognized(
+                currentIdentity
+            );
+
+        } else {
+
+            /*
+                Only show UNKNOWN after several attempts.
+
+                This prevents "unknown target" from flashing
+                every time the detector has one difficult frame.
+            */
+
+            const unknownVotes =
+                voteHistory.filter(
+                    vote =>
+                        vote === null
+                ).length;
+
+
+            if (
+                unknownVotes >= 4
+            ) {
+
+                showUnknown();
+
+            } else {
+
+                showScanning();
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ------------------------------------------------------------
+   START SCANNING
+------------------------------------------------------------ */
+
+function startScanning() {
+
+    if (scanning) {
+
+        return;
+
+    }
+
+
+    scanning = true;
+
+
+    statusText.textContent =
+        "FACE ENGINE ACTIVE";
+
+    statusDot.classList.add(
+        "ready"
+    );
+
+
+    scanTimer =
+        setInterval(
+            scan,
+            100
+        );
+
+}
+
+
+/* ------------------------------------------------------------
+   TRAINING
+------------------------------------------------------------ */
+
+async function trainPerson() {
+
+    if (!modelsReady) {
+
+        showNotification(
+            "FACE ENGINE NOT READY"
         );
 
         return;
@@ -2519,10 +2050,26 @@ async function calibrateBackground() {
     }
 
 
-    if (currentIdentity) {
+    if (training) {
 
-        setAction(
-            "STEP OUT OF CENTER BOX BEFORE CALIBRATION"
+        return;
+
+    }
+
+
+    /*
+        Make sure someone is actually standing inside
+        the center square before asking for a name.
+    */
+
+    const firstDetection =
+        await detectFaceInsideSquare();
+
+
+    if (!firstDetection) {
+
+        showNotification(
+            "PLACE YOUR FACE INSIDE THE CENTER SQUARE FIRST"
         );
 
         return;
@@ -2530,1096 +2077,143 @@ async function calibrateBackground() {
     }
 
 
-    setStatus(
-        "CALIBRATING"
-    );
+    const name =
+        prompt(
+            "E.D.I.T.H. TRAINING\n\nEnter the person's name:"
+        );
 
-    setAction(
-        "KEEP CENTER BOX EMPTY"
+
+    if (!name ||
+        !name.trim()) {
+
+        return;
+
+    }
+
+
+    training = true;
+
+
+    /*
+        Stop normal recognition while collecting samples.
+    */
+
+    voteHistory = [];
+
+    currentIdentity = null;
+
+    identityLocked = false;
+
+
+    targetName.textContent =
+        "TRAINING";
+
+    targetState.textContent =
+        "HOLD POSITION";
+
+
+    showNotification(
+        "TRAINING STARTED — HOLD YOUR FACE STEADY"
     );
 
 
     const samples = [];
 
 
-    for (
-        let i = 0;
-        i < 20;
-        i++
-    ) {
+    /*
+        Collect multiple samples.
 
-        const image =
-            captureRawImage();
+        Each sample is a facial descriptor.
 
+        This is the key difference from the old versions.
+    */
 
-        const signature =
-            createSignature(
-                image
-            );
-
-
-        if (signature) {
-
-            samples.push(
-                signature.raw
-            );
-
-        }
-
-
-        setAction(
-
-            "EMPTY SECTOR SAMPLE " +
-            (i + 1) +
-            "/20"
-
-        );
-
-
-        await new Promise(
-            resolve =>
-                setTimeout(
-                    resolve,
-                    140
-                )
-        );
-
-    }
-
-
-    if (
-        samples.length < 12
-    ) {
-
-        setStatus(
-            "CALIBRATION FAILED"
-        );
-
-        setAction(
-            "NOT ENOUGH VALID SAMPLES"
-        );
-
-        return;
-
-    }
-
-
-    backgroundCalibration = {
-
-        raw:
-            averageArrays(
-                samples
-            ),
-
-        created:
-            new Date().toISOString(),
-
-        version:
-            "62.0"
-
-    };
-
-
-    saveCalibration();
-
-
-    resetTrackingState();
-
-
-    document.body.classList.remove(
-        "threat"
-    );
-
-
-    setStatus(
-        "PASSIVE SCAN"
-    );
-
-    setAction(
-        "FRESH EMPTY-SECTOR CALIBRATION SAVED"
-    );
-
-
-    showPassiveSidebar();
-
-}
-
-
-/* =========================================================
-   CALIBRATION STORAGE
-========================================================= */
-
-function saveCalibration() {
-
-    try {
-
-        localStorage.setItem(
-
-            CALIBRATION_KEY,
-
-            JSON.stringify(
-                backgroundCalibration
-            )
-
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Calibration save failed:",
-            error
-        );
-
-    }
-
-}
-
-
-function loadCalibration() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                CALIBRATION_KEY
-            );
-
-
-        if (!saved) {
-            return null;
-        }
-
-
-        const parsed =
-            JSON.parse(saved);
-
-
-        if (
-            parsed &&
-            Array.isArray(
-                parsed.raw
-            )
-        ) {
-
-            return parsed;
-
-        }
-
-
-        return null;
-
-    }
-
-    catch (error) {
-
-        return null;
-
-    }
-
-}
-
-
-/* =========================================================
-   AVERAGE ARRAYS
-========================================================= */
-
-function averageArrays(arrays) {
-
-    if (
-        !arrays ||
-        arrays.length === 0
-    ) {
-
-        return [];
-
-    }
-
-
-    const length =
-        arrays[0].length;
-
-
-    const result =
-        new Array(length)
-            .fill(0);
-
-
-    for (
-        const array of arrays
-    ) {
-
-        for (
-            let i = 0;
-            i < length;
-            i++
-        ) {
-
-            result[i] +=
-                array[i];
-
-        }
-
-    }
+    const totalSamples = 15;
 
 
     for (
         let i = 0;
-        i < result.length;
+        i < totalSamples;
         i++
     ) {
 
-        result[i] /=
-            arrays.length;
+        targetState.textContent =
+            `CAPTURING FACE ${i + 1}/${totalSamples}`;
 
-    }
 
-
-    return result;
-
-}
-
-
-/* =========================================================
-   RESET TRACKING
-========================================================= */
-
-function resetTrackingState() {
-
-    currentIdentity = null;
-
-    candidateIdentity = null;
-
-    candidateVoteCount = 0;
-
-    identityHistory = [];
-
-    unknownScanCount = 0;
-
-    emptyScanCount = 0;
-
-    presenceScanCount = 0;
-
-    presenceLocked = false;
-
-}
-
-
-/* =========================================================
-   RADAR
-========================================================= */
-
-function startRadar() {
-
-    if (radarTimer) {
-
-        clearInterval(
-            radarTimer
-        );
-
-    }
-
-
-    runRadarScan();
-
-
-    radarTimer =
-        setInterval(
-            runRadarScan,
-            RADAR_INTERVAL
-        );
-
-}
-
-
-/* =========================================================
-   IDENTITY HISTORY
-========================================================= */
-
-function pushIdentityObservation(
-    value
-) {
-
-    identityHistory.push(
-        value
-    );
-
-
-    if (
-        identityHistory.length >
-        IDENTITY_HISTORY_LENGTH
-    ) {
-
-        identityHistory.shift();
-
-    }
-
-}
-
-
-/* =========================================================
-   COUNT IDENTITY VOTES
-========================================================= */
-
-function countVotesFor(id) {
-
-    return identityHistory.filter(
-        value =>
-            value === id
-    ).length;
-
-}
-
-
-/* =========================================================
-   GET PROFILE
-========================================================= */
-
-function getProfileById(id) {
-
-    return identityArchive.find(
-        profile =>
-            profile.id === id
-    );
-
-}
-
-
-/* =========================================================
-   MAIN RADAR
-========================================================= */
-
-function runRadarScan() {
-
-    if (
-        !cameraOnline ||
-        !backgroundCalibration
-    ) {
-
-        return;
-
-    }
-
-
-    const image =
-        captureRawImage();
-
-
-    const signature =
-        createSignature(
-            image
-        );
-
-
-    if (!signature) {
-        return;
-    }
-
-
-    /* =====================================================
-       STEP 1
-       PRESENCE ALWAYS COMES FIRST
-    ===================================================== */
-
-    const present =
-        isTargetPresent(
-            signature
-        );
-
-
-    /* =====================================================
-       ABSENT
-    ===================================================== */
-
-    if (!present) {
-
-        presenceScanCount = 0;
-
-        unknownScanCount = 0;
-
-        candidateIdentity = null;
-
-        candidateVoteCount = 0;
+        let captured = false;
 
 
         /*
-           IMPORTANT:
-
-           If a known person is displayed,
-           do NOT immediately erase their name.
-
-           Require several genuinely empty scans.
+            Give the detector several attempts for each sample.
         */
 
-        if (currentIdentity) {
+        for (
+            let attempt = 0;
+            attempt < 5;
+            attempt++
+        ) {
 
-            emptyScanCount++;
-
-
-            setStatus(
-                "TARGET LOCKED"
-            );
-
-            setAction(
-
-                "PRESENCE LOST — VERIFYING EXIT " +
-
-                emptyScanCount +
-
-                "/" +
-
-                EMPTY_SCANS_TO_RELEASE
-
-            );
+            const result =
+                await detectFaceInsideSquare();
 
 
-            showExitSidebar();
+            if (result) {
+
+                samples.push({
+
+                    descriptor:
+                        Array.from(
+                            result.descriptor
+                        )
+
+                });
 
 
-            if (
-                emptyScanCount >=
-                EMPTY_SCANS_TO_RELEASE
-            ) {
+                captured = true;
 
-                releaseTarget();
+                break;
 
             }
 
 
-            return;
+            await sleep(180);
 
         }
 
 
-        /*
-           Nobody is locked.
-        */
+        if (!captured) {
 
-        emptyScanCount = 0;
+            /*
+                If one sample fails, continue.
 
-        identityHistory = [];
+                We only need enough good samples.
+            */
 
-        presenceLocked = false;
-
-
-        document.body.classList.remove(
-            "threat"
-        );
+        }
 
 
-        setStatus(
-            "PASSIVE SCAN"
-        );
-
-        setAction(
-            "CENTER SECTOR EMPTY — SEARCHING"
-        );
-
-
-        showPassiveSidebar();
-
-
-        return;
+        await sleep(150);
 
     }
 
 
-    /* =====================================================
-       PRESENT
-    ===================================================== */
-
-    emptyScanCount = 0;
-
-    presenceScanCount++;
-
-
-    document.body.classList.remove(
-        "threat"
-    );
-
-
-    /*
-       Confirm presence first.
-    */
-
-    if (!presenceLocked) {
-
-        setStatus(
-            "TARGET ACQUIRED"
-        );
-
-        setAction(
-
-            "TARGET DETECTED — STABILIZING " +
-
-            presenceScanCount +
-
-            "/" +
-
-            PRESENCE_SCANS_TO_CONFIRM
-
-        );
-
-
-        showPresenceSidebar();
-
-
-        if (
-            presenceScanCount <
-            PRESENCE_SCANS_TO_CONFIRM
-        ) {
-
-            return;
-
-        }
-
-
-        presenceLocked = true;
-
-        identityHistory = [];
-
-        unknownScanCount = 0;
-
-        candidateIdentity = null;
-
-        candidateVoteCount = 0;
-
-
-        setStatus(
-            "IDENTITY SCAN"
-        );
-
-        setAction(
-            "PRESENCE CONFIRMED — BEGINNING CAREFUL IDENTITY MATCH"
-        );
-
-    }
-
-
-    /* =====================================================
-       EXISTING KNOWN TARGET
-    ===================================================== */
-
-    if (currentIdentity) {
-
-        const match =
-            findBestProfile(
-                signature
-            );
-
-
-        /*
-           If the current person matches their
-           stored profile, reinforce the lock.
-        */
-
-        if (
-            match &&
-            match.profile.id ===
-                currentIdentity.id
-        ) {
-
-            unknownScanCount = 0;
-
-            pushIdentityObservation(
-                match.profile.id
-            );
-
-
-            setStatus(
-                "TARGET LOCKED"
-            );
-
-            setAction(
-
-                "IDENTITY CONFIRMED — " +
-                currentIdentity.name
-
-            );
-
-
-            showKnownSidebar(
-
-                currentIdentity,
-
-                match.distance
-
-            );
-
-
-            return;
-
-        }
-
-
-        /*
-           A single bad recognition frame is NOT
-           allowed to change the displayed name.
-
-           Presence has already been confirmed.
-        */
-
-        unknownScanCount = 0;
-
-
-        setStatus(
-            "TARGET LOCKED"
-        );
-
-        setAction(
-
-            "IDENTITY FRAME UNCERTAIN — " +
-            currentIdentity.name +
-            " RETAINED WHILE PRESENT"
-
-        );
-
-
-        showKnownSidebar(
-
-            currentIdentity,
-
-            MATCH_TOLERANCE
-
-        );
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       NEW IDENTITY SEARCH
-    ===================================================== */
-
-    const match =
-        findBestProfile(
-            signature
-        );
-
-
-    /* =====================================================
-       MATCH FOUND
-    ===================================================== */
-
-    if (match) {
-
-        unknownScanCount = 0;
-
-
-        /*
-           If this is the same candidate as
-           the previous scan, increase its vote.
-        */
-
-        if (
-            candidateIdentity &&
-            candidateIdentity.id ===
-                match.profile.id
-        ) {
-
-            candidateVoteCount++;
-
-        }
-
-        else {
-
-            candidateIdentity =
-                match.profile;
-
-            candidateVoteCount = 1;
-
-            identityHistory = [];
-
-        }
-
-
-        pushIdentityObservation(
-            match.profile.id
-        );
-
-
-        /*
-           Need several consistent observations.
-        */
-
-        if (
-            candidateVoteCount >=
-            IDENTITY_CONFIRM_VOTES
-        ) {
-
-            lockOntoProfile(
-                match.profile,
-                match.distance
-            );
-
-            return;
-
-        }
-
-
-        setStatus(
-            "VERIFYING TARGET"
-        );
-
-        setAction(
-
-            "MATCH CANDIDATE: " +
-            match.profile.name +
-            " — FRAME " +
-            candidateVoteCount +
-            "/" +
-            IDENTITY_CONFIRM_VOTES
-
-        );
-
-
-        showCandidateSidebar(
-
-            match.profile,
-
-            match.distance
-
-        );
-
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       NO MATCH
-    ===================================================== */
-
-    unknownScanCount++;
-
-
-    candidateIdentity = null;
-
-    candidateVoteCount = 0;
-
-
-    /*
-       Do NOT immediately announce UNKNOWN.
-    */
+    /* --------------------------------------------------------
+       TRAINING RESULT
+    -------------------------------------------------------- */
 
     if (
-        unknownScanCount <
-        UNKNOWN_SCANS_TO_CONFIRM
+        samples.length < 7
     ) {
 
-        setStatus(
-            "IDENTITY SCAN"
-        );
+        training = false;
 
-        setAction(
 
-            "NO CONFIDENT PROFILE MATCH — FRAME " +
+        showNoTarget();
 
-            unknownScanCount +
 
-            "/" +
-
-            UNKNOWN_SCANS_TO_CONFIRM
-
-        );
-
-
-        clearSidebar();
-
-        addSidebarRow(
-            "LOCK: ANALYZING"
-        );
-
-        addSidebarRow(
-            "TARGET: UNVERIFIED"
-        );
-
-        addSidebarRow(
-            "PRESENCE: CONFIRMED"
-        );
-
-        addSidebarRow(
-            "IDENTITY: SEARCHING"
-        );
-
-        addSidebarRow(
-            "FRAME: " +
-            unknownScanCount +
-            "/" +
-            UNKNOWN_SCANS_TO_CONFIRM
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-       Only after repeated failed matching
-       do we call the person unknown.
-    */
-
-    document.body.classList.add(
-        "threat"
-    );
-
-
-    setStatus(
-        "THREAT MATRIX"
-    );
-
-    setAction(
-        "UNKNOWN TARGET PRESENT IN CENTER SECTOR"
-    );
-
-
-    showUnknownSidebar();
-
-
-    const now =
-        Date.now();
-
-
-    if (
-        now -
-        lastUnknownAlert >
-        10000
-    ) {
-
-        lastUnknownAlert =
-            now;
-
-
-        speak(
-            "Unknown target detected."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   LOCK PROFILE
-========================================================= */
-
-function lockOntoProfile(
-    profile,
-    distance
-) {
-
-    currentIdentity =
-        profile;
-
-
-    candidateIdentity =
-        null;
-
-    candidateVoteCount =
-        0;
-
-    unknownScanCount =
-        0;
-
-    emptyScanCount =
-        0;
-
-    presenceLocked =
-        true;
-
-
-    identityHistory = [
-
-        profile.id,
-
-        profile.id,
-
-        profile.id,
-
-        profile.id,
-
-        profile.id
-
-    ];
-
-
-    document.body.classList.remove(
-        "threat"
-    );
-
-
-    setStatus(
-        "TARGET LOCKED"
-    );
-
-    setAction(
-
-        "IDENTITY CONFIRMED — " +
-        profile.name
-
-    );
-
-
-    showKnownSidebar(
-
-        profile,
-
-        distance
-
-    );
-
-
-    speak(
-        "Welcome, " +
-        profile.name
-    );
-
-}
-
-
-/* =========================================================
-   RELEASE TARGET
-========================================================= */
-
-function releaseTarget() {
-
-    const oldName =
-        currentIdentity
-            ? currentIdentity.name
-            : null;
-
-
-    /*
-       IMPORTANT:
-
-       Only the temporary lock is cleared.
-
-       The saved identity archive remains untouched.
-    */
-
-    currentIdentity = null;
-
-    candidateIdentity = null;
-
-    candidateVoteCount = 0;
-
-    identityHistory = [];
-
-    unknownScanCount = 0;
-
-    emptyScanCount = 0;
-
-    presenceScanCount = 0;
-
-    presenceLocked = false;
-
-
-    document.body.classList.remove(
-        "threat"
-    );
-
-
-    setStatus(
-        "PASSIVE SCAN"
-    );
-
-    setAction(
-        "TARGET OUT OF SECTOR — IDENTITY RELEASED"
-    );
-
-
-    showPassiveSidebar();
-
-
-    if (oldName) {
-
-        speak(
-            "Target out of sector. Resuming passive scan."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   REGISTER PERSON
-========================================================= */
-
-async function registerCurrentTarget() {
-
-    if (!cameraOnline) {
-
-        setAction(
-            "CAMERA MUST BE INITIALIZED FIRST"
-        );
-
-        return;
-
-    }
-
-
-    if (!backgroundCalibration) {
-
-        setAction(
-            "CALIBRATE EMPTY SECTOR FIRST — PRESS C"
-        );
-
-        return;
-
-    }
-
-
-    /*
-       Make sure a person is actually present.
-    */
-
-    const firstImage =
-        captureRawImage();
-
-
-    const firstSignature =
-        createSignature(
-            firstImage
-        );
-
-
-    if (
-        !firstSignature ||
-        !isTargetPresent(
-            firstSignature
-        )
-    ) {
-
-        setAction(
-            "NO TARGET DETECTED IN CENTER BOX"
-        );
-
-        return;
-
-    }
-
-
-    const enteredName =
-        prompt(
-
-            "E.D.I.T.H. IDENTITY REGISTRATION\n\n" +
-            "Enter the person's name:"
-
-        );
-
-
-    if (
-        enteredName === null
-    ) {
-
-        setAction(
-            "REGISTRATION CANCELLED"
+        showNotification(
+            "TRAINING FAILED — NOT ENOUGH FACE SAMPLES"
         );
 
         return;
@@ -3628,173 +2222,49 @@ async function registerCurrentTarget() {
 
 
     const cleanName =
-        enteredName.trim();
-
-
-    if (!cleanName) {
-
-        setAction(
-            "INVALID IDENTITY NAME"
-        );
-
-        return;
-
-    }
-
-
-    setStatus(
-        "REGISTERING PROFILE"
-    );
-
-    setAction(
-        "KEEP YOUR FACE IN THE CENTER BOX"
-    );
-
-
-    const samples = [];
+        name.trim();
 
 
     /*
-       Slow collection.
+        If the name already exists, update it.
 
-       The person should remain in approximately
-       the same position while samples are collected.
+        This also replaces old V61-style legacy profiles.
     */
 
-    for (
-        let i = 0;
-        i < PROFILE_SAMPLE_COUNT;
-        i++
-    ) {
-
-        const image =
-            captureRawImage();
-
-
-        const signature =
-            createSignature(
-                image
-            );
-
-
-        if (
-            signature &&
-            isTargetPresent(
-                signature
-            )
-        ) {
-
-            samples.push({
-
-                normalized:
-                    signature.normalized
-
-            });
-
-        }
-
-
-        setAction(
-
-            "COLLECTING IDENTITY SAMPLE " +
-
-            (i + 1) +
-
-            "/" +
-
-            PROFILE_SAMPLE_COUNT
-
+    const existingIndex =
+        archive.findIndex(
+            profile =>
+                profile.name.toLowerCase() ===
+                cleanName.toLowerCase()
         );
-
-
-        await new Promise(
-            resolve =>
-                setTimeout(
-                    resolve,
-                    220
-                )
-        );
-
-    }
-
-
-    if (
-        samples.length < 12
-    ) {
-
-        setStatus(
-            "REGISTRATION FAILED"
-        );
-
-        setAction(
-            "NOT ENOUGH STABLE IDENTITY SAMPLES"
-        );
-
-        return;
-
-    }
 
 
     const profile = {
 
-        id:
-            "ED62-" +
-            Date.now() +
-            "-" +
-            Math.floor(
-                Math.random() *
-                999999
-            ),
+        name: cleanName,
 
-        name:
-            cleanName,
-
-        samples:
-            samples,
+        samples: samples,
 
         created:
             new Date().toISOString(),
 
         version:
-            "62.0"
+            "62.0-face-descriptor"
 
     };
 
 
-    /*
-       Replace a profile with the same name.
-    */
-
-    const existingIndex =
-        identityArchive.findIndex(
-
-            item =>
-                item.name.toLowerCase() ===
-                cleanName.toLowerCase()
-
-        );
-
-
     if (
-        existingIndex !== -1
+        existingIndex >= 0
     ) {
 
-        profile.id =
-            identityArchive[
-                existingIndex
-            ].id;
-
-
-        identityArchive[
+        archive[
             existingIndex
-        ] =
-            profile;
+        ] = profile;
 
-    }
+    } else {
 
-    else {
-
-        identityArchive.push(
+        archive.push(
             profile
         );
 
@@ -3803,186 +2273,161 @@ async function registerCurrentTarget() {
 
     saveArchive();
 
+    renderArchive();
+
+
+    training = false;
+
+
+    releaseTarget();
+
+
+    showNotification(
+        `${cleanName.toUpperCase()} — FACE PROFILE SAVED`
+    );
+
 
     /*
-       Immediately lock the newly registered
-       identity.
+        Speak the result.
     */
 
-    currentIdentity =
-        profile;
-
-    candidateIdentity =
-        null;
-
-    candidateVoteCount =
-        0;
-
-    identityHistory = [
-        profile.id,
-        profile.id,
-        profile.id,
-        profile.id,
-        profile.id
-    ];
-
-    unknownScanCount = 0;
-
-    emptyScanCount = 0;
-
-    presenceLocked = true;
-
-
-    document.body.classList.remove(
-        "threat"
-    );
-
-
-    setStatus(
-        "PROFILE REGISTERED"
-    );
-
-    setAction(
-
-        "IDENTITY LOCKED — " +
-        cleanName
-
-    );
-
-
-    showKnownSidebar(
-        profile,
-        0
-    );
-
-
     speak(
-        cleanName +
-        " registered successfully."
+        `${cleanName} face profile saved`
     );
 
 }
 
 
-/* =========================================================
-   CLEAR ARCHIVE
-========================================================= */
+/* ------------------------------------------------------------
+   SLEEP
+------------------------------------------------------------ */
 
-function clearArchive() {
+function sleep(ms) {
 
-    const confirmed =
-        confirm(
-
-            "Delete all saved E.D.I.T.H. identity profiles?"
-
-        );
-
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    identityArchive = [];
-
-
-    localStorage.removeItem(
-        STORAGE_KEY
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
     );
-
-
-    for (
-        const oldKey of OLD_STORAGE_KEYS
-    ) {
-
-        localStorage.removeItem(
-            oldKey
-        );
-
-    }
-
-
-    resetTrackingState();
-
-
-    updateArchiveCount();
-
-
-    document.body.classList.remove(
-        "threat"
-    );
-
-
-    setStatus(
-        "ARCHIVE CLEARED"
-    );
-
-    setAction(
-        "IDENTITY DATABASE EMPTY"
-    );
-
-
-    showPassiveSidebar();
 
 }
 
 
-/* =========================================================
-   KEYBOARD
-========================================================= */
+/* ------------------------------------------------------------
+   RESET TRACKING
+------------------------------------------------------------ */
+
+function resetTracking() {
+
+    releaseTarget();
+
+
+    showNotification(
+        "OPTICAL TRACKING RESET"
+    );
+
+}
+
+
+/* ------------------------------------------------------------
+   SPEECH
+------------------------------------------------------------ */
+
+function speak(text) {
+
+    try {
+
+        if (
+            !("speechSynthesis" in window)
+        ) {
+
+            return;
+
+        }
+
+
+        window.speechSynthesis.cancel();
+
+
+        const utterance =
+            new SpeechSynthesisUtterance(
+                text
+            );
+
+
+        utterance.rate =
+            0.9;
+
+        utterance.pitch =
+            0.9;
+
+
+        window.speechSynthesis.speak(
+            utterance
+        );
+
+    } catch (error) {
+
+        console.log(
+            "Speech unavailable"
+        );
+
+    }
+
+}
+
+
+/* ------------------------------------------------------------
+   KEYBOARD CONTROLS
+------------------------------------------------------------ */
 
 document.addEventListener(
     "keydown",
     event => {
 
+        /*
+            T = TRAIN
+        */
+
         if (
             event.key.toLowerCase() === "t"
         ) {
 
-            event.preventDefault();
-
-            registerCurrentTarget();
+            trainPerson();
 
         }
 
+
+        /*
+            C = RESET TRACKING
+
+            Does NOT delete saved identities.
+        */
 
         if (
             event.key.toLowerCase() === "c"
         ) {
 
-            event.preventDefault();
-
-            calibrateBackground();
+            resetTracking();
 
         }
 
+
+        /*
+            ESC = CLEAR CURRENT TARGET
+        */
 
         if (
             event.key === "Escape"
         ) {
 
-            candidateIdentity = null;
-
-            candidateVoteCount = 0;
-
-            identityHistory = [];
-
-            unknownScanCount = 0;
-
-            presenceScanCount = 0;
+            releaseTarget();
 
 
-            if (
-                "speechSynthesis" in window
-            ) {
-
-                window.speechSynthesis.cancel();
-
-            }
-
-
-            setAction(
-                "TEMPORARY VERIFICATION STATE RESET"
+            showNotification(
+                "TARGET CLEARED"
             );
 
         }
@@ -3991,107 +2436,94 @@ document.addEventListener(
 );
 
 
-/* =========================================================
-   BUTTONS
-========================================================= */
+/* ------------------------------------------------------------
+   BOOT
+------------------------------------------------------------ */
 
-bootBtn.addEventListener(
+bootButton.addEventListener(
     "click",
-    initializeCamera
+    async () => {
+
+        bootButton.disabled =
+            true;
+
+
+        try {
+
+            loadArchive();
+
+
+            await startCamera();
+
+
+            await loadFaceModels();
+
+
+            bootStatus.innerHTML =
+                "SYSTEM READY<br>" +
+                "STEP INTO THE CENTER SQUARE";
+
+
+            await sleep(1200);
+
+
+            boot.style.display =
+                "none";
+
+
+            startScanning();
+
+
+            showNotification(
+                "E.D.I.T.H. ONLINE"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            bootButton.disabled =
+                false;
+
+            bootButton.textContent =
+                "RETRY INITIALIZATION";
+
+        }
+
+    }
 );
 
 
-calibrateBtn.addEventListener(
-    "click",
-    calibrateBackground
+/* ------------------------------------------------------------
+   INITIAL ARCHIVE LOAD
+------------------------------------------------------------ */
+
+loadArchive();
+
+
+/* ------------------------------------------------------------
+   PAGE VISIBILITY
+
+   When the tab becomes hidden, temporarily release the
+   active target so a stale identity cannot remain locked.
+------------------------------------------------------------ */
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if (
+            document.hidden
+        ) {
+
+            releaseTarget();
+
+        }
+
+    }
 );
-
-
-clearArchiveBtn.addEventListener(
-    "click",
-    clearArchive
-);
-
-
-window.addEventListener(
-    "resize",
-    resizeOverlay
-);
-
-
-/* =========================================================
-   ARCHIVE COUNT
-========================================================= */
-
-function updateArchiveCount() {
-
-    archiveCount.textContent =
-
-        "ARCHIVE: " +
-        identityArchive.length +
-        " PROFILES";
-
-}
-
-
-/* =========================================================
-   INITIAL HUD
-========================================================= */
-
-updateArchiveCount();
-
-updateBattery();
-
-
-if (backgroundCalibration) {
-
-    addSidebarRow(
-        "LOCK: CALIBRATION SAVED"
-    );
-
-    addSidebarRow(
-        "CLEARANCE: READY"
-    );
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "RADAR: STANDBY"
-    );
-
-    addSidebarRow(
-        "ARCHIVE: " +
-        identityArchive.length
-    );
-
-}
-
-else {
-
-    addSidebarRow(
-        "LOCK: OFFLINE"
-    );
-
-    addSidebarRow(
-        "CLEARANCE: PENDING"
-    );
-
-    addSidebarRow(
-        "SECTOR: CENTER"
-    );
-
-    addSidebarRow(
-        "RADAR: STANDBY"
-    );
-
-    addSidebarRow(
-        "ARCHIVE: " +
-        identityArchive.length
-    );
-
-}
 
 </script>
 
